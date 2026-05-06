@@ -1,6 +1,6 @@
 # skills/
 
-Each subdirectory is a single Claude Skill. The minimum required file is `SKILL.md` with frontmatter describing the skill.
+Each subdirectory is a single agent skill. The minimum required file is `SKILL.md` with frontmatter describing the skill. Skills are agent-agnostic — they target the [skills.sh](https://skills.sh) `SKILL.md` format and work with any agent that loads it.
 
 ```
 skills/

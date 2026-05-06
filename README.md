@@ -1,14 +1,15 @@
 # skills
 
-> Personal monorepo for [Claude Skills](https://skills.sh) — authored, forked, and customized for my own workflows.
+> Personal monorepo for [agent skills](https://skills.sh) — authored, forked, and customized for my own workflows. Works with any agent that supports the `SKILL.md` format (Claude Code, Cursor, Codex, custom agents, etc.).
 
+[![skills.sh](https://skills.sh/b/zrosenbauer/skills)](https://skills.sh/zrosenbauer/skills)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](./LICENSE)
 [![pnpm](https://img.shields.io/badge/pnpm-10-orange?logo=pnpm)](https://pnpm.io/)
 [![Turborepo](https://img.shields.io/badge/turborepo-2-blue?logo=turborepo)](https://turborepo.com/)
 
 ## About
 
-A pnpm + Turborepo workspace for building, modifying, and publishing [Claude Skills](https://skills.sh). Skills are markdown files (`SKILL.md`) with frontmatter that describe when and how Claude should invoke them. This repo also has room for shared utility packages that support skill authoring.
+A pnpm + Turborepo workspace for building, modifying, and publishing [agent skills](https://skills.sh). Skills are markdown files (`SKILL.md`) with frontmatter that describe when and how an agent should invoke them — agent-agnostic by design. This repo also has room for shared utility packages that support skill authoring.
 
 ## Structure
 
@@ -55,17 +56,27 @@ model-invocable: true
 
 # my-skill
 
-Instructions for the model when this skill is invoked.
+Instructions for the agent when this skill is invoked.
 ```
 
 See [skills.sh](https://skills.sh) for the full skill spec.
 
-### Installing a skill locally
+### Installing a skill
 
-Symlink (or copy) the skill into Claude Code's skills directory:
+Via the [skills.sh](https://skills.sh) CLI (recommended):
 
 ```bash
+npx skills add zrosenbauer/skills
+```
+
+Or symlink directly into your agent's skills directory:
+
+```bash
+# Claude Code
 ln -s "$PWD/skills/my-skill" ~/.claude/skills/my-skill
+
+# Cursor / other agents — wherever that agent loads skills from
+ln -s "$PWD/skills/my-skill" <agent-skills-dir>/my-skill
 ```
 
 ## Scripts

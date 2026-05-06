@@ -2,9 +2,9 @@
   "name": "@zrosenbauer/skills",
   "version": "0.0.0",
   "private": true,
-  "description": "Personal Claude skills monorepo",
+  "description": "Personal agent skills monorepo (SKILL.md format) — agent-agnostic, works with Claude Code, Cursor, Codex, and others",
   "license": "MIT",
-  "author": "Zac Rosenbauer <zac@joggr.io>",
+  "author": "Zac Rosenbauer <zacrosenbauer@gmail.com>",
   "repository": {
     "type": "git",
     "url": "https://github.com/zrosenbauer/skills.git"

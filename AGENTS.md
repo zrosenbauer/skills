@@ -4,7 +4,7 @@ Guidance for AI coding agents (Claude Code, Cursor, Codex, etc.) working in this
 
 ## What this repo is
 
-A personal monorepo for [Claude Skills](https://skills.sh) authored by Zac Rosenbauer. Skills live in `skills/<skill-name>/` and follow the `SKILL.md` format. Shared utilities (if any) live as pnpm workspace packages in `packages/`.
+A personal monorepo for [agent skills](https://skills.sh) authored by Zac Rosenbauer. Skills are agent-agnostic — they target the `SKILL.md` format and work with any agent that loads it (Claude Code, Cursor, Codex, custom agents, etc.). Skills live in `skills/<skill-name>/`. Shared utilities (if any) live as pnpm workspace packages in `packages/`.
 
 ## Layout
 
@@ -34,7 +34,7 @@ model-invocable: true
 
 # <skill-name>
 
-Body of the skill — instructions for the model when invoked.
+Body of the skill — instructions for the agent when invoked.
 ```
 
 Optional files inside a skill: `LICENSE`, `README.md`, supporting scripts/templates.
