@@ -41,6 +41,8 @@ description: >-
   "remove the class", and "use Result instead of throw". Bakes in factory
   functions over classes and Result<T,E> over exceptions. Skip when working
   with framework-required classes.
+
+# --- Claude Code extensions (ignored by other agents) ---
 argument-hint: '[<file-path>]'
 user-invocable: true
 model-invocable: true

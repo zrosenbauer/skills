@@ -4,8 +4,6 @@
 
 [![skills.sh](https://skills.sh/b/zrosenbauer/skills)](https://skills.sh/zrosenbauer/skills)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](./LICENSE)
-[![pnpm](https://img.shields.io/badge/pnpm-10-orange?logo=pnpm)](https://pnpm.io/)
-[![Turborepo](https://img.shields.io/badge/turborepo-2-blue?logo=turborepo)](https://turborepo.com/)
 
 ## About
 
@@ -15,13 +13,22 @@ A pnpm + Turborepo workspace for building, modifying, and publishing [agent skil
 
 ```
 .
-├── skills/              # one directory per skill (SKILL.md + assets)
+├── skills/              # public skills — published via the skills CLI
+├── .agents/skills/      # private/local skills (not published)
 ├── packages/            # shared utility packages (@zrosenbauer/*)
+├── .claude/skills/      # symlinks into .agents/skills/ for Claude Code to load
 ├── AGENTS.md            # agent guidance (CLAUDE.md → symlink)
 ├── package.json         # root workspace
 ├── pnpm-workspace.yaml
 └── turbo.json
 ```
+
+`skills/` and `.agents/skills/` use the same `SKILL.md` format. The split is about distribution, not content:
+
+| Location | Visibility | Distribution |
+|---|---|---|
+| `skills/<name>/` | Public | Listed and installed by `npx skills add zrosenbauer/skills` |
+| `.agents/skills/<name>/` | Local-only | Not listed by the CLI; loaded by symlinking into `.claude/skills/` (or your agent's equivalent) |
 
 ## Getting started
 
@@ -35,20 +42,31 @@ pnpm install
 
 ## Authoring a skill
 
-Create a new directory under `skills/` and add a `SKILL.md`:
+For public skills — anyone can install via `npx skills add`:
 
 ```bash
 mkdir -p skills/my-skill
 $EDITOR skills/my-skill/SKILL.md
 ```
 
+For local-only skills — only available to you, in this repo:
+
+```bash
+mkdir -p .agents/skills/my-skill
+$EDITOR .agents/skills/my-skill/SKILL.md
+ln -s "../../.agents/skills/my-skill" .claude/skills/my-skill   # for Claude Code
+```
+
 `SKILL.md` format:
 
 ```markdown
 ---
+name: my-skill
 description: >-
   When this skill should fire. Include common trigger phrases the user
   might say so the dispatcher matches reliably.
+
+# --- Claude Code extensions (ignored by other agents) ---
 argument-hint: '[<optional-arg>]'
 user-invocable: true
 model-invocable: true
@@ -59,24 +77,15 @@ model-invocable: true
 Instructions for the agent when this skill is invoked.
 ```
 
-See [skills.sh](https://skills.sh) for the full skill spec.
+`name` and `description` are the universal core (required by the [`skills` CLI](https://www.npmjs.com/package/skills)). The other fields are Claude Code extensions — other agents ignore them. See [skills.sh](https://skills.sh) for the full spec.
 
-### Installing a skill
+### Installing a public skill
 
-Via the [skills.sh](https://skills.sh) CLI (recommended):
-
-```bash
-npx skills add zrosenbauer/skills
-```
-
-Or symlink directly into your agent's skills directory:
+Via the [skills.sh](https://skills.sh) CLI:
 
 ```bash
-# Claude Code
-ln -s "$PWD/skills/my-skill" ~/.claude/skills/my-skill
-
-# Cursor / other agents — wherever that agent loads skills from
-ln -s "$PWD/skills/my-skill" <agent-skills-dir>/my-skill
+npx skills add zrosenbauer/skills              # all public skills
+npx skills add zrosenbauer/skills --skill ts-best-practices   # one specific
 ```
 
 ## Scripts

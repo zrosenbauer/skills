@@ -10,6 +10,7 @@ description: >-
   composed in pipelines. Skip when the class is wrapping a stateful SDK
   (PrismaClient, Octokit, WebSocket) or when working with framework class
   requirements.
+# --- Claude Code extensions (ignored by other agents) ---
 argument-hint: '[<file-or-dir>]'
 user-invocable: true
 model-invocable: true

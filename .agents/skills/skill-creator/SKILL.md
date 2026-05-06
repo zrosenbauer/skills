@@ -10,9 +10,14 @@ description: >-
   descriptions, selective XML for example boundaries, and a RED→GREEN
   evaluation loop. Skip when modifying source code, debugging, or writing
   non-skill markdown.
+# --- Claude Code extensions (ignored by other agents) ---
 argument-hint: '[<skill-name>]'
 user-invocable: true
-model-invocable: true
+model-invocable: false  # manual-only: dispatcher does not auto-route
+
+# --- skills CLI (vercel-labs) ---
+metadata:
+  internal: true  # hide from `npx skills add --list`; the CLI scans recursively
 ---
 
 # skill-creator
@@ -82,6 +87,8 @@ description: >-
   This skill should be used when [trigger condition]. Common triggers
   include "verbatim phrase 1", "verbatim phrase 2", and "verbatim phrase 3".
   [What it bakes in / what's distinctive]. Skip when [anti-trigger].
+
+# --- Claude Code extensions (ignored by other agents) ---
 argument-hint: '[<optional-arg>]'
 user-invocable: true
 model-invocable: true

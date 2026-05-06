@@ -10,13 +10,20 @@ A personal monorepo for [agent skills](https://skills.sh) authored by Zac Rosenb
 
 ```
 .
-├── skills/              # one directory per skill, each with a SKILL.md
+├── skills/              # PUBLIC skills — published via `npx skills add`
+├── .agents/skills/      # PRIVATE/local skills — not published
+├── .claude/skills/      # symlinks into .agents/skills/ for Claude Code to load
 ├── packages/            # pnpm workspace packages (shared utils)
 ├── package.json         # root, private, workspaces via pnpm-workspace.yaml
 ├── pnpm-workspace.yaml  # workspace globs
 ├── turbo.json           # turbo task pipeline
 └── AGENTS.md            # ← you are here (CLAUDE.md is a symlink to this file)
 ```
+
+**Public vs. private skills:** both use the same `SKILL.md` format; the location decides distribution.
+
+- `skills/<name>/` is published. Anyone can install with `npx skills add zrosenbauer/skills`.
+- `.agents/skills/<name>/` is local. Not listed by the CLI. Symlink into `.claude/skills/` so Claude Code loads it; other agents have analogous load paths.
 
 ## Skill format
 

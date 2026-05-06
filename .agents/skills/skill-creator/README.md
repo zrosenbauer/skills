@@ -1,16 +1,14 @@
 # skill-creator
 
-> Build, validate, and iterate agent skills in this monorepo.
+> Build, validate, and iterate agent skills in this monorepo. **Local-only — not published.**
 
 A meta-skill that bakes in the conventions every skill in `zrosenbauer/skills` follows: kebab-case naming, "Use when" trigger phrases in descriptions, selective XML for example boundaries, and a TDD-style RED→GREEN evaluation loop.
 
-## Install
+This skill lives in `.agents/skills/` (not `skills/`) because it's only useful inside this repo. The `skills` CLI ignores it (`metadata.internal: true`); for Claude Code, it's loaded via the symlink at `.claude/skills/skill-creator`.
 
-```bash
-npx skills add zrosenbauer/skills --skill skill-creator
-```
+## Use
 
-The `npx skills` CLI installs into the right directory for whichever agent you target (Claude Code, Cursor, Codex, etc. — see [skills.sh](https://skills.sh) for the full list).
+Invoke manually with `/skill-creator` (Claude Code) — `model-invocable: false` keeps the dispatcher from auto-routing to it.
 
 ## What it does
 

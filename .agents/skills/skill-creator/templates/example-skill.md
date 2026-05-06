@@ -11,6 +11,8 @@ description: >-
   config.toml", "validate the toml schema", and "convert toml to json".
   Bakes in zod-based schema validation and the smol-toml parser. Skip
   when working with YAML or JSON config files.
+
+# --- Claude Code extensions (ignored by other agents) ---
 argument-hint: '[<file-path>]'
 user-invocable: true
 model-invocable: true

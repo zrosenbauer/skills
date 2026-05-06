@@ -9,6 +9,7 @@ description: >-
   logic, JSDoc on exports, kebab-case file naming, and *Params/*Options
   object-arg conventions. Skip when working with framework-specific components
   or pure functional refactors — use functional-ts-best-practices instead.
+# --- Claude Code extensions (ignored by other agents) ---
 argument-hint: '[<file-or-dir>]'
 user-invocable: true
 model-invocable: true

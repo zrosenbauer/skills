@@ -5,6 +5,7 @@ description: >-
   include "{{TRIGGER_PHRASE_1}}", "{{TRIGGER_PHRASE_2}}", and
   "{{TRIGGER_PHRASE_3}}". {{ONE_LINE_DISTINCTIVE}}. Skip when
   {{ANTI_TRIGGER}}.
+# --- Claude Code extensions (ignored by other agents) ---
 argument-hint: '[<{{ARG_NAME}}>]'
 user-invocable: true
 model-invocable: true
