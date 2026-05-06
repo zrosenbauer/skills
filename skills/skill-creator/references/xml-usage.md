@@ -29,7 +29,7 @@ Don't invent new tags. If you need one, propose adding it to this list first.
 
 Wrapping every section in XML (`<purpose>`, `<workflow>`, `<inputs>`, etc.) was considered and rejected because:
 
-- Markdown headings (`## ...`) are equally clear to Claude — both are unambiguous structure
+- Markdown headings (`## ...`) are equally clear to the agent — both are unambiguous structure
 - XML wrappers make the SKILL.md harder for *humans* to edit (you, in 3 months)
 - Zero of the four major public skill-creators (anthropics, skill-creator-pro, SkillForge, vercel-labs) wrap sections in XML
 - Anthropic's prompt-engineering guidance recommends XML for **examples and content boundaries**, not as a global wrapper

@@ -17,9 +17,10 @@ Run this against any skill before committing. Hard rules block; soft rules warn.
 ### Frontmatter
 
 - [ ] Parses as valid YAML (no syntax errors)
-- [ ] Contains all required fields: `description`, `argument-hint`, `user-invocable`, `model-invocable`
-- [ ] `user-invocable` and `model-invocable` are booleans
-- [ ] `argument-hint` is a single-line string
+- [ ] Contains the universal-core required field: `description`
+- [ ] Contains the Claude Code extension fields (recommended for cross-agent compatibility): `argument-hint`, `user-invocable`, `model-invocable`
+- [ ] `user-invocable` and `model-invocable` are booleans (when present)
+- [ ] `argument-hint` is a single-line string (when present)
 
 → See [frontmatter.md](frontmatter.md)
 

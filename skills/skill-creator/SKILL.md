@@ -72,7 +72,7 @@ See [`references/tdd-for-skills.md`](references/tdd-for-skills.md).
 
 ### 4. Draft frontmatter
 
-Required fields (full schema in [`references/frontmatter.md`](references/frontmatter.md)):
+Skills here are agent-agnostic: `description` is universally required; the others are Claude Code extensions kept for cross-agent compatibility (other agents ignore them). Full schema in [`references/frontmatter.md`](references/frontmatter.md).
 
 ```yaml
 ---
@@ -165,7 +165,7 @@ description: >-
   refactors it. The process involves several steps.
 </bad>
 
-The `<bad>` example fails three rules: no "Use when" phrase, no verbatim trigger phrases in quotes, contains anti-shortcut words ("first", "then", "process") that cause Claude to follow them as instructions instead of treating them as triggers.
+The `<bad>` example fails three rules: no "Use when" phrase, no verbatim trigger phrases in quotes, contains anti-shortcut words ("first", "then", "process") that cause the agent to follow them as instructions instead of treating them as triggers.
 </example>
 
 ## References

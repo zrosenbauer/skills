@@ -10,11 +10,7 @@ A meta-skill that bakes in the conventions every skill in `zrosenbauer/skills` f
 npx skills add zrosenbauer/skills --skill skill-creator
 ```
 
-Or symlink for local development:
-
-```bash
-ln -s "$PWD/skills/skill-creator" ~/.claude/skills/skill-creator
-```
+The `npx skills` CLI installs into the right directory for whichever agent you target (Claude Code, Cursor, Codex, etc. — see [skills.sh](https://skills.sh) for the full list).
 
 ## What it does
 
