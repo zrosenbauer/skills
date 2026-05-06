@@ -1,4 +1,5 @@
 ---
+name: {{SKILL_NAME}}
 description: >-
   This skill should be used when {{TRIGGER_CONDITION}}. Common triggers
   include "{{TRIGGER_PHRASE_1}}", "{{TRIGGER_PHRASE_2}}", and

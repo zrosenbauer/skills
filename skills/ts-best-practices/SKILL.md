@@ -1,4 +1,5 @@
 ---
+name: ts-best-practices
 description: >-
   This skill should be used when the user wants to write, review, or refactor
   TypeScript code to follow industry best practices. Common triggers include

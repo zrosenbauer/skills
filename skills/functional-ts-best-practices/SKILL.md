@@ -1,4 +1,5 @@
 ---
+name: functional-ts-best-practices
 description: >-
   This skill should be used when the user wants to refactor TypeScript code
   to functional patterns or write new code following functional doctrine.

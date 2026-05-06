@@ -6,9 +6,10 @@ Every `SKILL.md` in this monorepo starts with a YAML frontmatter block. The skil
 
 | Field | Type | Notes |
 |---|---|---|
-| `description` | string (folded scalar `>-`) | 80–1024 chars. See [description.md](description.md). The single field every agent reads. |
+| `name` | string | The skill identifier — must match the directory name (kebab-case). Required by the [`skills` CLI](https://www.npmjs.com/package/skills). |
+| `description` | string (folded scalar `>-`) | 80–1024 chars. See [description.md](description.md). |
 
-The `name` field is inferred from the directory name. Set it explicitly only if it must differ.
+Both fields are required by the `skills` CLI for installation. `name` must match the directory name exactly.
 
 ## Claude Code extensions (recommended, optional)
 
@@ -24,7 +25,6 @@ These fields are read by Claude Code. Other agents safely ignore them per the SK
 
 | Field | Type | Notes |
 |---|---|---|
-| `name` | string | Override the inferred directory name. Rare. |
 | `license` | string | SPDX identifier (`MIT`, `Apache-2.0`, etc.) if not inheriting from repo root. |
 | `metadata.author` | string | Override the default author. |
 | `metadata.version` | string | Semver, e.g., `"0.1.0"`. Optional. |
@@ -34,6 +34,7 @@ These fields are read by Claude Code. Other agents safely ignore them per the SK
 
 ```yaml
 ---
+name: refactor-to-functional
 description: >-
   This skill should be used when the user wants to refactor TypeScript code
   to functional patterns. Common triggers include "make this functional",

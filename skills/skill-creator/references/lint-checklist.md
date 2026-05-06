@@ -17,7 +17,8 @@ Run this against any skill before committing. Hard rules block; soft rules warn.
 ### Frontmatter
 
 - [ ] Parses as valid YAML (no syntax errors)
-- [ ] Contains the universal-core required field: `description`
+- [ ] Contains the universal-core required fields: `name` and `description`
+- [ ] `name` matches the directory name exactly
 - [ ] Contains the Claude Code extension fields (recommended for cross-agent compatibility): `argument-hint`, `user-invocable`, `model-invocable`
 - [ ] `user-invocable` and `model-invocable` are booleans (when present)
 - [ ] `argument-hint` is a single-line string (when present)

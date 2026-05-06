@@ -1,4 +1,5 @@
 ---
+name: skill-creator
 description: >-
   This skill should be used when the user wants to create a new agent skill,
   scaffold a SKILL.md, validate an existing skill against repo rules, or
@@ -72,10 +73,11 @@ See [`references/tdd-for-skills.md`](references/tdd-for-skills.md).
 
 ### 4. Draft frontmatter
 
-Skills here are agent-agnostic: `description` is universally required; the others are Claude Code extensions kept for cross-agent compatibility (other agents ignore them). Full schema in [`references/frontmatter.md`](references/frontmatter.md).
+Skills here are agent-agnostic: `name` and `description` are universally required (the `skills` CLI rejects skills missing either); the others are Claude Code extensions kept for cross-agent compatibility (other agents ignore them). Full schema in [`references/frontmatter.md`](references/frontmatter.md).
 
 ```yaml
 ---
+name: <skill-name>
 description: >-
   This skill should be used when [trigger condition]. Common triggers
   include "verbatim phrase 1", "verbatim phrase 2", and "verbatim phrase 3".
@@ -85,6 +87,8 @@ user-invocable: true
 model-invocable: true
 ---
 ```
+
+`name` must exactly match the skill's directory name (kebab-case).
 
 Description rules ([full list](references/description.md)):
 

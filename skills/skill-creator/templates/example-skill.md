@@ -4,6 +4,7 @@ This is what `skills/toml-config-parser/SKILL.md` would look like if generated b
 
 ```markdown
 ---
+name: toml-config-parser
 description: >-
   This skill should be used when the user wants to parse, validate, or
   convert TOML configuration files. Common triggers include "parse this
