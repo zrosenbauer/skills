@@ -90,9 +90,7 @@ interface RenderSkillParams {
 function renderSkill({ result, minOrder, showFix }: RenderSkillParams): string {
   const visible = result.findings.filter((f: Finding) => SEVERITY_ORDER[f.severity] <= minOrder)
   const tag =
-    result.skill.location.source === 'public'
-      ? `${DIM}[public]${RESET}`
-      : `${DIM}[private]${RESET}`
+    result.skill.location.source === 'public' ? `${DIM}[public]${RESET}` : `${DIM}[private]${RESET}`
 
   if (visible.length === 0) {
     return `${BOLD}${result.skill.location.name}${RESET}  ${tag}  ${SEVERITY_COLOR.info}clean${RESET}\n`

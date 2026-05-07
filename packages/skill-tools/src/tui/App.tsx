@@ -58,7 +58,7 @@ export function App({ skills }: AppProps) {
           kind: 'iterations',
           skill: v.skill,
           iterations: readWorkspace(v.skill),
-        }),
+        })
       )
       .otherwise(() => {
         // already at the top of the stack
