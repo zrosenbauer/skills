@@ -9,7 +9,7 @@ import {
   type SkillLintResult,
   lintSkill,
   summarize,
-} from '../lib/lint.js'
+} from '../lib/lint/index.js'
 import { type SkillRecord, discoverSkills, findRepoRoot } from '../lib/workspace.js'
 
 const options = z.object({

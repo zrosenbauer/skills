@@ -13,10 +13,9 @@ A pnpm + Turborepo workspace for building, modifying, and publishing [agent skil
 
 ```
 .
-├── skills/              # public skills — published via the skills CLI
-├── .agents/skills/      # private/local skills (not published)
+├── skills/              # all skills — published via the skills CLI
+├── .agents/skills/      # optional local-only skills (currently empty)
 ├── packages/            # shared utility packages (@zrosenbauer/*)
-├── .claude/skills/      # symlinks into .agents/skills/ for Claude Code to load
 ├── AGENTS.md            # agent guidance (CLAUDE.md → symlink)
 ├── package.json         # root workspace
 ├── pnpm-workspace.yaml
@@ -25,10 +24,10 @@ A pnpm + Turborepo workspace for building, modifying, and publishing [agent skil
 
 `skills/` and `.agents/skills/` use the same `SKILL.md` format. The split is about distribution, not content:
 
-| Location                 | Visibility | Distribution                                                                                    |
-| ------------------------ | ---------- | ----------------------------------------------------------------------------------------------- |
-| `skills/<name>/`         | Public     | Listed and installed by `npx skills add zrosenbauer/skills`                                     |
-| `.agents/skills/<name>/` | Local-only | Not listed by the CLI; loaded by symlinking into `.claude/skills/` (or your agent's equivalent) |
+| Location                 | Visibility | Distribution                                                                                |
+| ------------------------ | ---------- | ------------------------------------------------------------------------------------------- |
+| `skills/<name>/`         | Public     | Listed and installed by `npx skills add zrosenbauer/skills`                                 |
+| `.agents/skills/<name>/` | Local-only | Hidden from the CLI when marked `metadata.internal: true`; load via your agent's load path. |
 
 ## Getting started
 
@@ -54,7 +53,7 @@ For local-only skills — only available to you, in this repo:
 ```bash
 mkdir -p .agents/skills/my-skill
 $EDITOR .agents/skills/my-skill/SKILL.md
-ln -s "../../.agents/skills/my-skill" .claude/skills/my-skill   # for Claude Code
+# Add `metadata: { internal: true }` to the frontmatter to hide it from the skills CLI.
 ```
 
 `SKILL.md` format:

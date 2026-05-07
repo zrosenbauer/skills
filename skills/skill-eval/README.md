@@ -1,10 +1,8 @@
 # skill-eval
 
-> Re-run baseline evaluations on existing skills. **Local-only — not published.**
+> Re-run baseline evaluations on existing skills.
 
 A runner skill that takes the `evals.json` test definitions in each skill, dispatches pressure scenarios via the Agent tool (general-purpose subagent), saves transcripts to a gitignored workspace, and grades them deterministically through `skill-tools`.
-
-This skill lives in `.agents/skills/` because it's tooling specific to this monorepo's eval workflow. It's loaded into Claude Code via the symlink at `.claude/skills/skill-eval`.
 
 ## Use
 

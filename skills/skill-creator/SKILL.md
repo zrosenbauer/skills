@@ -14,10 +14,6 @@ description: >-
 argument-hint: '[<skill-name>]'
 user-invocable: true
 model-invocable: false # manual-only: dispatcher does not auto-route
-
-# --- skills CLI (vercel-labs) ---
-metadata:
-  internal: true # hide from `npx skills add --list`; the CLI scans recursively
 ---
 
 # skill-creator

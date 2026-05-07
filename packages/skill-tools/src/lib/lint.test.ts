@@ -4,7 +4,7 @@ import path from 'node:path'
 
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 
-import { lintSkill, summarize } from './lint.js'
+import { lintSkill, summarize } from './lint/index.js'
 import type { SkillRecord } from './workspace.js'
 
 interface BuildSkillOptions {

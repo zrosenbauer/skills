@@ -17,8 +17,7 @@ A personal monorepo for [agent skills](https://skills.sh) authored by Zac Rosenb
 │       ├── LICENSE
 │       └── README.md
 ├── <name>-workspace/    # GITIGNORED sibling — transcripts, grading, benchmarks
-├── .agents/skills/      # PRIVATE/local skills — not published
-├── .claude/skills/      # symlinks into .agents/skills/ for Claude Code to load
+├── .agents/skills/      # OPTIONAL local-only skills — not published (currently empty)
 ├── packages/
 │   └── skill-tools/     # CLI for linting + evaluating skills (kidd + Ink TUI)
 ├── package.json         # root, private, workspaces via pnpm-workspace.yaml
@@ -29,12 +28,12 @@ A personal monorepo for [agent skills](https://skills.sh) authored by Zac Rosenb
 
 **Public vs. private skills:** both use the same `SKILL.md` format; the location decides distribution.
 
-- `skills/<name>/` is published. Anyone can install with `npx skills add zrosenbauer/skills`.
-- `.agents/skills/<name>/` is local. Not listed by the CLI. Symlink into `.claude/skills/` so Claude Code loads it; other agents have analogous load paths.
+- `skills/<name>/` is published. Anyone can install with `npx skills add zrosenbauer/skills`. Claude Code in this project also loads from here directly — no symlink needed.
+- `.agents/skills/<name>/` is reserved for future local-only skills. Currently empty. If used, mark with `metadata.internal: true` so the skills CLI hides it and lint exempts it from the eval-required rule.
 
 ## Skill format
 
-Each skill is a directory under `skills/` (or `.agents/skills/` for private skills) with at minimum:
+Each skill is a directory under `skills/` (or `.agents/skills/` for local-only skills) with at minimum:
 
 ```markdown
 ---
@@ -56,7 +55,7 @@ Body of the skill — instructions for the agent when invoked.
 
 `name` and `description` are universally required. Other fields are Claude Code extensions; cross-agent skills include them defensively (other agents ignore unknown fields).
 
-Public skills MUST also ship an `evals.json` (≥ 3 pressure scenarios + assertions). The lint blocks shipping otherwise. Internal skills (`metadata.internal: true`) are exempt. See [`evals.json` schema](.agents/skills/skill-creator/references/evals-json.md) and [pressure scenarios guide](.agents/skills/skill-creator/references/pressure-scenarios.md).
+Public skills MUST also ship an `evals.json` (≥ 3 pressure scenarios + assertions). The lint blocks shipping otherwise. Internal skills (`metadata.internal: true`) are exempt. See [`evals.json` schema](skills/skill-creator/references/evals-json.md) and [pressure scenarios guide](skills/skill-creator/references/pressure-scenarios.md).
 
 Optional companions: `LICENSE`, `README.md`, `references/<topic>.md`, `templates/<thing>.template`.
 
@@ -89,8 +88,8 @@ Authoring and evaluating skills:
 
 - **Never edit `CLAUDE.md` directly** — it's a symlink to `AGENTS.md`. Edit `AGENTS.md`.
 - **New skills go through `/skill-creator`.** It enforces naming, description quality, the RED→GREEN cycle, and writes `evals.json` for you. Hand-authoring skills is allowed but they must still pass `pnpm skill-tools lint --severity error`.
-- Public skills (intended for `npx skills add`) live in `skills/<kebab-case>/`.
-- Private/internal skills live in `.agents/skills/<kebab-case>/` and symlink into `.claude/skills/` for Claude Code to load. Mark them with `metadata.internal: true` to hide from the skills CLI and lint.
+- All skills (public and authoring/eval tooling like `skill-creator`, `skill-eval`) live in `skills/<kebab-case>/`.
+- Local-only skills can optionally live in `.agents/skills/<kebab-case>/`. Mark them with `metadata.internal: true` to hide from the skills CLI and lint.
 - Skill workspaces (`<name>-workspace/`) are gitignored — only `evals.json` ships.
 - Shared utilities go in `packages/<name>/` with their own `package.json` and follow the workspace name convention `@zrosenbauer/<name>`.
 - Don't add a `package.json` to a skill directory unless it actually needs JS deps — most skills are pure markdown.

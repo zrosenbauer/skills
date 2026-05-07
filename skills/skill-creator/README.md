@@ -1,10 +1,8 @@
 # skill-creator
 
-> Build, validate, and iterate agent skills in this monorepo. **Local-only — not published.**
+> Build, validate, and iterate agent skills in this monorepo.
 
 A meta-skill that bakes in the conventions every skill in `zrosenbauer/skills` follows: kebab-case naming, "Use when" trigger phrases in descriptions, selective XML for example boundaries, and a TDD-style RED→GREEN evaluation loop.
-
-This skill lives in `.agents/skills/` (not `skills/`) because it's only useful inside this repo. The `skills` CLI ignores it (`metadata.internal: true`); for Claude Code, it's loaded via the symlink at `.claude/skills/skill-creator`.
 
 ## Use
 

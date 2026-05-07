@@ -15,10 +15,6 @@ description: >-
 argument-hint: '[<skill-name>|--all]'
 user-invocable: true
 model-invocable: true
-
-# --- skills CLI (vercel-labs) ---
-metadata:
-  internal: true # local-only tooling skill
 ---
 
 # skill-eval
@@ -184,6 +180,6 @@ The bad version is exactly the failure mode this skill is designed to prevent â€
 
 ## References
 
-- `evals.json` schema is documented in `.agents/skills/skill-creator/references/evals-json.md` (created in Phase B.3)
+- `evals.json` schema is documented in `skills/skill-creator/references/evals-json.md`
 - skill-tools CLI reference: `packages/skill-tools/`
 - skill-creator-pro inspiration: [`zwbao/skill-creator-pro`](https://github.com/zwbao/skill-creator-pro)
