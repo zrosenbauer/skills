@@ -241,4 +241,26 @@ export const RULES: Rule[] = [
           })
         : pass,
   },
+  {
+    code: 'EVALS_REGEX_INVALID',
+    severity: 'error',
+    description: 'every regex assertion in evals.json must compile under JS RegExp',
+    check: (skill) => {
+      if (!skill.evalsFile) return pass
+      for (const e of skill.evalsFile.evals) {
+        for (const a of e.assertions) {
+          if (a.type !== 'regex') continue
+          try {
+            new RegExp(a.pattern, a.flags ?? '')
+          } catch (err) {
+            return fail({
+              message: `eval "${e.eval_name}" has invalid regex /${a.pattern}/${a.flags ?? ''}: ${(err as Error).message}`,
+              fix: 'Pass the regex to `new RegExp(pattern, flags)` and fix the syntax. Inline (?i)/(?s) are NOT supported in JS — use the optional `flags` field on the assertion.',
+            })
+          }
+        }
+      }
+      return pass
+    },
+  },
 ]

@@ -18,12 +18,23 @@ interface GradeContext {
 export function grade(assertion: Assertion, ctx: GradeContext): GradingResult {
   return match(assertion)
     .with({ type: 'regex' }, (a) => {
-      const re = new RegExp(a.pattern)
+      let re: RegExp
+      try {
+        re = new RegExp(a.pattern, a.flags ?? '')
+      } catch (err) {
+        return {
+          assertion,
+          passed: false,
+          detail: `invalid regex /${a.pattern}/${a.flags ?? ''}: ${(err as Error).message}`,
+        }
+      }
       const passed = re.test(ctx.transcript)
       return {
         assertion,
         passed,
-        detail: passed ? undefined : `pattern /${a.pattern}/ did not match transcript`,
+        detail: passed
+          ? undefined
+          : `pattern /${a.pattern}/${a.flags ?? ''} did not match transcript`,
       }
     })
     .with({ type: 'contains' }, (a) => {

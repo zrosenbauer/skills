@@ -31,6 +31,10 @@ export const assertionSchema = z.discriminatedUnion('type', [
     text: z.string(),
     type: z.literal('regex'),
     pattern: z.string(),
+    flags: z
+      .string()
+      .regex(/^[dgimsuy]*$/, { message: 'flags must be a subset of d/g/i/m/s/u/y' })
+      .optional(),
   }),
   z.object({
     text: z.string(),
