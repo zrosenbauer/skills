@@ -273,18 +273,14 @@ const RULES: Rule[] = [
     severity: 'info',
     description: 'skill should ship a human-facing README.md',
     check: (skill) =>
-      skill.hasReadme
-        ? null
-        : { code: 'NO_README', severity: 'info', message: 'no README.md' },
+      skill.hasReadme ? null : { code: 'NO_README', severity: 'info', message: 'no README.md' },
   },
   {
     code: 'NO_LICENSE',
     severity: 'info',
     description: 'skill should ship a LICENSE',
     check: (skill) =>
-      skill.hasLicense
-        ? null
-        : { code: 'NO_LICENSE', severity: 'info', message: 'no LICENSE' },
+      skill.hasLicense ? null : { code: 'NO_LICENSE', severity: 'info', message: 'no LICENSE' },
   },
   {
     code: 'EVALS_MISSING',
@@ -362,5 +358,5 @@ export function summarize(results: SkillLintResult[]): {
 }
 
 export const lintRules: ReadonlyArray<Pick<Rule, 'code' | 'severity' | 'description'>> = RULES.map(
-  ({ code, severity, description }) => ({ code, severity, description }),
+  ({ code, severity, description }) => ({ code, severity, description })
 )

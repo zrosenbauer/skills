@@ -25,9 +25,9 @@ A pnpm + Turborepo workspace for building, modifying, and publishing [agent skil
 
 `skills/` and `.agents/skills/` use the same `SKILL.md` format. The split is about distribution, not content:
 
-| Location | Visibility | Distribution |
-|---|---|---|
-| `skills/<name>/` | Public | Listed and installed by `npx skills add zrosenbauer/skills` |
+| Location                 | Visibility | Distribution                                                                                    |
+| ------------------------ | ---------- | ----------------------------------------------------------------------------------------------- |
+| `skills/<name>/`         | Public     | Listed and installed by `npx skills add zrosenbauer/skills`                                     |
 | `.agents/skills/<name>/` | Local-only | Not listed by the CLI; loaded by symlinking into `.claude/skills/` (or your agent's equivalent) |
 
 ## Getting started
@@ -103,14 +103,14 @@ npx skills add zrosenbauer/skills --skill ts-best-practices   # one specific
 
 ## Scripts
 
-| Command | Description |
-| --- | --- |
-| `pnpm install` | Install workspace dependencies |
-| `pnpm build` | Run `build` across workspace packages |
-| `pnpm lint` | Run `lint` across workspace packages |
+| Command          | Description                               |
+| ---------------- | ----------------------------------------- |
+| `pnpm install`   | Install workspace dependencies            |
+| `pnpm build`     | Run `build` across workspace packages     |
+| `pnpm lint`      | Run `lint` across workspace packages      |
 | `pnpm typecheck` | Run `typecheck` across workspace packages |
-| `pnpm test` | Run `test` across workspace packages |
-| `pnpm clean` | Clean build output and `node_modules` |
+| `pnpm test`      | Run `test` across workspace packages      |
+| `pnpm clean`     | Clean build output and `node_modules`     |
 
 All `pnpm <task>` scripts are thin wrappers around `turbo run <task>`.
 

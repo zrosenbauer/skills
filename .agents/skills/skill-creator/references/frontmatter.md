@@ -4,10 +4,10 @@ Every `SKILL.md` in this monorepo starts with a YAML frontmatter block. The skil
 
 ## Universal core (required)
 
-| Field | Type | Notes |
-|---|---|---|
-| `name` | string | The skill identifier — must match the directory name (kebab-case). Required by the [`skills` CLI](https://www.npmjs.com/package/skills). |
-| `description` | string (folded scalar `>-`) | 80–1024 chars. See [description.md](description.md). |
+| Field         | Type                        | Notes                                                                                                                                    |
+| ------------- | --------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
+| `name`        | string                      | The skill identifier — must match the directory name (kebab-case). Required by the [`skills` CLI](https://www.npmjs.com/package/skills). |
+| `description` | string (folded scalar `>-`) | 80–1024 chars. See [description.md](description.md).                                                                                     |
 
 Both fields are required by the `skills` CLI for installation. `name` must match the directory name exactly.
 
@@ -15,20 +15,20 @@ Both fields are required by the `skills` CLI for installation. `name` must match
 
 These fields are read by Claude Code. Other agents safely ignore them per the SKILL.md spec — keep them in for cross-agent compatibility without breaking anything elsewhere.
 
-| Field | Type | Notes |
-|---|---|---|
-| `argument-hint` | string | Single-line hint shown in slash-command picker, e.g., `'[<skill-name>]'`. Use `''` if no args. |
-| `user-invocable` | boolean | `true` if invokable as `/<skill-name>`. Almost always `true`. |
-| `model-invocable` | boolean | `true` if the dispatcher can route to it automatically. Almost always `true`. |
+| Field             | Type    | Notes                                                                                          |
+| ----------------- | ------- | ---------------------------------------------------------------------------------------------- |
+| `argument-hint`   | string  | Single-line hint shown in slash-command picker, e.g., `'[<skill-name>]'`. Use `''` if no args. |
+| `user-invocable`  | boolean | `true` if invokable as `/<skill-name>`. Almost always `true`.                                  |
+| `model-invocable` | boolean | `true` if the dispatcher can route to it automatically. Almost always `true`.                  |
 
 ## Optional metadata
 
-| Field | Type | Notes |
-|---|---|---|
-| `license` | string | SPDX identifier (`MIT`, `Apache-2.0`, etc.) if not inheriting from repo root. |
-| `metadata.author` | string | Override the default author. |
-| `metadata.version` | string | Semver, e.g., `"0.1.0"`. Optional. |
-| `metadata.tags` | string | Space-separated tags for discovery. Optional. |
+| Field              | Type   | Notes                                                                         |
+| ------------------ | ------ | ----------------------------------------------------------------------------- |
+| `license`          | string | SPDX identifier (`MIT`, `Apache-2.0`, etc.) if not inheriting from repo root. |
+| `metadata.author`  | string | Override the default author.                                                  |
+| `metadata.version` | string | Semver, e.g., `"0.1.0"`. Optional.                                            |
+| `metadata.tags`    | string | Space-separated tags for discovery. Optional.                                 |
 
 ## Canonical example
 

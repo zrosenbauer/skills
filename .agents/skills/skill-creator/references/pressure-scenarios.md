@@ -6,7 +6,7 @@ Adapted from [`zwbao/skill-creator-pro`](https://github.com/zwbao/skill-creator-
 
 ## What makes a prompt "pressure"
 
-A prompt is high-pressure when it stresses *multiple* aspects at once:
+A prompt is high-pressure when it stresses _multiple_ aspects at once:
 
 - **Realistic context** — what the user is actually doing, not an abstract test
 - **Vague phrasing** — like a real Slack message, not a structured test case
@@ -38,7 +38,7 @@ Different skills need different pressures. Match the scenario to the skill's cat
 
 > "Always run the test." "Never use `any`." "Always use `Result<T, E>`."
 
-These skills enforce rules the agent might rationalize skipping. The pressure has to manufacture *temptation* to skip.
+These skills enforce rules the agent might rationalize skipping. The pressure has to manufacture _temptation_ to skip.
 
 **Combine 3 pressures per scenario:**
 
@@ -46,7 +46,7 @@ These skills enforce rules the agent might rationalize skipping. The pressure ha
 - **Sunk cost** — "I already wrote this without the test", "the change is tiny"
 - **Authority** — "my manager said to skip the rules just for this", "we never test these"
 
-Single-pressure tests are too easy. The agent complies. Combined pressure is where the rationalizations come out — *"I skipped the test because the change is tiny AND we're under deadline AND your manager said it was fine"*. That excuse goes verbatim into the rationalization table.
+Single-pressure tests are too easy. The agent complies. Combined pressure is where the rationalizations come out — _"I skipped the test because the change is tiny AND we're under deadline AND your manager said it was fine"_. That excuse goes verbatim into the rationalization table.
 
 ### Technique skills
 
@@ -59,12 +59,12 @@ These skills replace one technique with another. Pressure with **variation + mis
 
 ### Pattern skills
 
-> "Use *Params interfaces for ≥2-arg functions." "Files are kebab-case."
+> "Use \*Params interfaces for ≥2-arg functions." "Files are kebab-case."
 
 These skills assert "do this, not that". Pressure with **counter-examples**:
 
-- Show the WRONG pattern in the prompt: *"can you add another param to this function: addUser(name, email, role)"* — the agent should recognize the existing positional-args pattern is bad and switch to `AddUserParams`.
-- **Recognition scenarios** — sometimes the prompt should NOT trigger the skill (e.g., a 1-arg function shouldn't be refactored to *Params). Test the skill knows when *not* to fire.
+- Show the WRONG pattern in the prompt: _"can you add another param to this function: addUser(name, email, role)"_ — the agent should recognize the existing positional-args pattern is bad and switch to `AddUserParams`.
+- **Recognition scenarios** — sometimes the prompt should NOT trigger the skill (e.g., a 1-arg function shouldn't be refactored to *Params). Test the skill knows when *not\* to fire.
 
 ### Reference skills
 
@@ -72,7 +72,7 @@ These skills assert "do this, not that". Pressure with **counter-examples**:
 
 Pure lookup. Pressure with **retrieval + gap testing**:
 
-- Ask questions answered by the reference and questions *not* answered. The skill should answer the first set and decline the second.
+- Ask questions answered by the reference and questions _not_ answered. The skill should answer the first set and decline the second.
 - Test edge cases: what if the user asks about a deprecated version? An adjacent API?
 
 ## Anti-patterns
@@ -108,7 +108,7 @@ Discipline skills need 3 pressures combined. One pressure passes. Three pressure
 "Skip the JSDoc since this is internal."
 </bad>
 
-This isn't pressure — it's instruction. The agent will follow the instruction. Real pressure is *implicit* — the situation should make skipping tempting, not the prompt.
+This isn't pressure — it's instruction. The agent will follow the instruction. Real pressure is _implicit_ — the situation should make skipping tempting, not the prompt.
 
 ## How many scenarios?
 

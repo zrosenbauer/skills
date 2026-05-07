@@ -4,24 +4,24 @@ XML tags are an Anthropic-recommended pattern for prompts when boundaries matter
 
 ## Rule of thumb
 
-| Use Markdown | Use XML |
-|---|---|
-| Section structure (`## Workflow`, `### Step 1`) | Example boundaries (`<example>`) |
-| Lists, tables, code blocks | Contrast pairs (`<good>` / `<bad>`) |
-| Links and references | Tool-call boundaries (`<input>` / `<output>`) |
-| Inline formatting | Anything where "where does this content end?" is ambiguous |
+| Use Markdown                                    | Use XML                                                    |
+| ----------------------------------------------- | ---------------------------------------------------------- |
+| Section structure (`## Workflow`, `### Step 1`) | Example boundaries (`<example>`)                           |
+| Lists, tables, code blocks                      | Contrast pairs (`<good>` / `<bad>`)                        |
+| Links and references                            | Tool-call boundaries (`<input>` / `<output>`)              |
+| Inline formatting                               | Anything where "where does this content end?" is ambiguous |
 
 ## Allowed XML tags
 
 These five are the canonical set in this monorepo:
 
-| Tag | Use for |
-|---|---|
+| Tag         | Use for                                                    |
+| ----------- | ---------------------------------------------------------- |
 | `<example>` | A complete worked scenario with input + reasoning + output |
-| `<good>` | A correctly-formed sample (description, code, etc.) |
-| `<bad>` | An incorrectly-formed sample, paired with `<good>` |
-| `<input>` | What the user/caller provides |
-| `<output>` | What the agent/tool produces |
+| `<good>`    | A correctly-formed sample (description, code, etc.)        |
+| `<bad>`     | An incorrectly-formed sample, paired with `<good>`         |
+| `<input>`   | What the user/caller provides                              |
+| `<output>`  | What the agent/tool produces                               |
 
 Don't invent new tags. If you need one, propose adding it to this list first.
 
@@ -30,7 +30,7 @@ Don't invent new tags. If you need one, propose adding it to this list first.
 Wrapping every section in XML (`<purpose>`, `<workflow>`, `<inputs>`, etc.) was considered and rejected because:
 
 - Markdown headings (`## ...`) are equally clear to the agent — both are unambiguous structure
-- XML wrappers make the SKILL.md harder for *humans* to edit (you, in 3 months)
+- XML wrappers make the SKILL.md harder for _humans_ to edit (you, in 3 months)
 - Zero of the four major public skill-creators (anthropics, skill-creator-pro, SkillForge, vercel-labs) wrap sections in XML
 - Anthropic's prompt-engineering guidance recommends XML for **examples and content boundaries**, not as a global wrapper
 

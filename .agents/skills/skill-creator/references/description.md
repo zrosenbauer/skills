@@ -1,20 +1,20 @@
 # Description rules
 
-The `description` field is a **gatekeeper**, not an instruction set. It tells the dispatcher *when* to invoke the skill — not *what* the skill does internally. Get this wrong and the skill never fires (or fires on the wrong things).
+The `description` field is a **gatekeeper**, not an instruction set. It tells the dispatcher _when_ to invoke the skill — not _what_ the skill does internally. Get this wrong and the skill never fires (or fires on the wrong things).
 
 ## Hard rules
 
-| Rule | Why |
-|---|---|
-| 80–1024 characters | Below 80, not enough triggering context. Above 1024, eats context budget for every dispatch. |
-| Contains `"Use when"` or `"This skill should be used when"` | Anchors the dispatcher to triggering, not behavior. |
-| Lists ≥ 3 verbatim trigger phrases in double quotes | Gives the dispatcher concrete strings to match against. |
-| No anti-shortcut words: `then`, `next`, `step 1`, `process`, `first` | These read as procedural instructions the agent executes immediately — not as triggers. |
-| Includes a `Skip when` clause | Names anti-triggers so the skill doesn't over-fire. |
+| Rule                                                                 | Why                                                                                          |
+| -------------------------------------------------------------------- | -------------------------------------------------------------------------------------------- |
+| 80–1024 characters                                                   | Below 80, not enough triggering context. Above 1024, eats context budget for every dispatch. |
+| Contains `"Use when"` or `"This skill should be used when"`          | Anchors the dispatcher to triggering, not behavior.                                          |
+| Lists ≥ 3 verbatim trigger phrases in double quotes                  | Gives the dispatcher concrete strings to match against.                                      |
+| No anti-shortcut words: `then`, `next`, `step 1`, `process`, `first` | These read as procedural instructions the agent executes immediately — not as triggers.      |
+| Includes a `Skip when` clause                                        | Names anti-triggers so the skill doesn't over-fire.                                          |
 
 ## Why anti-shortcut words matter
 
-The dispatcher reads the description during routing. If it contains "First, do X. Then do Y", the agent treats it as a procedure to follow *now*, not a trigger to remember. The skill body is where procedural instructions live; the description is purely for routing. This applies to most LLM-based dispatchers — the more imperative the language, the more the agent will follow it instead of using it as a trigger.
+The dispatcher reads the description during routing. If it contains "First, do X. Then do Y", the agent treats it as a procedure to follow _now_, not a trigger to remember. The skill body is where procedural instructions live; the description is purely for routing. This applies to most LLM-based dispatchers — the more imperative the language, the more the agent will follow it instead of using it as a trigger.
 
 ## Canonical structure
 

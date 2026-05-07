@@ -13,11 +13,11 @@ description: >-
 # --- Claude Code extensions (ignored by other agents) ---
 argument-hint: '[<skill-name>]'
 user-invocable: true
-model-invocable: false  # manual-only: dispatcher does not auto-route
+model-invocable: false # manual-only: dispatcher does not auto-route
 
 # --- skills CLI (vercel-labs) ---
 metadata:
-  internal: true  # hide from `npx skills add --list`; the CLI scans recursively
+  internal: true # hide from `npx skills add --list`; the CLI scans recursively
 ---
 
 # skill-creator
@@ -66,12 +66,12 @@ Apply [`references/naming.md`](references/naming.md). Quick check:
 
 ### 3. RED phase — write `evals.json` and run baselines
 
-Pressure-test the gap *before* writing the skill. See [`references/pressure-scenarios.md`](references/pressure-scenarios.md) for what makes a good scenario per skill type.
+Pressure-test the gap _before_ writing the skill. See [`references/pressure-scenarios.md`](references/pressure-scenarios.md) for what makes a good scenario per skill type.
 
 1. Ask the user for **3+ pressure scenarios**: realistic prompts (not abstract "convert this PDF" — specific, messy, with personal context).
 2. For each scenario, decide assertions (regex / contains / file_exists) — see [`references/evals-json.md`](references/evals-json.md).
 3. Write `skills/<name>/evals.json` from the [`templates/evals.json.template`](templates/evals.json.template).
-4. Invoke [`/skill-eval <name>`](../../../skills/skill-eval) which dispatches Agent(general-purpose) for each scenario *without* the skill loaded and saves transcripts to `<name>-workspace/iteration-1/eval-K-name/without_skill/`.
+4. Invoke [`/skill-eval <name>`](../../../skills/skill-eval) which dispatches Agent(general-purpose) for each scenario _without_ the skill loaded and saves transcripts to `<name>-workspace/iteration-1/eval-K-name/without_skill/`.
 5. Inspect the without-skill transcripts (open one in `pnpm skill-tools view <name>`). If the baseline already passes the assertions cleanly, the skill is unnecessary — **tell the user and stop**. Better to skip than ship a no-op skill.
 
 The transcripts are gitignored; the `evals.json` is committed.
@@ -107,7 +107,7 @@ Description rules ([full list](references/description.md)):
 
 ### 5. Draft body
 
-Markdown headings (`## ...`, `### ...`) for structure. XML *only* inside these tags ([when to use which](references/xml-usage.md)):
+Markdown headings (`## ...`, `### ...`) for structure. XML _only_ inside these tags ([when to use which](references/xml-usage.md)):
 
 - `<example>` for full scenarios
 - `<good>` / `<bad>` for contrast pairs
@@ -129,7 +129,7 @@ The full rule list lives in [`references/lint-checklist.md`](references/lint-che
 
 ### 7. GREEN phase — re-run with the skill loaded
 
-Invoke `/skill-eval <name>` again — this dispatches Agent(general-purpose) for each scenario *with* the new skill in context, saves to `<name>-workspace/iteration-1/eval-K-name/with_skill/`, then grades.
+Invoke `/skill-eval <name>` again — this dispatches Agent(general-purpose) for each scenario _with_ the new skill in context, saves to `<name>-workspace/iteration-1/eval-K-name/with_skill/`, then grades.
 
 Acceptance: every eval that failed without the skill should now pass. If any still fail, the skill body is missing instructions — patch and rerun. If any **regress** (passed without, now fails with), the skill introduced a problem — also patch and rerun.
 
@@ -142,10 +142,10 @@ Format:
 ```markdown
 ## Rationalization table
 
-| Skipped rule | Verbatim excuse | Why it's wrong |
-|---|---|---|
-| Always run the test | "the change is tiny so I'll skip" | Tiny changes still break behavior; run the test |
-| Use Result instead of throw | "this is just a quick prototype" | Prototypes leak into prod; use Result anyway |
+| Skipped rule                | Verbatim excuse                   | Why it's wrong                                  |
+| --------------------------- | --------------------------------- | ----------------------------------------------- |
+| Always run the test         | "the change is tiny so I'll skip" | Tiny changes still break behavior; run the test |
+| Use Result instead of throw | "this is just a quick prototype"  | Prototypes leak into prod; use Result anyway    |
 ```
 
 Capturing excuses verbatim — not sanitized — is the point. Future agents recognize their own pattern. Skip this step for reference / pattern / technique skills with no rules to weasel out of.

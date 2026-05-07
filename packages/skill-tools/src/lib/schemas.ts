@@ -124,7 +124,7 @@ export const benchmarkFileSchema = z.object({
         passed: z.number().int().nonnegative(),
         total: z.number().int().nonnegative(),
       }),
-    }),
+    })
   ),
   totals: z.object({
     with_skill_passed: z.number().int().nonnegative(),

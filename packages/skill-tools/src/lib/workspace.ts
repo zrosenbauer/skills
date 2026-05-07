@@ -1,6 +1,7 @@
 import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs'
 import path from 'node:path'
 
+import { attempt } from './result.js'
 import {
   type BenchmarkFile,
   benchmarkFileSchema,
@@ -78,12 +79,12 @@ export function discoverSkills(repoRoot: string): SkillRecord[] {
           name: entry,
           dir: skillDir,
           source: root === 'skills' ? 'public' : 'private',
-        }),
+        })
       )
     }
   }
 
-  return records.sort((a, b) => a.location.name.localeCompare(b.location.name))
+  return records.toSorted((a, b) => a.location.name.localeCompare(b.location.name))
 }
 
 function readSkill(location: SkillLocation): SkillRecord {
@@ -93,16 +94,11 @@ function readSkill(location: SkillLocation): SkillRecord {
 
   const evalsPath = path.join(location.dir, 'evals.json')
   const hasEvalsJson = existsSync(evalsPath)
-  let evalsFile: EvalsFile | null = null
-  let evalsParseError: string | null = null
-  if (hasEvalsJson) {
-    try {
-      const raw = JSON.parse(readFileSync(evalsPath, 'utf8'))
-      evalsFile = evalsFileSchema.parse(raw)
-    } catch (err) {
-      evalsParseError = err instanceof Error ? err.message : String(err)
-    }
-  }
+  const parsed = hasEvalsJson
+    ? attempt(() => evalsFileSchema.parse(JSON.parse(readFileSync(evalsPath, 'utf8'))))
+    : null
+  const evalsFile: EvalsFile | null = parsed?.ok ? parsed.value : null
+  const evalsParseError: string | null = parsed && !parsed.ok ? parsed.error.message : null
 
   return {
     location,
@@ -149,7 +145,10 @@ function extractScalar(fm: string, key: string): string | undefined {
   const re = new RegExp(`^${escapeRegExp(key)}:\\s*(.+?)\\s*$`, 'm')
   const m = fm.match(re)
   if (!m?.[1]) return undefined
-  return m[1].replace(/^['"]|['"]$/g, '').replace(/\s*#.*$/, '').trim()
+  return m[1]
+    .replace(/^['"]|['"]$/g, '')
+    .replace(/\s*#.*$/, '')
+    .trim()
 }
 
 function extractFolded(fm: string, key: string): string | undefined {
@@ -186,21 +185,16 @@ export function readWorkspace(skill: SkillRecord): IterationSummary[] {
     iterations.push(readIteration(parseInt(m[1], 10), iterationDir))
   }
 
-  return iterations.sort((a, b) => b.iteration - a.iteration)
+  return iterations.toSorted((a, b) => b.iteration - a.iteration)
 }
 
 function readIteration(iteration: number, dir: string): IterationSummary {
   const benchmarkPath = path.join(dir, 'benchmark.json')
-  let benchmark: BenchmarkFile | null = null
-  let generatedAt: string | null = null
-  if (existsSync(benchmarkPath)) {
-    try {
-      benchmark = benchmarkFileSchema.parse(JSON.parse(readFileSync(benchmarkPath, 'utf8')))
-      generatedAt = benchmark.generated_at
-    } catch {
-      // tolerate malformed benchmark — show iteration without summary
-    }
-  }
+  const benchmarkResult = existsSync(benchmarkPath)
+    ? attempt(() => benchmarkFileSchema.parse(JSON.parse(readFileSync(benchmarkPath, 'utf8'))))
+    : null
+  const benchmark: BenchmarkFile | null = benchmarkResult?.ok ? benchmarkResult.value : null
+  const generatedAt: string | null = benchmark?.generated_at ?? null
 
   const evals: ScenarioSummary[] = []
   for (const entry of readdirSync(dir)) {
@@ -221,7 +215,7 @@ function readIteration(iteration: number, dir: string): IterationSummary {
     iteration,
     dir,
     generatedAt,
-    evals: evals.sort((a, b) => a.evalId - b.evalId),
+    evals: evals.toSorted((a, b) => a.evalId - b.evalId),
     benchmark,
   }
 }
@@ -231,14 +225,10 @@ function readVariant(dir: string): VariantSummary | null {
   const transcriptPath = path.join(dir, 'transcript.md')
   const hasTranscript = existsSync(transcriptPath)
   const gradingPath = path.join(dir, 'grading.json')
-  let grading: GradingFile | null = null
-  if (existsSync(gradingPath)) {
-    try {
-      grading = gradingFileSchema.parse(JSON.parse(readFileSync(gradingPath, 'utf8')))
-    } catch {
-      // tolerate
-    }
-  }
+  const gradingResult = existsSync(gradingPath)
+    ? attempt(() => gradingFileSchema.parse(JSON.parse(readFileSync(gradingPath, 'utf8'))))
+    : null
+  const grading: GradingFile | null = gradingResult?.ok ? gradingResult.value : null
   return {
     dir,
     hasTranscript,

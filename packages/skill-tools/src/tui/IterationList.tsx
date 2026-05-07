@@ -11,7 +11,12 @@ interface IterationListProps {
   onBack: () => void
 }
 
-export function IterationList({ skill, iterations, onSelect, onBack: _onBack }: IterationListProps) {
+export function IterationList({
+  skill,
+  iterations,
+  onSelect,
+  onBack: _onBack,
+}: IterationListProps) {
   if (iterations.length === 0) {
     return (
       <Box flexDirection="column" padding={1}>

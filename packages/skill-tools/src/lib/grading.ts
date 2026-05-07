@@ -51,7 +51,7 @@ export function grade(assertion: Assertion, ctx: GradeContext): GradingResult {
  */
 export function gradeAll(
   assertions: ReadonlyArray<Assertion>,
-  ctx: GradeContext,
+  ctx: GradeContext
 ): { results: GradingResult[]; passedCount: number } {
   const results = assertions.map((a) => grade(a, ctx))
   const passedCount = results.filter((r) => r.passed).length

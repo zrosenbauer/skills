@@ -3,14 +3,11 @@ import { render } from 'ink'
 import React from 'react'
 import { z } from 'zod'
 
-import { App } from '../tui/App.js'
 import { discoverSkills, findRepoRoot, type SkillRecord } from '../lib/workspace.js'
+import { App } from '../tui/App.js'
 
 const positionals = z.object({
-  skill: z
-    .string()
-    .optional()
-    .describe('Filter the TUI to one skill by name'),
+  skill: z.string().optional().describe('Filter the TUI to one skill by name'),
 })
 
 export default command({

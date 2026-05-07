@@ -41,13 +41,13 @@ Verbatim trigger phrases:
 
 ## Core principles
 
-| Prefer | Over | Why |
-|---|---|---|
-| Data transformations | Mutations | Predictable, easier to reason about |
-| Functions | Methods | No `this` binding issues |
-| Composition | Inheritance | Mix behaviors without coupling |
-| Explicit | Implicit | State passed in, not hidden |
-| Factories | Classes | Closure-encapsulated state, no `new` |
+| Prefer               | Over        | Why                                  |
+| -------------------- | ----------- | ------------------------------------ |
+| Data transformations | Mutations   | Predictable, easier to reason about  |
+| Functions            | Methods     | No `this` binding issues             |
+| Composition          | Inheritance | Mix behaviors without coupling       |
+| Explicit             | Implicit    | State passed in, not hidden          |
+| Factories            | Classes     | Closure-encapsulated state, no `new` |
 
 ## Patterns
 
@@ -63,12 +63,12 @@ interface Counter {
 }
 
 function createCounter(initial: number = 0): Counter {
-  let value = initial
-  return {
-    increment: () => ++value,
-    decrement: () => --value,
-    getValue: () => value,
-  }
+let value = initial
+return {
+increment: () => ++value,
+decrement: () => --value,
+getValue: () => value,
+}
 }
 
 const counter = createCounter(10)
@@ -114,13 +114,13 @@ function addItem(items: Item[], newItem: Item): Item[] {
 }
 
 function updateItem(items: Item[], id: string, updates: Partial<Item>): Item[] {
-  return items.map((item) =>
-    item.id === id ? { ...item, ...updates } : item
-  )
+return items.map((item) =>
+item.id === id ? { ...item, ...updates } : item
+)
 }
 
 function removeItem(items: Item[], id: string): Item[] {
-  return items.filter((item) => item.id !== id)
+return items.filter((item) => item.id !== id)
 }
 </good>
 
@@ -128,12 +128,12 @@ function removeItem(items: Item[], id: string): Item[] {
 const items: Item[] = []
 
 function addItem(item: Item) {
-  items.push(item)  // mutates outer state!
+items.push(item) // mutates outer state!
 }
 
 function updateItem(id: string, updates: Partial<Item>) {
-  const item = items.find((i) => i.id === id)
-  Object.assign(item, updates)  // mutates the item!
+const item = items.find((i) => i.id === id)
+Object.assign(item, updates) // mutates the item!
 }
 </bad>
 
@@ -153,11 +153,17 @@ type Status = (typeof STATUSES)[number]
 For expected failure modes (parsing, validation, network, I/O), return a `Result<T, E>` instead of throwing. Errors become part of the type signature.
 
 ```ts
-interface Ok<T>  { readonly ok: true;  readonly value: T }
-interface Err<E> { readonly ok: false; readonly error: E }
+interface Ok<T> {
+  readonly ok: true
+  readonly value: T
+}
+interface Err<E> {
+  readonly ok: false
+  readonly error: E
+}
 type Result<T, E = Error> = Ok<T> | Err<E>
 
-const ok  = <T>(value: T): Ok<T> => ({ ok: true, value })
+const ok = <T>(value: T): Ok<T> => ({ ok: true, value })
 const err = <E>(error: E): Err<E> => ({ ok: false, error })
 ```
 
@@ -168,19 +174,19 @@ interface ParseError {
 }
 
 function parseConfig(json: string): Result<Config, ParseError> {
-  try {
-    return ok(JSON.parse(json))
-  } catch {
-    return err({ type: 'invalid_json', message: 'Invalid JSON' })
-  }
+try {
+return ok(JSON.parse(json))
+} catch {
+return err({ type: 'invalid_json', message: 'Invalid JSON' })
+}
 }
 
 const result = parseConfig(input)
 if (!result.ok) {
-  logger.warn({ error: result.error }, 'parse failed')
-  return
+logger.warn({ error: result.error }, 'parse failed')
+return
 }
-processConfig(result.value)  // typed as Config
+processConfig(result.value) // typed as Config
 </good>
 
 <bad>
@@ -189,24 +195,22 @@ function parseConfig(json: string): Config {
 }
 
 // caller forgets to try/catch
-const config = parseConfig(input)  // crashes the request
+const config = parseConfig(input) // crashes the request
 </bad>
 
 #### When Result is and isn't appropriate
 
-| Use Result | Don't use Result |
-|---|---|
-| JSON parsing, validation | Truly exceptional errors (out-of-memory) |
-| External API calls | Programming bugs (assertion failures) |
-| File I/O, network | Internal invariants that should never fail |
-| Business logic with known failure modes | Operations with no realistic failure |
+| Use Result                              | Don't use Result                           |
+| --------------------------------------- | ------------------------------------------ |
+| JSON parsing, validation                | Truly exceptional errors (out-of-memory)   |
+| External API calls                      | Programming bugs (assertion failures)      |
+| File I/O, network                       | Internal invariants that should never fail |
+| Business logic with known failure modes | Operations with no realistic failure       |
 
 #### Async pattern
 
 ```ts
-async function attemptAsync<T, E = unknown>(
-  fn: () => Promise<T>,
-): Promise<Result<T, E>> {
+async function attemptAsync<T, E = unknown>(fn: () => Promise<T>): Promise<Result<T, E>> {
   try {
     return ok(await fn())
   } catch (error) {
@@ -247,8 +251,8 @@ function calculateTotal(items: readonly Item[]): number {
 
 // impure — side effects
 function calculateTotal(items: Item[]): number {
-  console.log('Calculating...')          // side effect: I/O
-  analytics.track('total_calculated')    // side effect: external state
+  console.log('Calculating...') // side effect: I/O
+  analytics.track('total_calculated') // side effect: external state
   return items.reduce((s, i) => s + i.price, 0)
 }
 ```
@@ -263,12 +267,12 @@ function validateUser(user: User): Result<User, ValidationError> {
 
 // side effects at the edge
 async function handleUserCreate(user: User) {
-  const validation = validateUser(user)              // pure
+  const validation = validateUser(user) // pure
   if (!validation.ok) {
-    logger.warn({ validation }, 'invalid user')      // I/O at edge
+    logger.warn({ validation }, 'invalid user') // I/O at edge
     return
   }
-  await db.user.create(validation.value)             // I/O at edge
+  await db.user.create(validation.value) // I/O at edge
 }
 ```
 
@@ -276,8 +280,8 @@ Compose small pure functions:
 
 ```ts
 const normalize = (s: string) => s.trim().toLowerCase()
-const validate  = (s: string) => s.length > 0
-const format    = (s: string) => s.charAt(0).toUpperCase() + s.slice(1)
+const validate = (s: string) => s.length > 0
+const format = (s: string) => s.charAt(0).toUpperCase() + s.slice(1)
 
 function processName(input: string): string | null {
   const normalized = normalize(input)
@@ -296,11 +300,11 @@ interface CartState {
 }
 
 function getTotal(state: CartState): number {
-  return state.items.reduce((sum, item) => sum + item.price, 0)
+return state.items.reduce((sum, item) => sum + item.price, 0)
 }
 
 function getItemCount(state: CartState): number {
-  return state.items.length
+return state.items.length
 }
 </good>
 
@@ -314,12 +318,12 @@ interface CartState {
 
 ## When classes ARE OK
 
-| Acceptable | Reason |
-|---|---|
-| Wrapping external SDK (`PrismaClient`, `Octokit`) | Existing API uses class form |
-| Long-lived stateful resources (WebSocket handlers) | Lifecycle naturally maps to instance |
-| Framework requirements (React class components, custom `Error`) | No alternative |
-| Single instance whose constructor does meaningful setup | The class form is genuinely clearer |
+| Acceptable                                                      | Reason                               |
+| --------------------------------------------------------------- | ------------------------------------ |
+| Wrapping external SDK (`PrismaClient`, `Octokit`)               | Existing API uses class form         |
+| Long-lived stateful resources (WebSocket handlers)              | Lifecycle naturally maps to instance |
+| Framework requirements (React class components, custom `Error`) | No alternative                       |
+| Single instance whose constructor does meaningful setup         | The class form is genuinely clearer  |
 
 For everything else (utility classes, static method collections, data containers, singletons): use a module of functions or a factory.
 
@@ -330,16 +334,24 @@ For everything else (utility classes, static method collections, data containers
 <output>
 
 Before:
+
 ```ts
 class Counter {
   count = 0
-  increment() { this.count++ }
-  decrement() { this.count-- }
-  getValue() { return this.count }
+  increment() {
+    this.count++
+  }
+  decrement() {
+    this.count--
+  }
+  getValue() {
+    return this.count
+  }
 }
 ```
 
 After:
+
 ```ts
 interface Counter {
   increment: () => number
@@ -367,14 +379,16 @@ State is now closure-private. Callers don't deal with `this`. Multiple counters 
 <output>
 
 Before:
+
 ```ts
 function parseConfig(json: string): Config {
   if (!json) throw new Error('Empty input')
-  return JSON.parse(json)  // can also throw SyntaxError
+  return JSON.parse(json) // can also throw SyntaxError
 }
 ```
 
 After:
+
 ```ts
 interface ConfigError {
   type: 'empty_input' | 'invalid_json'

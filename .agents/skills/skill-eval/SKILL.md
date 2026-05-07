@@ -18,7 +18,7 @@ model-invocable: true
 
 # --- skills CLI (vercel-labs) ---
 metadata:
-  internal: true  # local-only tooling skill
+  internal: true # local-only tooling skill
 ---
 
 # skill-eval
@@ -142,7 +142,7 @@ This aggregates the grading.json files into `benchmark.json` and `benchmark.md` 
 Summarize per skill:
 
 - Which evals improved with the skill loaded vs. without
-- Any evals that *failed* with the skill loaded (regression to investigate)
+- Any evals that _failed_ with the skill loaded (regression to investigate)
 - Path to the benchmark and to the latest iteration directory
 
 Suggest the user run `pnpm skill-tools view <skill-name>` to navigate transcripts in the TUI.

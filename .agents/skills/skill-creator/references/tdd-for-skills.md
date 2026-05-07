@@ -6,11 +6,11 @@ Adapted from [`zwbao/skill-creator-pro`](https://github.com/zwbao/skill-creator-
 
 ## The cycle
 
-| Phase | For code | For skills |
-|---|---|---|
-| RED | Write failing test | Run baseline subagent scenario WITHOUT the skill; watch what goes wrong |
-| GREEN | Write minimal code to pass | Write minimal skill addressing those specific failures |
-| REFACTOR | Close edge cases | Close new rationalizations surfaced by re-running scenarios |
+| Phase    | For code                   | For skills                                                              |
+| -------- | -------------------------- | ----------------------------------------------------------------------- |
+| RED      | Write failing test         | Run baseline subagent scenario WITHOUT the skill; watch what goes wrong |
+| GREEN    | Write minimal code to pass | Write minimal skill addressing those specific failures                  |
+| REFACTOR | Close edge cases           | Close new rationalizations surfaced by re-running scenarios             |
 
 ## RED — pressure scenarios
 
@@ -49,27 +49,27 @@ The "verbatim" ask is essential. Polished reports hide the rationalizations you 
 
 Different skills need different pressures. See [`pressure-scenarios.md`](pressure-scenarios.md) for full guidance.
 
-| Skill type | Pressure |
-|---|---|
-| **Discipline** (TDD, verification, "always X") | Time pressure + sunk cost + authority (user insisting). Combine 3 pressures — single-pressure tests are too easy. |
-| **Technique** (specific patterns, like ts-pattern) | Variation + missing information |
-| **Pattern** (do this, not that) | Counter-examples + recognition scenarios |
-| **Reference** (API docs, lookup) | Retrieval + gap testing |
+| Skill type                                         | Pressure                                                                                                          |
+| -------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------- |
+| **Discipline** (TDD, verification, "always X")     | Time pressure + sunk cost + authority (user insisting). Combine 3 pressures — single-pressure tests are too easy. |
+| **Technique** (specific patterns, like ts-pattern) | Variation + missing information                                                                                   |
+| **Pattern** (do this, not that)                    | Counter-examples + recognition scenarios                                                                          |
+| **Reference** (API docs, lookup)                   | Retrieval + gap testing                                                                                           |
 
 ## GREEN — minimal skill
 
 Write only what's needed to address the baseline failures. Don't pre-empt hypothetical failures. The lean skill tests faster and reveals real problems; the bloated skill teaches you nothing.
 
-`/skill-eval` re-runs the same scenarios *with* the skill loaded. Expect partial success — second-round failures are your next iteration.
+`/skill-eval` re-runs the same scenarios _with_ the skill loaded. Expect partial success — second-round failures are your next iteration.
 
 ## REFACTOR — close loopholes
 
 Every new rationalization goes into two places:
 
-1. **A rule with the *why*:** `Do X, because [reason from transcript]`.
+1. **A rule with the _why_:** `Do X, because [reason from transcript]`.
 2. **The rationalization table** at the bottom of the SKILL.md (discipline skills only).
 
-Capture excuses verbatim. *"I skipped the test because the change is tiny"* goes in the table as-is — don't sanitize it. The raw voice is what future agents recognize.
+Capture excuses verbatim. _"I skipped the test because the change is tiny"_ goes in the table as-is — don't sanitize it. The raw voice is what future agents recognize.
 
 ## When the baseline succeeds
 
@@ -89,12 +89,12 @@ Don't chase asymptotic improvements. A skill that passes 4/5 scenarios is shippa
 
 ## Where the artifacts live
 
-| File | Committed | Purpose |
-|---|---|---|
-| `skills/<name>/evals.json` | yes | Test definitions: prompts, expected outputs, assertions |
-| `<name>-workspace/iteration-N/eval-K-name/with_skill/transcript.md` | no (gitignored) | Subagent output with skill loaded |
-| `<name>-workspace/iteration-N/eval-K-name/without_skill/transcript.md` | no (gitignored) | Subagent output without skill (baseline) |
-| `<name>-workspace/iteration-N/eval-K-name/<variant>/grading.json` | no (gitignored) | Per-assertion pass/fail, written by `skill-tools eval` |
-| `<name>-workspace/iteration-N/benchmark.{json,md}` | no (gitignored) | Aggregate per iteration, written by `skill-tools benchmark` |
+| File                                                                   | Committed       | Purpose                                                     |
+| ---------------------------------------------------------------------- | --------------- | ----------------------------------------------------------- |
+| `skills/<name>/evals.json`                                             | yes             | Test definitions: prompts, expected outputs, assertions     |
+| `<name>-workspace/iteration-N/eval-K-name/with_skill/transcript.md`    | no (gitignored) | Subagent output with skill loaded                           |
+| `<name>-workspace/iteration-N/eval-K-name/without_skill/transcript.md` | no (gitignored) | Subagent output without skill (baseline)                    |
+| `<name>-workspace/iteration-N/eval-K-name/<variant>/grading.json`      | no (gitignored) | Per-assertion pass/fail, written by `skill-tools eval`      |
+| `<name>-workspace/iteration-N/benchmark.{json,md}`                     | no (gitignored) | Aggregate per iteration, written by `skill-tools benchmark` |
 
 Test definitions are deterministic and worth versioning. Transcripts and grading are stochastic LLM outputs that drift; committing them creates noise.

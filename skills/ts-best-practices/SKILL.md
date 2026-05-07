@@ -41,14 +41,14 @@ Verbatim trigger phrases:
 
 ### Naming
 
-| Element | Convention | Example |
-|---|---|---|
-| Files | `kebab-case.ts` | `user-service.ts`, `auth-types.ts` |
-| Variables | `camelCase` | `userId`, `isAuthenticated` |
-| Functions | `camelCase` (verbs) | `createUser`, `parseHeaders` |
-| Types/interfaces | `PascalCase` | `User`, `CreateUserParams` |
-| Constants | `SCREAMING_SNAKE_CASE` | `MAX_RETRIES = 3` |
-| Const objects | `SCREAMING_SNAKE_CASE` keys with `as const` | `GITHUB_EVENTS = { PUSH: 'push' } as const` |
+| Element          | Convention                                  | Example                                     |
+| ---------------- | ------------------------------------------- | ------------------------------------------- |
+| Files            | `kebab-case.ts`                             | `user-service.ts`, `auth-types.ts`          |
+| Variables        | `camelCase`                                 | `userId`, `isAuthenticated`                 |
+| Functions        | `camelCase` (verbs)                         | `createUser`, `parseHeaders`                |
+| Types/interfaces | `PascalCase`                                | `User`, `CreateUserParams`                  |
+| Constants        | `SCREAMING_SNAKE_CASE`                      | `MAX_RETRIES = 3`                           |
+| Const objects    | `SCREAMING_SNAKE_CASE` keys with `as const` | `GITHUB_EVENTS = { PUSH: 'push' } as const` |
 
 Object properties: prefer **nested** when properties form a logical group; flat for standalone values.
 
@@ -92,7 +92,7 @@ interface CreateUserParams {
 }
 
 export function createUser({ name, email, roleId }: CreateUserParams): User {
-  // ...
+// ...
 }
 </good>
 
@@ -102,17 +102,17 @@ export function createUser(name: string, email: string, roleId: string): User {
 }
 </bad>
 
-| Suffix | Use case |
-|---|---|
-| `*Params` | Required input parameters |
-| `*Options` | Optional configuration |
-| `*Args` | Function arguments (less common) |
+| Suffix     | Use case                         |
+| ---------- | -------------------------------- |
+| `*Params`  | Required input parameters        |
+| `*Options` | Optional configuration           |
+| `*Args`    | Function arguments (less common) |
 
 ### JSDoc
 
-Every exported function needs JSDoc with `@param`, `@returns`, and `@example` (when useful). Document the *why*, not the *what*. Skip only in test files.
+Every exported function needs JSDoc with `@param`, `@returns`, and `@example` (when useful). Document the _why_, not the _what_. Skip only in test files.
 
-```ts
+````ts
 /**
  * Parses raw webhook headers into a typed structure.
  *
@@ -127,7 +127,7 @@ Every exported function needs JSDoc with `@param`, `@returns`, and `@example` (w
 export function parseWebhookHeaders(params: ParseHeadersParams) {
   // ...
 }
-```
+````
 
 Private (non-exported) functions get JSDoc too, with `@private`:
 
@@ -160,14 +160,16 @@ type Brand<T, B> = T & { __brand: B }
 type UserId = Brand<string, 'UserId'>
 type OrgId = Brand<string, 'OrgId'>
 
-function userId(id: string): UserId { return id as UserId }
+function userId(id: string): UserId {
+  return id as UserId
+}
 ```
 
 **`as const`** for literal types:
 
 ```ts
 const STATUSES = ['pending', 'active', 'completed'] as const
-type Status = (typeof STATUSES)[number]  // "pending" | "active" | "completed"
+type Status = (typeof STATUSES)[number] // "pending" | "active" | "completed"
 ```
 
 **`type-fest`** for utility types not in stdlib: `SetRequired`, `SetOptional`, `PartialDeep`, `ReadonlyDeep`, `Except`, `Simplify`.
@@ -176,21 +178,21 @@ type Status = (typeof STATUSES)[number]  // "pending" | "active" | "completed"
 
 ### Conditionals
 
-| Scenario | Use | Why |
-|---|---|---|
-| Early return / guard | `if` | Cleaner guard clauses |
-| Simple A or B | `call()` (from `@pkg/fp`) or local helper | Lightweight inline expression |
-| 3+ branches | `ts-pattern`'s `match()` | Exhaustive, readable |
-| Discriminated unions | `ts-pattern` with `.exhaustive()` | Compile-time safety |
+| Scenario             | Use                                       | Why                           |
+| -------------------- | ----------------------------------------- | ----------------------------- |
+| Early return / guard | `if`                                      | Cleaner guard clauses         |
+| Simple A or B        | `call()` (from `@pkg/fp`) or local helper | Lightweight inline expression |
+| 3+ branches          | `ts-pattern`'s `match()`                  | Exhaustive, readable          |
+| Discriminated unions | `ts-pattern` with `.exhaustive()`         | Compile-time safety           |
 
 <good>
 import { match } from 'ts-pattern'
 
 const message = match(status)
-  .with('pending', () => 'Waiting...')
-  .with('success', () => 'Done!')
-  .with('error', () => 'Failed')
-  .exhaustive()  // compile error if a case is missing
+.with('pending', () => 'Waiting...')
+.with('success', () => 'Done!')
+.with('error', () => 'Failed')
+.exhaustive() // compile error if a case is missing
 </good>
 
 <bad>
@@ -209,16 +211,16 @@ switch (status) {
 
 ### Anti-patterns
 
-| Avoid | Use instead |
-|---|---|
-| `any` | `unknown` + narrow with type guard |
-| Ternaries (esp. nested) | `call()` for A/B, `match()` for 3+ |
-| `switch` statements | `match().with(...).exhaustive()` |
-| Banner comments (`// === HELPERS ===`) | Let file structure speak |
-| Arrow functions for private helpers | `function` declarations (hoisted) |
-| Type assertion (`as Foo`) without validation | Type guard or schema parse |
-| Concatenated property names (`clerkOrgId`) | Nested objects (`clerk.orgId`) |
-| 5+ positional params | Refactor to a `*Params` object |
+| Avoid                                        | Use instead                        |
+| -------------------------------------------- | ---------------------------------- |
+| `any`                                        | `unknown` + narrow with type guard |
+| Ternaries (esp. nested)                      | `call()` for A/B, `match()` for 3+ |
+| `switch` statements                          | `match().with(...).exhaustive()`   |
+| Banner comments (`// === HELPERS ===`)       | Let file structure speak           |
+| Arrow functions for private helpers          | `function` declarations (hoisted)  |
+| Type assertion (`as Foo`) without validation | Type guard or schema parse         |
+| Concatenated property names (`clerkOrgId`)   | Nested objects (`clerk.orgId`)     |
+| 5+ positional params                         | Refactor to a `*Params` object     |
 
 ## Examples
 
@@ -226,7 +228,7 @@ switch (status) {
 <input>"add a function to fetch a user with optional caching"</input>
 <output>
 
-```ts
+````ts
 import type { User } from './types'
 
 interface FetchUserParams {
@@ -252,7 +254,7 @@ interface FetchUserOptions {
  */
 export async function fetchUser(
   { userId }: FetchUserParams,
-  options?: FetchUserOptions,
+  options?: FetchUserOptions
 ): Promise<User | null> {
   if (options?.cache) {
     const cached = await readCache(userId)
@@ -268,7 +270,7 @@ export async function fetchUser(
 function readCache(userId: UserId): Promise<User | null> {
   // ...
 }
-```
+````
 
 The agent applied: `*Params` + `*Options` split, branded `UserId`, JSDoc with `@example`, exports-first ordering, no banner comments, early-return-style cache check, private helper at the bottom.
 
@@ -280,6 +282,7 @@ The agent applied: `*Params` + `*Options` split, branded `UserId`, JSDoc with `@
 <output>
 
 Before:
+
 ```ts
 function renderStatus(deployment: Deployment) {
   if (deployment.status === 'building') {
@@ -297,6 +300,7 @@ function renderStatus(deployment: Deployment) {
 ```
 
 After:
+
 ```ts
 import { match, P } from 'ts-pattern'
 

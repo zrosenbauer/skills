@@ -4,11 +4,7 @@ import path from 'node:path'
 import { command } from '@kidd-cli/core'
 import { z } from 'zod'
 
-import {
-  type BenchmarkFile,
-  benchmarkFileSchema,
-  type GradingFile,
-} from '../lib/schemas.js'
+import { type BenchmarkFile, benchmarkFileSchema, type GradingFile } from '../lib/schemas.js'
 import {
   discoverSkills,
   findRepoRoot,
@@ -84,7 +80,7 @@ function aggregate(skillName: string, iteration: IterationSummary): BenchmarkFil
       without_skill_passed: acc.without_skill_passed + e.without_skill.passed,
       without_skill_total: acc.without_skill_total + e.without_skill.total,
     }),
-    { with_skill_passed: 0, with_skill_total: 0, without_skill_passed: 0, without_skill_total: 0 },
+    { with_skill_passed: 0, with_skill_total: 0, without_skill_passed: 0, without_skill_total: 0 }
   )
   return benchmarkFileSchema.parse({
     skill_name: skillName,
@@ -119,7 +115,7 @@ function renderMarkdown(b: BenchmarkFile): string {
   ]
   for (const e of b.evals) {
     lines.push(
-      `| ${e.eval_id} | ${e.eval_name} | ${e.with_skill.passed}/${e.with_skill.total} | ${e.without_skill.passed}/${e.without_skill.total} |`,
+      `| ${e.eval_id} | ${e.eval_name} | ${e.with_skill.passed}/${e.with_skill.total} | ${e.without_skill.passed}/${e.without_skill.total} |`
     )
   }
   return lines.join('\n') + '\n'

@@ -11,18 +11,24 @@
   },
   "scripts": {
     "build": "turbo run build",
-    "lint": "turbo run lint",
+    "lint": "oxlint",
+    "lint:fix": "oxlint --fix",
+    "format": "oxfmt",
+    "format:fix": "oxfmt --write",
     "test": "turbo run test",
     "typecheck": "turbo run typecheck",
+    "check": "pnpm lint && pnpm format && pnpm typecheck && pnpm test",
     "clean": "turbo run clean && rm -rf node_modules .turbo",
     "skill-tools": "node packages/skill-tools/dist/index.mjs"
   },
   "devDependencies": {
+    "oxfmt": "^0.48.0",
+    "oxlint": "^1.63.0",
     "turbo": "^2.8.20"
   },
-  "packageManager": "pnpm@10.33.0",
   "engines": {
     "node": ">=20",
     "pnpm": ">=10"
-  }
+  },
+  "packageManager": "pnpm@10.33.0"
 }

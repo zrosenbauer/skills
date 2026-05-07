@@ -17,11 +17,7 @@ const options = z.object({
   variant: z
     .enum(['with_skill', 'without_skill'])
     .describe('Whether the transcript came from a run WITH or WITHOUT the skill loaded'),
-  iteration: z
-    .number()
-    .int()
-    .positive()
-    .describe('Iteration number this eval belongs to'),
+  iteration: z.number().int().positive().describe('Iteration number this eval belongs to'),
   transcript: z.string().describe('Path to a transcript.md file produced by a subagent run'),
 })
 
@@ -43,9 +39,7 @@ export default command({
       process.exit(1)
     }
 
-    const evalCase = skill.evalsFile.evals.find(
-      (e: EvalCase) => e.id === ctx.args.evalId,
-    )
+    const evalCase = skill.evalsFile.evals.find((e: EvalCase) => e.id === ctx.args.evalId)
     if (!evalCase) {
       ctx.log.error(`No eval with id=${ctx.args.evalId} in evals.json`)
       process.exit(1)
@@ -58,7 +52,7 @@ export default command({
       `${skill.location.dir}-workspace`,
       `iteration-${ctx.args.iteration}`,
       `eval-${evalCase.id}-${evalCase.eval_name}`,
-      ctx.args.variant,
+      ctx.args.variant
     )
     mkdirSync(variantDir, { recursive: true })
 
@@ -82,13 +76,10 @@ export default command({
       graded_at: new Date().toISOString(),
     })
 
-    writeFileSync(
-      path.join(variantDir, 'grading.json'),
-      JSON.stringify(grading, null, 2) + '\n',
-    )
+    writeFileSync(path.join(variantDir, 'grading.json'), JSON.stringify(grading, null, 2) + '\n')
 
     ctx.log.info(
-      `eval ${evalCase.eval_name} (${ctx.args.variant}): ${passedCount}/${evalCase.assertions.length} passed`,
+      `eval ${evalCase.eval_name} (${ctx.args.variant}): ${passedCount}/${evalCase.assertions.length} passed`
     )
   },
 })

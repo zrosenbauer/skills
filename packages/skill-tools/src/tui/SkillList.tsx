@@ -14,9 +14,7 @@ export function SkillList({ skills, onSelect }: SkillListProps) {
     return (
       <Box flexDirection="column" padding={1}>
         <Text color="yellow">No skills found.</Text>
-        <Text dimColor>
-          Skills live in `skills/` (public) or `.agents/skills/` (private).
-        </Text>
+        <Text dimColor>Skills live in `skills/` (public) or `.agents/skills/` (private).</Text>
       </Box>
     )
   }

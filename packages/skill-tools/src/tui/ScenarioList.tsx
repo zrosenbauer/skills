@@ -23,12 +23,7 @@ interface RowOption {
   variant: 'with_skill' | 'without_skill'
 }
 
-export function ScenarioList({
-  skill,
-  iteration,
-  onSelect,
-  onBack: _onBack,
-}: ScenarioListProps) {
+export function ScenarioList({ skill, iteration, onSelect, onBack: _onBack }: ScenarioListProps) {
   const rows: RowOption[] = []
   for (const scenario of iteration.evals) {
     if (scenario.withSkill?.hasTranscript) {
@@ -88,15 +83,17 @@ export function ScenarioList({
 function formatLabel(
   scenario: ScenarioSummary,
   variant: VariantSummary,
-  label: 'with' | 'without',
+  label: 'with' | 'without'
 ): string {
   const grading = variant.grading
   const score = grading ? `${grading.passed_count}/${grading.total_count}` : '?/?'
-  const glyph = grading
-    ? grading.passed_count === grading.total_count
-      ? '✓'
-      : '✗'
-    : '·'
+  const glyph = computeGlyph(grading)
   const variantTag = label === 'with' ? '[w/  skill]' : '[w/o skill]'
   return `${glyph} eval-${scenario.evalId}-${scenario.evalName.padEnd(28)} ${variantTag}  ${score}`
+}
+
+function computeGlyph(grading: VariantSummary['grading']): string {
+  if (!grading) return '·'
+  if (grading.passed_count === grading.total_count) return '✓'
+  return '✗'
 }
