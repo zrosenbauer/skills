@@ -1,0 +1,41 @@
+{
+  "version": 1,
+  "skills": {
+    "code-reviewer": {
+      "source": "zrosenbauer/skills",
+      "sourceType": "github",
+      "skillPath": "skills/code-reviewer/SKILL.md",
+      "computedHash": "06ad598d79404ce19081be8f1d962b1e5a1e8f6bd8b7097d2cc3146708b91489"
+    },
+    "skill-creator": {
+      "source": "zrosenbauer/skills",
+      "sourceType": "github",
+      "skillPath": "skills/skill-creator/SKILL.md",
+      "computedHash": "740f600309dd7b7d9b0fc336aa9f2cf435bf22a7db6ae9754c60f9cf8e235a99"
+    },
+    "skill-eval": {
+      "source": "zrosenbauer/skills",
+      "sourceType": "github",
+      "skillPath": "skills/skill-eval/SKILL.md",
+      "computedHash": "1cecb979cacee2e29653428245cb463e002a9488a50d2b5e9a366f1613524172"
+    },
+    "skill-portability": {
+      "source": "zrosenbauer/skills",
+      "sourceType": "github",
+      "skillPath": "skills/skill-portability/SKILL.md",
+      "computedHash": "d3be8be10cd70477e41805fa260214b99ed37bee9a4a24b43b6858b8b4d27ab1"
+    },
+    "ts-best-practices": {
+      "source": "zrosenbauer/skills",
+      "sourceType": "github",
+      "skillPath": "skills/ts-best-practices/SKILL.md",
+      "computedHash": "a3fc353cabf8371f968cd26ea7f30d49e4ab10bdc4707e49dd43889ff6fb9f39"
+    },
+    "ts-best-practices-functional": {
+      "source": "zrosenbauer/skills",
+      "sourceType": "github",
+      "skillPath": "skills/ts-best-practices-functional/SKILL.md",
+      "computedHash": "8e5464f7e35b7f52881991995abc15ad58446150b525fb3ced9615f98518ab1f"
+    }
+  }
+}
