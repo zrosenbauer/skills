@@ -23,18 +23,20 @@ npx skills add zrosenbauer/skills --skill ts-best-practices
 
 The [`skills` CLI](https://www.npmjs.com/package/skills) handles discovery and placement for your agent.
 
-## Catalog
+## Skills
 
-| Skill | When to use |
-| --- | --- |
-| [`code-reviewer`](./skills/code-reviewer) | Adversarial review of a diff or PR — finds real issues, not nits |
-| [`ts-best-practices`](./skills/ts-best-practices) | Writing or refactoring TypeScript with idiomatic patterns |
-| [`ts-best-practices-functional`](./skills/ts-best-practices-functional) | Refactoring TS toward functional patterns — Result types, no mutation |
-| [`skill-creator`](./skills/skill-creator) | Authoring a new skill with the RED→GREEN eval cycle baked in |
-| [`skill-eval`](./skills/skill-eval) | Re-running baselines on existing skills after a model upgrade |
-| [`skill-portability`](./skills/skill-portability) | Checking whether a skill works across Claude Code, Cursor, Codex, etc. |
+| # | Skill | What it does | Install |
+| --- | --- | --- | --- |
+| 1 | [`code-reviewer`](./skills/code-reviewer) | Adversarial review of a diff or PR — finds real issues, not nits | `npx skills add zrosenbauer/skills --skill code-reviewer` |
+| 2 | [`ts-best-practices`](./skills/ts-best-practices) | Writing or refactoring TypeScript with idiomatic patterns | `npx skills add zrosenbauer/skills --skill ts-best-practices` |
+| 3 | [`ts-best-practices-functional`](./skills/ts-best-practices-functional) | Refactoring TS toward functional patterns — Result types, no mutation | `npx skills add zrosenbauer/skills --skill ts-best-practices-functional` |
+| 4 | [`skill-creator`](./skills/skill-creator) | Authoring a new skill with the RED→GREEN eval cycle baked in | `npx skills add zrosenbauer/skills --skill skill-creator` |
+| 5 | [`skill-eval`](./skills/skill-eval) | Re-running baselines on existing skills after a model upgrade | `npx skills add zrosenbauer/skills --skill skill-eval` |
+| 6 | [`skill-portability`](./skills/skill-portability) | Checking whether a skill works across Claude Code, Cursor, Codex, etc. | `npx skills add zrosenbauer/skills --skill skill-portability` |
 
 Each skill ships its own `SKILL.md` and `evals.json` under [`skills/<name>/`](./skills).
+
+> **Discover more skills** → browse the leaderboard at [skills.sh](https://skills.sh) — top-installed agent skills across the ecosystem (vercel-labs, anthropics, microsoft, remotion, …).
 
 ## Compatibility
 
