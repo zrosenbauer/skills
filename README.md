@@ -1,6 +1,4 @@
-<p align="center">
-  <img src="./.github/assets/banner.png" alt="SKILLS — by @zrosenbauer" />
-</p>
+<img src="./.github/assets/banner.png" alt="SKILLS — by @zrosenbauer" width="100%" />
 
 <p align="center">
   <a href="https://skills.sh/zrosenbauer/skills"><img src="https://skills.sh/b/zrosenbauer/skills" alt="skills.sh" /></a>
