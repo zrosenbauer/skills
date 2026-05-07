@@ -139,18 +139,28 @@ export const providers = [
   {
     id: 'pi',
     name: 'Pi',
-    fileFormat: 'SKILL.md',
-    fileLocation: '.pi/skills/<name>/SKILL.md (project) or ~/.pi/agent/skills/<name>/SKILL.md (global)',
+    fileFormat: 'SKILL.md (or root-level *.md in `.pi/skills/` and `~/.pi/agent/skills/`)',
+    fileLocation:
+      '.pi/skills/<name>/SKILL.md or .agents/skills/<name>/SKILL.md (project, walks ancestor dirs); ~/.pi/agent/skills/<name>/SKILL.md or ~/.agents/skills/<name>/SKILL.md (global); also `skills/` dirs and `pi.skills` entries in package.json; `--skill <path>` CLI override',
     docUrls: [
-      'https://skills.sh',
-      'https://github.com/vercel-labs/skills/blob/main/src/agents.ts',
+      'https://pi.dev/docs/latest/skills',
+      'https://pi.dev/docs/latest',
+      'https://agentskills.io/specification',
+      'https://github.com/earendil-works/pi/blob/main/packages/coding-agent/docs/skills.md',
     ],
     requiredFrontmatter: ['name', 'description'],
-    optionalFrontmatter: ['argument-hint', 'metadata'],
-    ignoredFrontmatter: ['user-invocable', 'model-invocable', 'allowed-tools', 'globs', 'alwaysApply'],
+    optionalFrontmatter: [
+      'license',
+      'compatibility',
+      'metadata',
+      'allowed-tools',
+      'disable-model-invocation',
+    ],
+    ignoredFrontmatter: ['argument-hint', 'user-invocable', 'model-invocable', 'globs', 'alwaysApply'],
     forbiddenFrontmatter: [],
     toolSurface: [],
-    notes: 'UNVERIFIED — entry inferred from skills.sh / vercel-labs/skills agent registry only. Loads SKILL.md from `.pi/skills/` (project) and `~/.pi/agent/skills/` (global) per the registry. No authoritative CLI docs URL or tool surface published yet; treat fields as a best-effort placeholder and verify against Pi docs when located.',
+    notes:
+      'Pi by Earendil Works. CLI install: `curl -fsSL https://pi.dev/install.sh | sh` or `npm install -g @earendil-works/pi-coding-agent` (binary: `pi`). `name` constraint: lowercase `[a-z0-9-]`, max 64 chars. `description` max 1024 chars; missing description prevents loading. Unknown frontmatter is silently ignored (per spec). Tool surface not enumerated in public docs as of this entry — left empty pending agentskills.io/specification detail.',
   },
 ]
 
