@@ -1,0 +1,78 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 990 630" width="990" height="630">
+  <defs>
+    <style>
+      .terminal-border { fill: #2a2a2a; }
+      .terminal-bg { fill: #0a0a0a; }
+      .title-bar { fill: #2a2a2a; }
+      .btn-red { fill: #ef4444; }
+      .btn-yellow { fill: #f59e0b; }
+      .btn-green { fill: #10b981; }
+      .text { font-family: 'Fira Code', 'JetBrains Mono', 'Menlo', Consolas, monospace; white-space: pre; }
+      .brand { fill: #d97757; }
+      .white { fill: #e5e5e5; }
+      .dim { fill: #737373; }
+      .muted { fill: #525252; }
+      .prompt { fill: #d97757; }
+      .green { fill: #10b981; }
+      .red { fill: #ef4444; }
+      .purple { fill: #a78bfa; }
+      .gray { fill: #9ca3af; }
+    </style>
+    <clipPath id="skills-banner-clip">
+      <rect x="0" y="0" width="990" height="630" rx="14"/>
+    </clipPath>
+  </defs>
+
+  <!-- Window chrome -->
+  <rect class="terminal-border" x="0" y="0" width="990" height="630" rx="14"/>
+  <rect class="terminal-bg" x="3" y="47" width="984" height="580"/>
+  <path class="title-bar" d="M 14,0 H 976 A 14,14 0 0,1 990,14 V 47 H 0 V 14 A 14,14 0 0,1 14,0 Z"/>
+  <circle class="btn-red" cx="32" cy="22" r="8"/>
+  <circle class="btn-yellow" cx="58" cy="22" r="8"/>
+  <circle class="btn-green" cx="84" cy="22" r="8"/>
+  <text class="text dim" font-size="12" x="495" y="27" text-anchor="middle">claude — zsh — 100×30</text>
+
+  <g clip-path="url(#skills-banner-clip)">
+    <g transform="translate(196, 100)">
+      <!-- SKILLS ASCII banner (ANSI Shadow) — line height tuned so block
+           rows touch edge-to-edge without ascender/descender overlap. -->
+      <text class="text brand" font-size="24" y="0"  >███████╗██╗  ██╗██╗██╗     ██╗     ███████╗</text>
+      <text class="text brand" font-size="24" y="27" >██╔════╝██║ ██╔╝██║██║     ██║     ██╔════╝</text>
+      <text class="text brand" font-size="24" y="54" >███████╗█████╔╝ ██║██║     ██║     ███████╗</text>
+      <text class="text brand" font-size="24" y="81" >╚════██║██╔═██╗ ██║██║     ██║     ╚════██║</text>
+      <text class="text brand" font-size="24" y="108">███████║██║  ██╗██║███████╗███████╗███████║</text>
+      <text class="text brand" font-size="24" y="135">╚══════╝╚═╝  ╚═╝╚═╝╚══════╝╚══════╝╚══════╝</text>
+    </g>
+
+    <!-- Byline -->
+    <text x="495" y="310" text-anchor="middle" class="text gray" font-size="22" letter-spacing="4" font-weight="500">by @zrosenbauer</text>
+
+    <!-- ============================================================ -->
+    <!-- Fake skill call: > /skill-creator ts-best-practices            -->
+    <!-- ============================================================ -->
+
+    <g transform="translate(36, 360)">
+      <!-- User prompt line -->
+      <text class="text dim" font-size="14" y="0">&gt;</text>
+      <text class="text brand" font-size="14" x="20" y="0">/skill-creator</text>
+      <text class="text white" font-size="14" x="150" y="0">ts-best-practices</text>
+
+      <!-- Skill activation -->
+      <circle class="brand" cx="8" cy="38" r="5"/>
+      <text class="text white" font-size="14" x="22" y="42" font-weight="600">skill-creator<tspan class="dim">(</tspan><tspan class="purple">ts-best-practices</tspan><tspan class="dim">)</tspan></text>
+
+      <!-- Result -->
+      <text class="text muted" font-size="14" x="10" y="68">⎿</text>
+      <text class="text dim" font-size="14" x="32" y="68">Created <tspan class="gray">skills/ts-best-practices/SKILL.md</tspan> · <tspan class="green">+86</tspan> <tspan class="muted">/</tspan> <tspan class="red">-0</tspan></text>
+    </g>
+
+    <!-- Input prompt box -->
+    <rect x="30" y="460" width="930" height="56" rx="6" fill="none" stroke="#d97757" stroke-width="1.4"/>
+    <text class="text prompt" font-size="16" x="50" y="496" font-weight="600">&gt;</text>
+    <rect x="74" y="484" width="9" height="14" fill="#e5e5e5" opacity="0.7"/>
+
+    <!-- Status line -->
+    <text class="text muted" font-size="11" x="30" y="565">? for shortcuts</text>
+    <text class="text muted" font-size="11" x="960" y="565" text-anchor="end">Sonnet 4.6 · 14% context left</text>
+  </g>
+</svg>
