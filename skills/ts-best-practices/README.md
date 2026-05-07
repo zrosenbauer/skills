@@ -31,7 +31,7 @@ Applies a consolidated TypeScript style across files when invoked:
 
 ## When NOT to use
 
-- Functional-style refactors → `functional-ts-best-practices`
+- Functional-style refactors → `ts-best-practices-functional`
 - Framework components (React, Vue) — different conventions apply
 - Plain JavaScript without TypeScript
 

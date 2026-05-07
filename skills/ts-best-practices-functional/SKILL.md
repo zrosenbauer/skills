@@ -1,5 +1,5 @@
 ---
-name: functional-ts-best-practices
+name: ts-best-practices-functional
 description: >-
   This skill should be used when the user wants to refactor TypeScript code
   to functional patterns or write new code following functional doctrine.
@@ -16,7 +16,7 @@ user-invocable: true
 model-invocable: true
 ---
 
-# functional-ts-best-practices
+# ts-best-practices-functional
 
 Refactor or author TypeScript using a functional doctrine: **factories** over classes, **Result<T,E>** over exceptions, **immutable state** via spread/map/filter, and **pure functions** composed in pipelines.
 

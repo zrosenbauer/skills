@@ -1,4 +1,4 @@
-# functional-ts-best-practices
+# ts-best-practices-functional
 
 > Refactor or write TypeScript using a functional doctrine.
 
@@ -7,7 +7,7 @@ A skill that bakes in factory functions over classes, `Result<T,E>` over excepti
 ## Install
 
 ```bash
-npx skills add zrosenbauer/skills --skill functional-ts-best-practices
+npx skills add zrosenbauer/skills --skill ts-best-practices-functional
 ```
 
 ## What it does

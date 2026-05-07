@@ -55,7 +55,7 @@
     {
       "id": 2,
       "eval_name": "tool-name-portability-audit",
-      "prompt": "audit skills/functional-ts-best-practices/ — it references AskUserQuestion and TodoWrite in the body. does this break compat with codex or continue? i need specifics",
+      "prompt": "audit skills/ts-best-practices-functional/ — it references AskUserQuestion and TodoWrite in the body. does this break compat with codex or continue? i need specifics",
       "expected_output": "Identifies AskUserQuestion and TodoWrite as Claude Code-specific tool names. Notes Codex CLI and Continue.dev do not expose those exact tool names — agents in those providers won't be able to call them by name. Recommends either (a) phrasing the body in terms of capabilities ('ask the user a structured question') so any provider's tool surface can fulfill it, or (b) gating the tool-specific instructions behind a 'when running in Claude Code' note. Verdict: portable in spirit, partially compatible in letter.",
       "files": [],
       "assertions": [

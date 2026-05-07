@@ -8,7 +8,7 @@ description: >-
   Bakes in branded types, discriminated unions, ts-pattern for multi-branch
   logic, JSDoc on exports, kebab-case file naming, and *Params/*Options
   object-arg conventions. Skip when working with framework-specific components
-  or pure functional refactors — use functional-ts-best-practices instead.
+  or pure functional refactors — use ts-best-practices-functional instead.
 # --- Claude Code extensions (ignored by other agents) ---
 argument-hint: '[<file-or-dir>]'
 user-invocable: true
@@ -32,7 +32,7 @@ Verbatim trigger phrases:
 
 ## When NOT to use
 
-- User wants functional-style refactors → use `functional-ts-best-practices`
+- User wants functional-style refactors → use `ts-best-practices-functional`
 - User is writing framework components (React, Vue, Svelte) — different conventions apply
 - User is working in plain JavaScript without TypeScript
 - User is debugging a runtime error (best-practices is a code-shape concern, not a debug tool)

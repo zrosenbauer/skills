@@ -9,7 +9,7 @@ description: >-
   optional cross-model review via any detected AI CLI on the machine, and a
   PR sub-mode that fetches the diff via `gh`. Skip when the user wants
   formatting fixes (use a linter) or refactoring patterns (use
-  ts-best-practices or functional-ts-best-practices).
+  ts-best-practices or ts-best-practices-functional).
 
 # --- Claude Code extensions (ignored by other agents) ---
 argument-hint: '[<file|dir|pr-url|diff>]'
@@ -43,7 +43,7 @@ Verbatim trigger phrases:
 ## When NOT to use
 
 - Formatting / style fixes → use a linter (`oxlint`, `eslint`, `prettier`, etc.)
-- Refactoring patterns → use `ts-best-practices` or `functional-ts-best-practices`
+- Refactoring patterns → use `ts-best-practices` or `ts-best-practices-functional`
 - Fixing PR review comments that already exist → use the existing `gg-pr-fix-review` skill
 - Writing new code from scratch → this skill reviews existing code
 
