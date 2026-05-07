@@ -79,6 +79,19 @@ Instructions for the agent when this skill is invoked.
 
 `name` and `description` are the universal core (required by the [`skills` CLI](https://www.npmjs.com/package/skills)). The other fields are Claude Code extensions — other agents ignore them. See [skills.sh](https://skills.sh) for the full spec.
 
+### Pressure-tested skills
+
+Public skills in this repo ship an `evals.json` alongside `SKILL.md` — at least 3 realistic pressure scenarios with deterministic assertions. The runner skill `/skill-eval` dispatches subagents to re-run them after Claude version upgrades, and `pnpm skill-tools benchmark <name>` aggregates the results. Transcripts and grading live in a gitignored sibling `<name>-workspace/`.
+
+Skill authoring is best done through `/skill-creator`, which walks the RED→GREEN→REFACTOR cycle and enforces the lint rules.
+
+```bash
+pnpm skill-tools lint              # all skills (three-tier severity)
+pnpm skill-tools lint <name>       # one skill
+pnpm skill-tools view              # TUI: browse skills, iterations, transcripts
+pnpm skill-tools benchmark <name>  # aggregate to benchmark.md
+```
+
 ### Installing a public skill
 
 Via the [skills.sh](https://skills.sh) CLI:

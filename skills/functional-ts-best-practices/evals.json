@@ -1,0 +1,102 @@
+{
+  "skill_name": "functional-ts-best-practices",
+  "evals": [
+    {
+      "id": 0,
+      "eval_name": "refactor-counter-class-to-factory",
+      "prompt": "convert this Counter class to whatever you think is cleaner — its just an internal counter for some retry logic, nothing wrapping a sdk:\n\nclass Counter {\n  count = 0\n  increment() { this.count++ }\n  decrement() { this.count-- }\n  getValue() { return this.count }\n}",
+      "expected_output": "Factory function returning an interface, closure-encapsulated state, no `class`, no `this`, no `new`. Should explain that the class is replaced because there's no SDK or framework requirement.",
+      "files": [],
+      "assertions": [
+        {
+          "text": "no class keyword in the output",
+          "type": "regex",
+          "pattern": "^(?!.*\\bclass\\s+Counter\\b).*$"
+        },
+        {
+          "text": "uses a factory function (createX)",
+          "type": "regex",
+          "pattern": "function\\s+create\\w+\\s*\\("
+        },
+        {
+          "text": "returns an object with the API methods",
+          "type": "regex",
+          "pattern": "increment\\s*:\\s*\\(\\s*\\)\\s*=>"
+        },
+        {
+          "text": "no `this` references",
+          "type": "regex",
+          "pattern": "^(?!.*\\bthis\\.).*$"
+        }
+      ]
+    },
+    {
+      "id": 1,
+      "eval_name": "convert-throws-to-result",
+      "prompt": "this throws all over the place and our error tracker is full of TypeError noise. clean it up:\n\nfunction parseConfig(json: string): Config {\n  if (!json) throw new Error('Empty input')\n  return JSON.parse(json)\n}\n\nasync function loadConfig(path: string): Promise<Config> {\n  const raw = await fs.readFile(path, 'utf8')\n  return parseConfig(raw)\n}",
+      "expected_output": "Both functions return Result<T, E> instead of throwing. Error type is a discriminated union with specific variants (e.g., 'empty_input' | 'invalid_json' | 'fs_error'). loadConfig handles fs errors. Caller-side example shows pattern-matched handling.",
+      "files": [],
+      "assertions": [
+        {
+          "text": "parseConfig signature returns a Result type",
+          "type": "regex",
+          "pattern": "parseConfig\\s*\\([^)]*\\)\\s*:\\s*Result<"
+        },
+        {
+          "text": "Result type is generic with two type params",
+          "type": "regex",
+          "pattern": "Result<\\s*\\w+\\s*,\\s*\\w+\\s*>"
+        },
+        {
+          "text": "no throw statements in the refactored code",
+          "type": "regex",
+          "pattern": "^(?!.*\\bthrow\\s+new\\s+Error).*$"
+        },
+        {
+          "text": "uses ok() and err() helpers",
+          "type": "regex",
+          "pattern": "(\\bok\\s*\\(|\\berr\\s*\\()"
+        },
+        {
+          "text": "error type is structured (object with type field), not bare Error",
+          "type": "regex",
+          "pattern": "type\\s*:\\s*['\"][a-z_]+['\"]"
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "eval_name": "stop-array-mutation",
+      "prompt": "fix the bug here — when i call addItem twice quickly the count goes up but the UI doesn't rerender, lol:\n\nconst items: Item[] = []\nfunction addItem(item: Item) { items.push(item) }\nfunction updateItem(id: string, updates: Partial<Item>) {\n  const item = items.find(i => i.id === id)\n  Object.assign(item, updates)\n}",
+      "expected_output": "Refactored to immutable updates: addItem and updateItem take items as a param and return new arrays via spread / map. State management is explicit (caller owns the array). No mutation of input arguments.",
+      "files": [],
+      "assertions": [
+        {
+          "text": "addItem takes items as a parameter (no module-scope mutable state)",
+          "type": "regex",
+          "pattern": "addItem\\s*\\([^)]*items\\s*:\\s*"
+        },
+        {
+          "text": "addItem returns a new array via spread",
+          "type": "regex",
+          "pattern": "\\[\\s*\\.\\.\\.items\\s*,"
+        },
+        {
+          "text": "updateItem uses map (not Object.assign) to apply updates",
+          "type": "regex",
+          "pattern": "items\\.map\\s*\\("
+        },
+        {
+          "text": "no Object.assign used",
+          "type": "regex",
+          "pattern": "^(?!.*Object\\.assign).*$"
+        },
+        {
+          "text": "no items.push used",
+          "type": "regex",
+          "pattern": "^(?!.*items\\.push).*$"
+        }
+      ]
+    }
+  ]
+}
