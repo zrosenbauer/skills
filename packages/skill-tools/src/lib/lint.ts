@@ -289,16 +289,20 @@ const RULES: Rule[] = [
   {
     code: 'EVALS_MISSING',
     severity: 'error',
-    description: 'every skill must ship evals.json with ≥ 3 cases',
-    check: (skill) =>
-      skill.hasEvalsJson
-        ? null
-        : {
-            code: 'EVALS_MISSING',
-            severity: 'error',
-            message: 'no evals.json — every skill must define ≥ 3 pressure scenarios',
-            fix: 'Run /skill-creator audit <name>, or hand-author evals.json with 3+ cases',
-          },
+    description:
+      'public skills must ship evals.json with ≥ 3 cases; internal skills (metadata.internal=true) only get a warn',
+    check: (skill) => {
+      if (skill.hasEvalsJson) return null
+      const internal = skill.frontmatter.metadata?.internal === true
+      return {
+        code: 'EVALS_MISSING',
+        severity: internal ? 'warn' : 'error',
+        message: internal
+          ? 'no evals.json (internal skill — recommended but not required)'
+          : 'no evals.json — every public skill must define ≥ 3 pressure scenarios',
+        fix: 'Run /skill-creator audit <name>, or hand-author evals.json with 3+ cases',
+      }
+    },
   },
   {
     code: 'EVALS_MALFORMED',
