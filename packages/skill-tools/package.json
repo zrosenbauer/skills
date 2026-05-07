@@ -1,0 +1,32 @@
+{
+  "name": "@zrosenbauer/skill-tools",
+  "version": "0.0.0",
+  "private": true,
+  "description": "CLI + TUI for authoring, linting, and evaluating skills in this monorepo",
+  "license": "MIT",
+  "author": "Zac Rosenbauer <zacrosenbauer@gmail.com>",
+  "type": "module",
+  "bin": {
+    "skill-tools": "./dist/index.mjs"
+  },
+  "scripts": {
+    "dev": "kidd dev",
+    "build": "kidd build",
+    "typecheck": "tsc --noEmit",
+    "clean": "rm -rf dist .kidd"
+  },
+  "dependencies": {
+    "@inkjs/ui": "^2.0.0",
+    "@kidd-cli/core": "^0.23.1",
+    "ink": "^7.0.2",
+    "react": "^19.2.6",
+    "ts-pattern": "^5.9.0",
+    "zod": "^4.4.3"
+  },
+  "devDependencies": {
+    "@kidd-cli/cli": "^0.11.6",
+    "@types/node": "^22.10.0",
+    "@types/react": "^19.2.0",
+    "typescript": "^5.9.0"
+  }
+}

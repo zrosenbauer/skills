@@ -42,3 +42,9 @@ coverage/
 
 # Claude Code (personal local overrides; project settings.json is committed)
 .claude/settings.local.json
+
+# skill workspaces (transcripts, grading, benchmarks — gitignored per skill-creator-pro convention)
+*-workspace/
+
+# kidd build artifacts
+.kidd/
