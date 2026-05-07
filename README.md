@@ -38,23 +38,6 @@ Each skill ships its own `SKILL.md` and `evals.json` under [`skills/<name>/`](./
 
 > **Discover more skills** → browse the leaderboard at [skills.sh](https://skills.sh) — top-installed agent skills across the ecosystem (vercel-labs, anthropics, microsoft, remotion, …).
 
-## Compatibility
-
-Targets the [skills.sh](https://skills.sh) `SKILL.md` spec — works with any compliant agent:
-
-- **Claude Code** — full support, including extended frontmatter (`argument-hint`, `user-invocable`, `model-invocable`)
-- **Cursor**, **OpenAI Codex CLI**, **Gemini CLI**, **OpenCode**, **Pi** — supported via the universal `name` + `description` core
-- **Custom agents** — anything that loads `SKILL.md` files
-
-## Why pressure-tested?
-
-Every public skill ships with an `evals.json` — at least three realistic scenarios with deterministic assertions. Each skill has been proven to:
-
-1. Solve a real failure mode the underlying model gets wrong by default (RED baseline)
-2. Reliably correct that failure once the skill is loaded (GREEN run)
-
-No vibes-based skills. If it's published here, it's been graded.
-
 ## Contributing
 
 Want to add a skill, fix a bug, or fork one for your own use? See [CONTRIBUTING.md](./CONTRIBUTING.md) for the dev setup, skill authoring workflow, and conventions.
