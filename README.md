@@ -25,14 +25,14 @@ The [`skills` CLI](https://www.npmjs.com/package/skills) handles discovery and p
 
 ## Skills
 
-| # | Skill | What it does | Install |
-| --- | --- | --- | --- |
-| 1 | [`code-reviewer`](./skills/code-reviewer) | Adversarial review of a diff or PR — finds real issues, not nits | `npx skills add zrosenbauer/skills --skill code-reviewer` |
-| 2 | [`ts-best-practices`](./skills/ts-best-practices) | Writing or refactoring TypeScript with idiomatic patterns | `npx skills add zrosenbauer/skills --skill ts-best-practices` |
-| 3 | [`ts-best-practices-functional`](./skills/ts-best-practices-functional) | Refactoring TS toward functional patterns — Result types, no mutation | `npx skills add zrosenbauer/skills --skill ts-best-practices-functional` |
-| 4 | [`skill-creator`](./skills/skill-creator) | Authoring a new skill with the RED→GREEN eval cycle baked in | `npx skills add zrosenbauer/skills --skill skill-creator` |
-| 5 | [`skill-eval`](./skills/skill-eval) | Re-running baselines on existing skills after a model upgrade | `npx skills add zrosenbauer/skills --skill skill-eval` |
-| 6 | [`skill-portability`](./skills/skill-portability) | Checking whether a skill works across Claude Code, Cursor, Codex, etc. | `npx skills add zrosenbauer/skills --skill skill-portability` |
+| # | Skill | What it does |
+| --- | --- | --- |
+| 1 | [`code-reviewer`](./skills/code-reviewer) | Adversarial review of a diff or PR — finds real issues, not nits |
+| 2 | [`ts-best-practices`](./skills/ts-best-practices) | Writing or refactoring TypeScript with idiomatic patterns |
+| 3 | [`ts-best-practices-functional`](./skills/ts-best-practices-functional) | Refactoring TS toward functional patterns — Result types, no mutation |
+| 4 | [`skill-creator`](./skills/skill-creator) | Authoring a new skill with the RED→GREEN eval cycle baked in |
+| 5 | [`skill-eval`](./skills/skill-eval) | Re-running baselines on existing skills after a model upgrade |
+| 6 | [`skill-portability`](./skills/skill-portability) | Checking whether a skill works across Claude Code, Cursor, Codex, etc. |
 
 Each skill ships its own `SKILL.md` and `evals.json` under [`skills/<name>/`](./skills).
 
