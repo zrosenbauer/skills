@@ -23,8 +23,9 @@
     </clipPath>
   </defs>
 
-  <!-- Window chrome -->
-  <rect class="terminal-bg" x="0" y="44" width="990" height="586" rx="0"/>
+  <!-- Window chrome — terminal-bg covers the full window with rounded
+       corners; title bar sits on top with its own rounded top corners. -->
+  <rect class="terminal-bg" x="0" y="0" width="990" height="630" rx="14"/>
   <path class="title-bar" d="M 14,0 H 976 A 14,14 0 0,1 990,14 V 44 H 0 V 14 A 14,14 0 0,1 14,0 Z"/>
   <circle class="btn-red" cx="32" cy="22" r="8"/>
   <circle class="btn-yellow" cx="58" cy="22" r="8"/>
