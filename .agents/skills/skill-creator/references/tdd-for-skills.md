@@ -1,73 +1,100 @@
-# TDD for skills (RED → GREEN)
+# TDD for skills — RED → GREEN → REFACTOR
 
-Borrowed from `zwbao/skill-creator-pro`. Front-load the verification: prove the skill is needed *before* writing it.
+**Core insight:** a skill is production documentation that runs hundreds of times. Untested documentation has the same failure profile as untested code — it works for you, then breaks for someone else in a way you never imagined.
 
-## Why
+Adapted from [`zwbao/skill-creator-pro`](https://github.com/zwbao/skill-creator-pro)'s methodology.
 
-Skills exist to fix gaps in the agent's default behavior. If you can't articulate the gap, the skill probably isn't needed. If you can articulate it but can't reproduce it, you're guessing.
+## The cycle
 
-## RED phase
+| Phase | For code | For skills |
+|---|---|---|
+| RED | Write failing test | Run baseline subagent scenario WITHOUT the skill; watch what goes wrong |
+| GREEN | Write minimal code to pass | Write minimal skill addressing those specific failures |
+| REFACTOR | Close edge cases | Close new rationalizations surfaced by re-running scenarios |
 
-Define **3+ baseline scenarios** the skill should improve. For each:
+## RED — pressure scenarios
 
-1. **Verbatim user prompt** — what the user actually says, including casual/imperative tone
-2. **Expected behavior with the skill** — one sentence describing the right outcome
-3. **Actual behavior without the skill** — run the prompt mentally (or literally, in a fresh session) and capture failures verbatim
-
-### Capture failures *verbatim*, not paraphrased
+A pressure scenario is a realistic user prompt that would invoke the skill. The more realistic, the better. Abstract prompts ("convert this PDF") test nothing — they're too easy. Specific prompts with personal context, vague phrasing, and constraints are what reveal failure modes.
 
 <bad>
-Without the skill, the agent doesn't follow our error-handling pattern.
+"Convert this PDF to markdown."
 </bad>
 
 <good>
-Without the skill, agent writes:
-```ts
-function parseConfig(s: string) {
-  const x = JSON.parse(s); // throws TypeError on bad input
-  return x;
-}
-```
-Should write:
-```ts
-function parseConfig(s: string): Result<Config, ParseError> {
-  return attempt(() => JSON.parse(s)).mapErr(toParseError);
-}
-```
+"ok so my boss sent me this pdf of a lease (it's in my downloads, the file
+has a weird name with brackets) and i need to pull out the rent amount and
+the renewal clause. the thing is it's scanned, not a proper text pdf, and
+half of it is in Chinese. can you get me those two bits?"
 </good>
 
-The verbatim form gives you a regression test. The paraphrase gives you nothing to test against.
+The good version tests: OCR vs text extraction, CJK handling, selective extraction, ambiguous file location.
 
-## GREEN phase
+### Dispatch via the Agent tool
 
-After drafting the skill, re-run each RED scenario *as if* the skill were loaded. Each should pass cleanly. If any still fails:
-
-- The skill body is missing instructions for that scenario
-- Add them, re-lint, re-check
-
-The acceptance bar: every RED scenario produces the expected behavior, no manual prompting needed beyond the original verbatim prompt.
-
-## Where the scenarios live
-
-Two options:
-
-**Inline in SKILL.md** — for small skills (1–3 scenarios), put them in an `## Examples` section using `<example>` blocks.
-
-**Companion file** — for larger skills, create `tests/baseline.md` with one section per scenario. Reference it from SKILL.md.
+`/skill-eval` automates this — it invokes `Agent(subagent_type=general-purpose)` for each scenario in `evals.json`. The dispatch prompt is roughly:
 
 ```
-skills/my-skill/
-├── SKILL.md
-└── tests/
-    └── baseline.md       # RED scenarios
+Execute this task exactly:
+
+[pressure prompt from evals.json]
+
+No skill is loaded for this task. After attempting it, report what you did,
+what decisions you made and why, and anything you found tricky. Report
+verbatim — do not polish, do not summarize.
 ```
 
-## Iteration
+The "verbatim" ask is essential. Polished reports hide the rationalizations you need to see.
 
-Skills get worse if you let them. Re-run RED→GREEN whenever:
+## Pressure types
 
-- You add a new behavior to the skill
-- A real user trips on a case the skill didn't handle (add it to RED, re-iterate)
-- You're about to publish or share the skill
+Different skills need different pressures. See [`pressure-scenarios.md`](pressure-scenarios.md) for full guidance.
 
-This is cheap. A baseline.md with 5 scenarios takes 10 minutes to scan. Skipping it is how skills decay.
+| Skill type | Pressure |
+|---|---|
+| **Discipline** (TDD, verification, "always X") | Time pressure + sunk cost + authority (user insisting). Combine 3 pressures — single-pressure tests are too easy. |
+| **Technique** (specific patterns, like ts-pattern) | Variation + missing information |
+| **Pattern** (do this, not that) | Counter-examples + recognition scenarios |
+| **Reference** (API docs, lookup) | Retrieval + gap testing |
+
+## GREEN — minimal skill
+
+Write only what's needed to address the baseline failures. Don't pre-empt hypothetical failures. The lean skill tests faster and reveals real problems; the bloated skill teaches you nothing.
+
+`/skill-eval` re-runs the same scenarios *with* the skill loaded. Expect partial success — second-round failures are your next iteration.
+
+## REFACTOR — close loopholes
+
+Every new rationalization goes into two places:
+
+1. **A rule with the *why*:** `Do X, because [reason from transcript]`.
+2. **The rationalization table** at the bottom of the SKILL.md (discipline skills only).
+
+Capture excuses verbatim. *"I skipped the test because the change is tiny"* goes in the table as-is — don't sanitize it. The raw voice is what future agents recognize.
+
+## When the baseline succeeds
+
+If the subagent nails the task without the skill, **the skill is unnecessary** — tell the user this. It's a better outcome than shipping a no-op skill that clutters the description index and slows down every future conversation.
+
+Exception: the success is luck, not pattern. Run 2 more pressure scenarios with varied phrasings. If it still works, no skill needed. If it fails 1 of 3, you have something to document.
+
+## Stopping criteria
+
+Stop iterating when:
+
+- All scenarios pass with the skill and fail without it.
+- Reading the latest transcripts surfaces no new rationalizations.
+- You can't articulate what the next improvement would address.
+
+Don't chase asymptotic improvements. A skill that passes 4/5 scenarios is shippable; the 5th is a future patch.
+
+## Where the artifacts live
+
+| File | Committed | Purpose |
+|---|---|---|
+| `skills/<name>/evals.json` | yes | Test definitions: prompts, expected outputs, assertions |
+| `<name>-workspace/iteration-N/eval-K-name/with_skill/transcript.md` | no (gitignored) | Subagent output with skill loaded |
+| `<name>-workspace/iteration-N/eval-K-name/without_skill/transcript.md` | no (gitignored) | Subagent output without skill (baseline) |
+| `<name>-workspace/iteration-N/eval-K-name/<variant>/grading.json` | no (gitignored) | Per-assertion pass/fail, written by `skill-tools eval` |
+| `<name>-workspace/iteration-N/benchmark.{json,md}` | no (gitignored) | Aggregate per iteration, written by `skill-tools benchmark` |
+
+Test definitions are deterministic and worth versioning. Transcripts and grading are stochastic LLM outputs that drift; committing them creates noise.

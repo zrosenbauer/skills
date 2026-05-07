@@ -1,69 +1,97 @@
 # Self-lint checklist
 
-Run this against any skill before committing. Hard rules block; soft rules warn.
+Run with `pnpm skill-tools lint <name>` (or `pnpm skill-tools lint` for all skills). The TS implementation in [`packages/skill-tools/src/lib/lint.ts`](../../../../packages/skill-tools/src/lib/lint.ts) is the enforcer; this doc is the human-readable reference.
 
-## Hard rules (must pass)
+## Severity model
+
+| Severity | Action | Exit code on hit |
+|---|---|---|
+| `error` | Block: fix before shipping | 2 |
+| `warn` | Likely problem; fix unless justified | 0 |
+| `info` | Recommendation; apply if cheap | 0 |
+
+`pnpm skill-tools lint` shows all three by default. Use `--severity error` to filter to blockers only, or `--fix` to print fix hints alongside each finding.
+
+## Rules
 
 ### Naming
 
-- [ ] Directory name matches `^[a-z][a-z0-9-]+[a-z0-9]$`
-- [ ] Length ≤ 64 chars
-- [ ] No double hyphens, no leading/trailing hyphens
-- [ ] No underscores, dots, camelCase, or PascalCase
-- [ ] Not generic (`temp`, `skill1`, `new-skill`)
+| Code | Severity | What it checks |
+|---|---|---|
+| `DIR_NAME` | error | Directory matches `^[a-z][a-z0-9-]+[a-z0-9]$` (kebab-case, no double hyphens, no leading/trailing) |
 
-→ See [naming.md](naming.md)
+→ See [`naming.md`](naming.md)
 
 ### Frontmatter
 
-- [ ] Parses as valid YAML (no syntax errors)
-- [ ] Contains the universal-core required fields: `name` and `description`
-- [ ] `name` matches the directory name exactly
-- [ ] Contains the Claude Code extension fields (recommended for cross-agent compatibility): `argument-hint`, `user-invocable`, `model-invocable`
-- [ ] `user-invocable` and `model-invocable` are booleans (when present)
-- [ ] `argument-hint` is a single-line string (when present)
+| Code | Severity | What it checks |
+|---|---|---|
+| `FM_MISSING_NAME` | error | Frontmatter has `name` |
+| `FM_NAME_MISMATCH` | error | `name` matches directory |
+| `FM_MISSING_DESCRIPTION` | error | Frontmatter has `description` |
+| `FM_MISSING_ARGUMENT_HINT` | info | `argument-hint` set (Claude Code extension; recommended for cross-agent) |
+| `FM_MISSING_USER_INVOCABLE` | info | `user-invocable` set (Claude Code extension) |
+| `FM_MISSING_MODEL_INVOCABLE` | info | `model-invocable` set (Claude Code extension) |
 
-→ See [frontmatter.md](frontmatter.md)
+→ See [`frontmatter.md`](frontmatter.md)
 
 ### Description
 
-- [ ] 80–1024 characters
-- [ ] Contains `"Use when"` or `"This skill should be used when"`
-- [ ] Lists ≥ 3 verbatim trigger phrases in double quotes
-- [ ] No anti-shortcut words: `then`, `next`, `step 1`, `process`, `first`
-- [ ] Includes a `Skip when` clause
+| Code | Severity | What it checks |
+|---|---|---|
+| `DESC_TOO_SHORT` | warn | ≥ 80 chars |
+| `DESC_TOO_LONG` | warn | ≤ 1024 chars |
+| `DESC_NO_TRIGGER` | warn | Contains "Use when" or "should be used when" |
+| `DESC_FEW_TRIGGERS` | warn | ≥ 3 verbatim trigger phrases in double quotes |
+| `DESC_ANTI_SHORTCUT` | error | No anti-shortcut words: `then`, `next`, `step 1`, `process`, `first` |
+| `DESC_NO_SKIP` | info | Has "Skip when" / "do not use when" / "avoid when" clause |
 
-→ See [description.md](description.md)
+→ See [`description.md`](description.md)
 
 ### Body
 
-- [ ] At least 3 `## ...` sections
-- [ ] ≤ 500 lines total
-- [ ] No `TODO`, `FIXME`, `XXX` markers
-- [ ] All XML tags balanced (every `<example>` has a closing `</example>`, etc.)
-- [ ] At least one `<example>` block (for non-trivial skills)
-- [ ] Only the canonical XML tags used: `<example>`, `<good>`, `<bad>`, `<input>`, `<output>`
+| Code | Severity | What it checks |
+|---|---|---|
+| `BODY_TOO_LONG` | warn | ≤ 500 lines |
+| `BODY_FEW_SECTIONS` | warn | ≥ 3 `## ` headings |
+| `BODY_TODO` | error | No `TODO` / `FIXME` / `XXX` placeholders (excluding code blocks and inline backticks) |
+| `BODY_NO_EXAMPLE` | warn | At least one `<example>...</example>` block |
 
-→ See [xml-usage.md](xml-usage.md)
+→ See [`xml-usage.md`](xml-usage.md)
 
-### RED scenarios
+### Companions
 
-- [ ] At least 3 baseline scenarios documented (in body or `tests/baseline.md`)
-- [ ] Each has verbatim prompt + expected behavior + actual-without-skill
-- [ ] Failures captured verbatim (code/output, not paraphrased)
+| Code | Severity | What it checks |
+|---|---|---|
+| `NO_README` | info | `README.md` present |
+| `NO_LICENSE` | info | `LICENSE` present |
 
-→ See [tdd-for-skills.md](tdd-for-skills.md)
+### Evals
 
-## Soft rules (warnings)
+| Code | Severity | What it checks |
+|---|---|---|
+| `EVALS_MISSING` | error (warn for `metadata.internal: true`) | `evals.json` exists with ≥ 3 cases |
+| `EVALS_MALFORMED` | error | `evals.json` parses against the Zod schema |
+| `EVALS_NAME_MISMATCH` | warn | `skill_name` in `evals.json` matches directory |
 
-- [ ] `LICENSE` file present (MIT recommended for forkable skills)
-- [ ] `README.md` present (human-facing summary)
-- [ ] Description has both "Use when" AND "Skip when" clauses
-- [ ] Trigger phrases cover ≥ 2 phrasing styles (imperative + question, or formal + casual)
-- [ ] Body links to relevant `references/` and `templates/` files
+→ See [`evals-json.md`](evals-json.md), [`tdd-for-skills.md`](tdd-for-skills.md), [`pressure-scenarios.md`](pressure-scenarios.md)
 
-## How to run
+## CI usage
 
-The checklist is markdown. The agent reads it and applies each item to the skill's files. There's no compiled validator — if you find yourself missing the same rule twice, that's the signal to add a TS lint script in a `packages/skill-tools` package.
+```bash
+pnpm skill-tools lint                   # all skills, all severities
+pnpm skill-tools lint --severity error  # only blockers
+pnpm skill-tools lint <skill-name>      # one skill
+pnpm skill-tools lint --fix             # show fix hints
+```
 
-For now: read the skill files, walk the checklist, fix what fails, re-check.
+Exit code is `2` if any `error` was found, `0` otherwise. Wire `pnpm skill-tools lint --severity error` into pre-commit / CI to block bad skills.
+
+## Disabling a check
+
+If a check is genuinely wrong for a skill, **don't silence it** — fix the rule. Either:
+
+1. Open an issue / PR against `lint.ts` to relax the check.
+2. Add a specific justification comment in `SKILL.md` so future maintainers understand.
+
+Silencing lint without a documented reason is the same anti-pattern as "disable this test to make the build pass".

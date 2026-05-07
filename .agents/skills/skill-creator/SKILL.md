@@ -64,17 +64,17 @@ Apply [`references/naming.md`](references/naming.md). Quick check:
 - No abbreviations like `bestpractices` — use `best-practices`
 - Prefer `<domain>-<focus>` (e.g., `ts-best-practices`) over generic `<thing>-rules`
 
-### 3. RED phase
+### 3. RED phase — write `evals.json` and run baselines
 
-Define 3+ baseline scenarios where the skill should help. For each:
+Pressure-test the gap *before* writing the skill. See [`references/pressure-scenarios.md`](references/pressure-scenarios.md) for what makes a good scenario per skill type.
 
-- Write the verbatim user prompt that triggers the scenario
-- Mentally run that prompt *without* the skill — what does the agent do? Where does it fail?
-- Capture failures verbatim (not paraphrased), e.g., "agent writes ad-hoc parser instead of using zod"
+1. Ask the user for **3+ pressure scenarios**: realistic prompts (not abstract "convert this PDF" — specific, messy, with personal context).
+2. For each scenario, decide assertions (regex / contains / file_exists) — see [`references/evals-json.md`](references/evals-json.md).
+3. Write `skills/<name>/evals.json` from the [`templates/evals.json.template`](templates/evals.json.template).
+4. Invoke [`/skill-eval <name>`](../../../skills/skill-eval) which dispatches Agent(general-purpose) for each scenario *without* the skill loaded and saves transcripts to `<name>-workspace/iteration-1/eval-K-name/without_skill/`.
+5. Inspect the without-skill transcripts (open one in `pnpm skill-tools view <name>`). If the baseline already passes the assertions cleanly, the skill is unnecessary — **tell the user and stop**. Better to skip than ship a no-op skill.
 
-These scenarios become the skill's regression suite. They live in the SKILL.md body or in `tests/baseline.md`.
-
-See [`references/tdd-for-skills.md`](references/tdd-for-skills.md).
+The transcripts are gitignored; the `evals.json` is committed.
 
 ### 4. Draft frontmatter
 
@@ -123,17 +123,39 @@ Typical body sections:
 
 ### 6. Self-lint
 
-Run [`references/lint-checklist.md`](references/lint-checklist.md). All hard rules must pass. If a rule fails, fix the SKILL.md and re-check.
+Run `pnpm skill-tools lint <name>`. All `error`-severity findings must clear; `warn` and `info` are advisory. If any rule fails, fix the SKILL.md and re-run.
 
-### 7. GREEN phase
+The full rule list lives in [`references/lint-checklist.md`](references/lint-checklist.md). The TS implementation in `packages/skill-tools/src/lib/lint.ts` is the enforcer.
 
-Re-run the RED scenarios *as if* the skill were loaded. Each scenario should pass cleanly. If any still fails, the skill body is missing instructions — add them and re-lint.
+### 7. GREEN phase — re-run with the skill loaded
+
+Invoke `/skill-eval <name>` again — this dispatches Agent(general-purpose) for each scenario *with* the new skill in context, saves to `<name>-workspace/iteration-1/eval-K-name/with_skill/`, then grades.
+
+Acceptance: every eval that failed without the skill should now pass. If any still fail, the skill body is missing instructions — patch and rerun. If any **regress** (passed without, now fails with), the skill introduced a problem — also patch and rerun.
+
+### 7.5. Capture rationalizations (discipline skills only)
+
+If this is a **discipline skill** (one that enforces rules the agent might rationalize skipping — e.g., "always run tests", "never use `any`", "always use Result"), read the with-skill transcripts. When the subagent skipped a rule and explained why, capture the excuse **verbatim** into a `## Rationalization table` section at the bottom of `SKILL.md`.
+
+Format:
+
+```markdown
+## Rationalization table
+
+| Skipped rule | Verbatim excuse | Why it's wrong |
+|---|---|---|
+| Always run the test | "the change is tiny so I'll skip" | Tiny changes still break behavior; run the test |
+| Use Result instead of throw | "this is just a quick prototype" | Prototypes leak into prod; use Result anyway |
+```
+
+Capturing excuses verbatim — not sanitized — is the point. Future agents recognize their own pattern. Skip this step for reference / pattern / technique skills with no rules to weasel out of.
 
 ### 8. Package
 
 Write to `skills/<name>/`:
 
 - `SKILL.md` — the skill body
+- `evals.json` — the test definitions (already created in step 3)
 - `LICENSE` — MIT (matches repo root)
 - `README.md` — human-facing summary
 
@@ -141,7 +163,8 @@ Optional companions for non-trivial skills:
 
 - `references/<topic>.md` — deeper rules referenced from SKILL.md
 - `templates/<thing>.template` — boilerplate the skill scaffolds from
-- `tests/baseline.md` — the RED scenarios
+
+The sibling `<name>-workspace/` directory (transcripts, grading, benchmarks) is gitignored — only `evals.json` ships with the skill.
 
 ## Examples
 
@@ -181,6 +204,9 @@ The `<bad>` example fails three rules: no "Use when" phrase, no verbatim trigger
 
 ## References
 
+- [`references/evals-json.md`](references/evals-json.md) — `evals.json` schema and assertion types
+- [`references/pressure-scenarios.md`](references/pressure-scenarios.md) — how to write good pressure scenarios per skill type
+- [`references/tdd-for-skills.md`](references/tdd-for-skills.md) — RED → GREEN → REFACTOR cycle
 - [`references/frontmatter.md`](references/frontmatter.md) — frontmatter schema
 - [`references/naming.md`](references/naming.md) — naming rules
 - [`references/description.md`](references/description.md) — description rules + anti-shortcut patterns
