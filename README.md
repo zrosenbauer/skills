@@ -1,135 +1,61 @@
 # skills
 
-> Personal monorepo for [agent skills](https://skills.sh) — authored, forked, and customized for my own workflows. Works with any agent that supports the `SKILL.md` format (Claude Code, Cursor, Codex, custom agents, etc.).
+> A curated collection of [agent skills](https://skills.sh) for AI coding assistants — battle-tested for TypeScript reviews, refactors, skill authoring, and cross-agent portability.
 
 [![skills.sh](https://skills.sh/b/zrosenbauer/skills)](https://skills.sh/zrosenbauer/skills)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](./LICENSE)
 
-## About
+Skills are markdown files (`SKILL.md`) that tell an AI agent **when** and **how** to do something specific. They're agent-agnostic — drop them into Claude Code, Cursor, Codex, or any tool that supports the [skills.sh](https://skills.sh) format.
 
-A pnpm + Turborepo workspace for building, modifying, and publishing [agent skills](https://skills.sh). Skills are markdown files (`SKILL.md`) with frontmatter that describe when and how an agent should invoke them — agent-agnostic by design. This repo also has room for shared utility packages that support skill authoring.
+This repo publishes the skills I use every day, each one pressure-tested with real evals before it ships.
 
-## Structure
+## Install
 
-```
-.
-├── skills/              # all skills — published via the skills CLI
-├── .agents/skills/      # optional local-only skills (currently empty)
-├── packages/            # shared utility packages (@zrosenbauer/*)
-├── AGENTS.md            # agent guidance (CLAUDE.md → symlink)
-├── package.json         # root workspace
-├── pnpm-workspace.yaml
-└── turbo.json
-```
-
-`skills/` and `.agents/skills/` use the same `SKILL.md` format. The split is about distribution, not content:
-
-| Location                 | Visibility | Distribution                                                                                |
-| ------------------------ | ---------- | ------------------------------------------------------------------------------------------- |
-| `skills/<name>/`         | Public     | Listed and installed by `npx skills add zrosenbauer/skills`                                 |
-| `.agents/skills/<name>/` | Local-only | Hidden from the CLI when marked `metadata.internal: true`; load via your agent's load path. |
-
-## Getting started
-
-**Prerequisites:** Node ≥ 20, pnpm ≥ 10.
+Pick the install you want — all the skills, or just one.
 
 ```bash
-git clone https://github.com/zrosenbauer/skills.git
-cd skills
-pnpm install
+# Install every skill
+npx skills add zrosenbauer/skills
+
+# Install one skill
+npx skills add zrosenbauer/skills --skill ts-best-practices
 ```
 
-## Authoring a skill
+The [`skills` CLI](https://www.npmjs.com/package/skills) handles discovery and placement for your agent.
 
-For public skills — anyone can install via `npx skills add`:
+## What's in here
 
-```bash
-mkdir -p skills/my-skill
-$EDITOR skills/my-skill/SKILL.md
-```
+| Skill | Use it when… |
+| --- | --- |
+| [`code-reviewer`](./skills/code-reviewer) | You want an adversarial review of a diff or PR — finds real issues, not nits. |
+| [`ts-best-practices`](./skills/ts-best-practices) | Writing or refactoring TypeScript and want idiomatic, industry-standard patterns. |
+| [`functional-ts-best-practices`](./skills/functional-ts-best-practices) | Refactoring TS toward functional patterns — Result types, factories, no mutation. |
+| [`skill-creator`](./skills/skill-creator) | Authoring a new skill from scratch with the RED→GREEN eval cycle baked in. |
+| [`skill-eval`](./skills/skill-eval) | Re-running baselines on existing skills after a model upgrade. |
+| [`skill-portability`](./skills/skill-portability) | Checking whether a skill works across Claude Code, Cursor, Codex, and others. |
 
-For local-only skills — only available to you, in this repo:
+Each skill has its own `SKILL.md` and `evals.json` under [`skills/<name>/`](./skills).
 
-```bash
-mkdir -p .agents/skills/my-skill
-$EDITOR .agents/skills/my-skill/SKILL.md
-# Add `metadata: { internal: true }` to the frontmatter to hide it from the skills CLI.
-```
+## Compatibility
 
-`SKILL.md` format:
+These skills target the [skills.sh](https://skills.sh) `SKILL.md` spec, so they work with any compliant agent:
 
-```markdown
----
-name: my-skill
-description: >-
-  When this skill should fire. Include common trigger phrases the user
-  might say so the dispatcher matches reliably.
+- **Claude Code** — full support, including extended frontmatter (`argument-hint`, `user-invocable`, `model-invocable`)
+- **Cursor**, **OpenAI Codex CLI**, **Gemini CLI**, **OpenCode**, **Pi** — supported via the universal `name` + `description` core
+- **Custom agents** — anything that loads `SKILL.md` files
 
-# --- Claude Code extensions (ignored by other agents) ---
-argument-hint: '[<optional-arg>]'
-user-invocable: true
-model-invocable: true
----
+## Why pressure-tested?
 
-# my-skill
+Every public skill ships with an `evals.json` — at least three realistic scenarios with deterministic assertions. That means each skill has been proven to:
 
-Instructions for the agent when this skill is invoked.
-```
+1. Solve a real failure mode the underlying model gets wrong by default (RED baseline)
+2. Reliably correct that failure once the skill is loaded (GREEN run)
 
-`name` and `description` are the universal core (required by the [`skills` CLI](https://www.npmjs.com/package/skills)). The other fields are Claude Code extensions — other agents ignore them. See [skills.sh](https://skills.sh) for the full spec.
+No vibes-based skills. If it's published here, it's been graded.
 
-### Pressure-tested skills
+## Contributing
 
-Public skills in this repo ship an `evals.json` alongside `SKILL.md` — at least 3 realistic pressure scenarios with deterministic assertions. The runner skill `/skill-eval` dispatches subagents to re-run them after Claude version upgrades, and `pnpm skill-tools benchmark <name>` aggregates the results. Transcripts and grading live in a gitignored sibling `<name>-workspace/`.
-
-Skill authoring is best done through `/skill-creator`, which walks the RED→GREEN→REFACTOR cycle and enforces the lint rules.
-
-```bash
-pnpm skill-tools lint              # all skills (three-tier severity)
-pnpm skill-tools lint <name>       # one skill
-pnpm skill-tools view              # TUI: browse skills, iterations, transcripts
-pnpm skill-tools benchmark <name>  # aggregate to benchmark.md
-```
-
-### Installing a public skill
-
-Via the [skills.sh](https://skills.sh) CLI:
-
-```bash
-npx skills add zrosenbauer/skills              # all public skills
-npx skills add zrosenbauer/skills --skill ts-best-practices   # one specific
-```
-
-## Scripts
-
-| Command          | Description                               |
-| ---------------- | ----------------------------------------- |
-| `pnpm install`   | Install workspace dependencies            |
-| `pnpm build`     | Run `build` across workspace packages     |
-| `pnpm lint`      | Run `lint` across workspace packages      |
-| `pnpm typecheck` | Run `typecheck` across workspace packages |
-| `pnpm test`      | Run `test` across workspace packages      |
-| `pnpm clean`     | Clean build output and `node_modules`     |
-
-All `pnpm <task>` scripts are thin wrappers around `turbo run <task>`.
-
-## Adding a shared package
-
-```bash
-mkdir -p packages/utils
-cd packages/utils
-pnpm init
-# set "name": "@zrosenbauer/utils"
-```
-
-`pnpm-workspace.yaml` already includes `packages/*`, so it'll be picked up automatically.
-
-## Conventions
-
-- Skill directory names are `kebab-case`.
-- Shared packages are scoped `@zrosenbauer/<name>`.
-- Edit `AGENTS.md`, never `CLAUDE.md` (symlink).
-- Forked third-party skills keep their upstream `LICENSE` alongside.
+Want to add a skill, fix a bug, or fork one for your own use? See [CONTRIBUTING.md](./CONTRIBUTING.md) for the dev setup, skill authoring workflow, and conventions.
 
 ## License
 
