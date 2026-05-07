@@ -24,5 +24,14 @@
     "vitest/require-to-throw-message": "off",
     "vitest/no-conditional-expect": "off"
   },
-  "ignorePatterns": ["node_modules", "dist", "build", ".turbo", ".kidd", "*-workspace", "**/*.d.ts"]
+  "ignorePatterns": [
+    "node_modules",
+    "dist",
+    "build",
+    ".turbo",
+    ".kidd",
+    ".claude",
+    "*-workspace",
+    "**/*.d.ts"
+  ]
 }
