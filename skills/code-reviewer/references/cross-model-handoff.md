@@ -52,38 +52,39 @@ Total prompt should fit in the target model's context. If the code is huge:
 
 ## Step 4 — Invoke the CLI
 
-Two patterns. Prefer `stdinTemplate` when available — avoids shell-quoting hell on long prompts:
-
-### Pattern A — stdin (preferred)
-
-```bash
-echo "<prompt>" | <stdinTemplate>
-# concretely:
-echo "<full composed prompt>" | codex exec -
-```
-
-In code (Bash via the agent's tool):
+Use the bundled `invoke-cli.mjs` script. It encapsulates the stdin-vs-argv choice, handles timeouts, and avoids all shell-quoting hazards:
 
 ```bash
 PROMPT_FILE=$(mktemp)
 cat > "$PROMPT_FILE" << 'EOF'
-<full composed prompt>
+<full composed prompt — persona body, scope marker, code, output-format spec>
 EOF
-cat "$PROMPT_FILE" | codex exec -
+node scripts/invoke-cli.mjs <cli-id> --timeout 120 < "$PROMPT_FILE"
 rm "$PROMPT_FILE"
 ```
 
-The heredoc + tmpfile avoids any shell interpretation of the prompt.
+The script:
 
-### Pattern B — argv (fallback)
+- Looks up `<cli-id>` in the same registry `detect-clis.mjs` uses
+- Prefers `stdinTemplate` (pipes the prompt to the child's stdin); falls back to `promptTemplate` argv substitution when the CLI doesn't support stdin
+- Times out after `--timeout` seconds (default 120s) — prevents a hanging interactive CLI from locking the agent
+- Returns the child's stdout on stdout, stderr on stderr
+- Exit codes: `0` success, `1` argument error, `2` child exited non-zero, `3` timeout, `4` binary not on $PATH
+
+### Dry-run before committing tokens
+
+If you're not sure the invocation will work, do a dry run first — prints the planned command without spawning the CLI:
 
 ```bash
-<promptTemplate with {{PROMPT}} replaced>
-# concretely:
-codex exec "<full composed prompt>"
+echo "test prompt" | node scripts/invoke-cli.mjs codex --dry-run
+# {
+#   "cli": { "id": "codex", "name": "OpenAI Codex", "binary": "codex" },
+#   "mode": "stdin",
+#   "command": "codex",
+#   "args": ["exec", "-"],
+#   "stdinBytes": 11
+# }
 ```
-
-If using argv, the prompt must be properly escaped. The heredoc-to-stdin pattern is safer.
 
 ## Step 5 — Capture the response
 

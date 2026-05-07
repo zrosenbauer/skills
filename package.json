@@ -16,8 +16,9 @@
     "format": "oxfmt",
     "format:fix": "oxfmt --write",
     "test": "turbo run test",
+    "test:scripts": "node --test 'skills/*/scripts/*.test.mjs'",
     "typecheck": "turbo run typecheck",
-    "check": "pnpm lint && pnpm format && pnpm typecheck && pnpm test",
+    "check": "pnpm lint && pnpm format && pnpm typecheck && pnpm test && pnpm test:scripts",
     "clean": "turbo run clean && rm -rf node_modules .turbo",
     "skill-tools": "node packages/skill-tools/dist/index.mjs"
   },
