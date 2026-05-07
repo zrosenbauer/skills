@@ -7,9 +7,9 @@ description: >-
   Result instead of throw", "stop mutating this", and "refactor to factory
   function". Bakes in factory functions over classes, Result<T,E> over
   exceptions, immutable state via spread/map/filter, and pure functions
-  composed in pipelines. Skip when the class is wrapping a stateful SDK
-  (PrismaClient, Octokit, WebSocket) or when working with framework class
-  requirements.
+  composed in pipelines. Skip when the user wants general TS hygiene (use
+  ts-best-practices), the class wraps a stateful SDK (PrismaClient, Octokit,
+  WebSocket), or a framework requires a class.
 # --- Claude Code extensions (ignored by other agents) ---
 argument-hint: '[<file-or-dir>]'
 user-invocable: true
@@ -419,6 +419,18 @@ Errors are part of the type signature now — callers can't accidentally ignore 
 
 </output>
 </example>
+
+## Rationalization table
+
+Captured from RED-baseline transcripts where agents without this skill skipped functional doctrine under pressure. Recognize your own pattern before reaching for the excuse.
+
+| Skipped rule | Verbatim excuse | Why it's wrong |
+|---|---|---|
+| Replace the class with a factory | "the class works fine and refactoring feels risky — I'll just touch it as little as possible" | The "small change" is exactly when discipline pays off; risk compounds across the next ten changes. The factory is mechanically safe (interface + closure + return), and `this`-binding bugs are a real prod cost the class invites. |
+| Convert `throw new Error` to `Result<T,E>` | "Result is ceremony for a 2-line function — try/catch at the caller is fine" | Caller "fine" decays the moment one caller forgets the try/catch. Result puts failure modes into the type signature so the compiler enforces handling. The ceremony is one wrapper. |
+| Stop mutating `items.push` / `Object.assign` | "we own this array, no one else holds a reference — mutation is faster" | Mutations leak through closures, async boundaries, and React renders. "We own it" is true today and false next refactor. Spread/map/filter are O(n) — the same as the loop you just wrote. |
+| Use `Result` for parse / validate / I/O | "we've always thrown, the codebase is consistent — switching one function makes it inconsistent" | The codebase is consistently buggy — that is what the rule fixes. Pick a boundary (this module, this PR), apply it consistently inside that boundary, and migrate outward. |
+| Pure functions + side effects at the edge | "logging inside the calc is convenient and only one line — pulling it out adds plumbing" | "One line" of side effect makes the function untestable without mocks and unreusable in a different runtime (worker, batch job). Lift the log to the caller; the function stays pure. |
 
 ## References
 

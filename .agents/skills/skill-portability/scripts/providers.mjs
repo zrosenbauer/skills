@@ -39,7 +39,7 @@ export const providers = [
     id: 'claude-code',
     name: 'Claude Code (Anthropic)',
     fileFormat: 'SKILL.md',
-    fileLocation: '.claude/skills/<name>/SKILL.md or skills/<name>/SKILL.md (via npx skills add)',
+    fileLocation: '~/.claude/skills/<name>/SKILL.md (global) or .claude/skills/<name>/SKILL.md (project) or skills/<name>/SKILL.md (via npx skills add)',
     docUrls: [
       'https://docs.claude.com/en/docs/claude-code/skills',
       'https://docs.claude.com/llms.txt',

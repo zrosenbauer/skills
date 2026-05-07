@@ -2,7 +2,7 @@
 
 > Build, validate, and iterate agent skills in this monorepo.
 
-A meta-skill that bakes in the conventions every skill in `zrosenbauer/skills` follows: kebab-case naming, "Use when" trigger phrases in descriptions, selective XML for example boundaries, and a TDD-style RED→GREEN evaluation loop.
+A meta-skill that bakes in the conventions every skill in `zrosenbauer/skills` follows: kebab-case naming, "Use when" trigger phrases in descriptions, selective XML for example boundaries, and a TDD-style RED→GREEN→REFACTOR evaluation cycle.
 
 ## Use
 
@@ -26,8 +26,10 @@ When invoked, walks the agent through 8 steps to produce a clean SKILL.md:
 - "build a skill for X"
 - "create a new skill"
 - "scaffold a skill"
+- "add a skill that does Y"
 - "make me a skill"
 - "audit this skill against our rules"
+- "refactor this skill to match repo conventions"
 
 ## What's inside
 
@@ -37,15 +39,18 @@ skill-creator/
 ├── README.md                     # this file
 ├── LICENSE                       # MIT
 ├── references/
-│   ├── frontmatter.md            # frontmatter schema
-│   ├── naming.md                 # kebab-case rules
 │   ├── description.md            # description rules + anti-shortcut patterns
-│   ├── xml-usage.md              # when to use XML vs Markdown
-│   ├── tdd-for-skills.md         # RED→GREEN workflow
-│   └── lint-checklist.md         # full self-lint checklist
+│   ├── evals-json.md             # evals.json schema + assertion shapes
+│   ├── frontmatter.md            # frontmatter schema
+│   ├── lint-checklist.md         # full self-lint checklist
+│   ├── naming.md                 # kebab-case rules
+│   ├── pressure-scenarios.md     # how to write good pressure scenarios per skill type
+│   ├── tdd-for-skills.md         # RED → GREEN → REFACTOR cycle
+│   └── xml-usage.md              # when to use XML vs Markdown
 └── templates/
     ├── SKILL.md.template         # boilerplate with placeholders
     ├── README.md.template        # readme boilerplate
+    ├── evals.json.template       # evals.json boilerplate (3 cases)
     └── example-skill.md          # a fully-worked example skill
 ```
 

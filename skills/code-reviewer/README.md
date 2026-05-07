@@ -34,9 +34,11 @@ npx skills add zrosenbauer/skills --skill code-reviewer
 
 - "review this code"
 - "audit this diff"
+- "find issues in this"
 - "second opinion on this"
 - "harsh review of"
 - "review the PR"
+- "adversarial review"
 - "security review of"
 
 ## Cross-model CLI detection

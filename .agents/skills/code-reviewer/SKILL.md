@@ -1,14 +1,15 @@
 ---
 name: code-reviewer
 description: >-
-  This skill should be used when the user wants to review code, audit a diff,
-  get a second opinion on changes, or run an adversarial review. Common
-  triggers include "review this code", "audit this diff", "find issues in",
-  "second opinion on this", "harsh review of", and "review the PR". Bakes in
-  four reviewer personas (adversarial, security, architecture, performance),
-  optional cross-model review via any detected AI CLI on the machine, and a
-  PR sub-mode that fetches the diff via `gh`. Skip when the user wants
-  formatting fixes (use a linter) or refactoring patterns (use
+  This skill should be used when the user wants to review code, audit a
+  diff, get a second opinion on changes, or run an adversarial review.
+  Common triggers include "review this code", "audit this diff", "find
+  issues in", "second opinion on this", "harsh review of", "review the PR",
+  "adversarial review", and "security review of". Picks one of four
+  reviewer personas (adversarial, security, architecture, performance),
+  supports a PR sub-mode via `gh pr diff`, and can hand off to any
+  detected AI CLI for a cross-model second opinion. Skip when the user
+  wants formatting fixes (use a linter) or refactoring patterns (use
   ts-best-practices or ts-best-practices-functional).
 
 # --- Claude Code extensions (ignored by other agents) ---

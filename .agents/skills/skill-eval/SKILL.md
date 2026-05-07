@@ -3,14 +3,15 @@ name: skill-eval
 description: >-
   This skill should be used when the user wants to run baseline evaluations
   on existing agent skills, regenerate transcripts after a model upgrade,
-  or check whether a skill still solves the gap it was authored for.
-  Common triggers include "rerun the baselines", "re-eval skill X", "test
-  all the skills", "check for skill drift", and "run the evals". Dispatches
-  pressure scenarios from each skill's evals.json via the Agent tool, saves
-  transcripts to a gitignored workspace, grades them deterministically via
-  skill-tools, and produces a benchmark. Skip when authoring a new skill
-  (use skill-creator) or modifying skill content directly.
-
+  or check whether a skill still solves the gap it was authored for. Common
+  triggers include "rerun the baselines", "re-eval skill X", "test all the
+  skills", "check for skill drift", and "run the evals". Bakes in verbatim
+  transcript capture (no paraphrasing), deterministic-only grading (regex
+  / contains / file_exists — no LLM-as-judge), and the iteration-N
+  workspace convention. Skip when authoring a new skill (use skill-creator)
+  or modifying skill content directly.
+metadata:
+  internal: true # eval orchestrator — not distributed as a user skill
 # --- Claude Code extensions (ignored by other agents) ---
 argument-hint: '[<skill-name>|--all]'
 user-invocable: true
@@ -55,9 +56,9 @@ If `--all` (or empty), find every directory with both `SKILL.md` and `evals.json
 
 ### 2. Determine the next iteration number
 
-For each target skill, look at the sibling workspace dir `<skill-name>-workspace/`. If it doesn't exist, the next iteration is `1`. Otherwise scan `iteration-N/` directories and use `max(N) + 1`.
+For each target skill, look at the sibling-of-the-skill-dir workspace at `skills/<skill-name>-workspace/` (or `.agents/skills/<skill-name>-workspace/`, depending on the skill's location). If it doesn't exist, the next iteration is `1`. Otherwise scan `iteration-N/` directories and use `max(N) + 1`.
 
-Create `<skill-name>-workspace/iteration-<N>/` (the `*-workspace/` pattern is gitignored).
+Create `skills/<skill-name>-workspace/iteration-<N>/` (the `*-workspace/` pattern is gitignored).
 
 ### 3. Dispatch each eval via the Agent tool
 
@@ -166,10 +167,9 @@ Suggest the user run `pnpm skill-tools view <skill-name>` to navigate transcript
 </output>
 </example>
 
-<example>
 <good>
 Saved transcript verbatim to:
-  ts-best-practices-workspace/iteration-2/eval-0-validate-config/with_skill/transcript.md
+  skills/ts-best-practices-workspace/iteration-2/eval-0-validate-config/with_skill/transcript.md
 </good>
 
 <bad>

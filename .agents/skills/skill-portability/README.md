@@ -1,6 +1,6 @@
 # skill-portability
 
-> Audit whether an agent skill is portable across providers — Claude Code, Cursor, OpenAI Codex CLI, and Continue.dev. Three-layer check (format, body, tool surface) backed by a zero-dep `providers.mjs` ESM script.
+> Audit whether an agent skill is portable across the major agent providers — Claude Code, Cursor, OpenAI Codex CLI, and the Agents-Skills Baseline (Gemini CLI / OpenCode / Pi). Three-layer check (format, body, tool surface) backed by a zero-dep `providers.mjs` ESM script.
 
 ## Install
 
@@ -56,7 +56,7 @@ When a provider moves their docs, update `scripts/providers.mjs` and ship a PR. 
 - **Claude Code** (Anthropic) — native `SKILL.md` format
 - **Cursor** — `.cursor/rules/*.mdc` rule files
 - **OpenAI Codex CLI** — `AGENTS.md` plain markdown
-- **Continue.dev** — `.continue/rules/*.md` and `.continue/agents/*.yaml`
+- **Agents-Skills Baseline** — `SKILL.md` under `.agents/skills/`; the lowest-common-denominator format consumed by Gemini CLI, OpenCode, Pi, and any other agent that adopts the [agentskills.io](https://agentskills.io/specification) spec
 
 Adding a provider means adding one entry to the array in `scripts/providers.mjs` — the audit body re-reads the script every run, so no SKILL.md edit is required.
 

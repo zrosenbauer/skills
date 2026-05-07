@@ -1,16 +1,14 @@
 ---
 name: skill-portability
 description: >-
-  This skill should be used when the user wants to check whether an agent skill
-  is portable across providers — Claude Code, Cursor, OpenAI Codex CLI, and
-  Continue.dev. Common triggers include "is this skill cross-provider safe",
-  "will my skill work in cursor", "audit skill compatibility", "check if this
-  loads in codex", and "which providers support this skill". Spawns one agent
-  per provider in parallel against authoritative llms.txt docs, ships a
-  zero-dep `providers.mjs` with the canonical provider list, and produces both
-  an inline compatibility matrix and a COMPAT.md report. Skip when authoring a
-  new skill (use skill-creator) or rerunning baselines on an existing skill
-  (use skill-eval).
+  This skill should be used when the user wants to check whether an agent
+  skill is portable across providers. Common triggers include "is this skill
+  cross-provider safe", "will my skill work in cursor", "audit skill
+  compatibility", "check if this loads in codex", and "which providers
+  support this skill". Spawns one agent per provider in parallel against
+  authoritative llms.txt docs and produces a compatibility matrix plus a
+  COMPAT.md report. Skip when authoring a new skill (use skill-creator) or
+  rerunning baselines (use skill-eval).
 
 # --- Claude Code extensions (ignored by other agents) ---
 argument-hint: '[<skill-path-or-name>]'
@@ -21,8 +19,9 @@ model-invocable: true
 # skill-portability
 
 Audits whether an agent skill loads and behaves correctly across the major
-providers — Claude Code, Cursor, OpenAI Codex CLI, and Continue.dev. The audit
-covers three layers:
+providers — Claude Code, Cursor, OpenAI Codex CLI, and the Agents-Skills
+Baseline (covering Gemini CLI, OpenCode, Pi). See [`scripts/providers.mjs`](scripts/providers.mjs)
+for the canonical list. The audit covers three layers:
 
 1. **Format-level** — does the file/dir structure and frontmatter match what
    the provider expects?
@@ -101,8 +100,9 @@ into the audit body — re-run the script each time.
 
 ### 3. Fan out: one agent per provider, in parallel
 
-Dispatch four `Agent` calls concurrently (one tool message containing four
-tool uses). Each agent gets:
+Dispatch one `Agent` call per provider returned by step 2 (concurrent — one
+tool message with all tool uses). Don't hardcode the count — `providers.mjs`
+is the source of truth and may grow. Each agent gets:
 
 - The provider entry from step 2 (id, format requirements, docUrls,
   toolSurface, notes)
@@ -116,7 +116,7 @@ tool uses). Each agent gets:
   > 1. **Format**: does it match `fileFormat`? Are all `requiredFrontmatter`
   >    fields present? Are any `forbiddenFrontmatter` fields present?
   > 2. **Body**: does the body lean on conventions this provider doesn't
-  >    parse (e.g., XML tags Cursor strips, headings Continue ignores)?
+  >    parse (e.g., XML tags Cursor strips, headings the baseline ignores)?
   > 3. **Tool surface**: does the body name tools not in this provider's
   >    `toolSurface`? List each unmatched tool name.
   >
@@ -131,7 +131,7 @@ tool uses). Each agent gets:
   > ```
 
 Use `subagent_type: "general-purpose"` (not `Explore` — Explore can't
-WebFetch authoritative provider docs reliably). Run all four in **one**
+WebFetch authoritative provider docs reliably). Run all dispatches in **one**
 message so they execute concurrently.
 
 ### 4. Aggregate the verdicts into a matrix
@@ -139,12 +139,12 @@ message so they execute concurrently.
 Build a markdown table with one row per provider and one column per layer:
 
 ```
-| Provider          | Verdict      | Format         | Body          | Tools   |
-| ----------------- | ------------ | -------------- | ------------- | ------- |
-| Claude Code       | compatible   | SKILL.md ✓     | clean         | -       |
-| Cursor            | partial      | needs .mdc     | XML stripped  | -       |
-| OpenAI Codex CLI  | partial      | rename to AGENTS.md | clean    | Bash → shell |
-| Continue.dev      | partial      | needs rename   | clean         | -       |
+| Provider                | Verdict      | Format              | Body          | Tools          |
+| ----------------------- | ------------ | ------------------- | ------------- | -------------- |
+| Claude Code             | compatible   | SKILL.md ✓          | clean         | -              |
+| Cursor                  | partial      | needs .mdc          | XML stripped  | -              |
+| OpenAI Codex CLI        | partial      | rename to AGENTS.md | clean         | Bash → shell   |
+| Agents-Skills Baseline  | compatible   | SKILL.md ✓          | clean         | tool names vary |
 ```
 
 Add a `NOTES` paragraph below summarizing the most actionable change to make
@@ -186,16 +186,16 @@ verdicts.
    uses `<example>` blocks and references `AskUserQuestion`, `gh pr diff`,
    and a sibling `scripts/detect-clis.mjs`.
 2. Load providers: `node skills/skill-portability/scripts/providers.mjs --pretty`
-   → 4 entries returned.
-3. Fan out 4 parallel `Agent` calls — Claude Code, Cursor, Codex CLI, Continue.
+   → entries returned (currently 4).
+3. Fan out one parallel `Agent` call per provider — Claude Code, Cursor, Codex CLI, Agents-Skills Baseline.
 4. Aggregate verdicts:
 
-   | Provider          | Verdict      | Notes                                                         |
-   | ----------------- | ------------ | ------------------------------------------------------------- |
-   | Claude Code       | compatible   | native format                                                 |
-   | Cursor            | partial      | needs `.cursor/rules/code-reviewer.mdc`; references/ won't load |
-   | OpenAI Codex CLI  | partial      | rename to AGENTS.md; `AskUserQuestion` not in tool surface    |
-   | Continue.dev      | partial      | move to `.continue/rules/code-reviewer.md`; XML tags ignored  |
+   | Provider                | Verdict      | Notes                                                              |
+   | ----------------------- | ------------ | ------------------------------------------------------------------ |
+   | Claude Code             | compatible   | native format                                                      |
+   | Cursor                  | partial      | needs `.cursor/rules/code-reviewer.mdc`; references/ won't load    |
+   | OpenAI Codex CLI        | partial      | rename to AGENTS.md; `AskUserQuestion` not in tool surface         |
+   | Agents-Skills Baseline  | compatible   | loads from `.agents/skills/`; tool names vary per consumer         |
 
 5. Write `skills/code-reviewer/COMPAT.md` with full per-provider bodies.
 </output>

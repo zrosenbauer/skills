@@ -10,7 +10,7 @@
       "assertions": [
         { "text": "classifies the skill as discipline / technique / pattern / reference", "type": "regex", "pattern": "\\b([Dd]iscipline|[Tt]echnique|[Pp]attern|[Rr]eference)\\s+(skill|category|type)\\b" },
         { "text": "cites pressure-scenarios.md, evals-json.md, or tdd-for-skills.md (deep references — not just lint-checklist)", "type": "regex", "pattern": "(pressure-scenarios\\.md|evals-json\\.md|tdd-for-skills\\.md)" },
-        { "text": "audits the evals.json assertion shapes for brittleness", "type": "regex", "pattern": "([Bb]rittle|[Nn]egative regex|per[-\\s]line|double[-\\s]assert|literal\\s+(word|match)|[Ff]alse[\\s-]positive|tighten|loose)" },
+        { "text": "audits the evals.json assertion shapes for brittleness using structural terms (not casual prose)", "type": "regex", "pattern": "([Bb]rittle|[Nn]egative regex|per[-\\s]line|double[-\\s]assert|literal\\s+(word|match)|[Ff]alse[\\s-]positive|prompt[\\s-]?echo|matches?\\s+the\\s+prompt|tempered\\s+greedy|LLM[-\\s]as[-\\s]judge)" },
         { "text": "uses severity tiers (error / warn / info) in findings", "type": "regex", "pattern": "(##\\s+(ERRORS?|WARNS?|INFOS?|errors?|warns?|infos?)|✗.{0,500}⚠|\\[error\\][\\s\\S]{0,400}\\[warn\\])" },
         { "text": "points at specific file:line locations", "type": "regex", "pattern": "(SKILL\\.md:\\d+|evals\\.json:\\d+|line\\s*\\d+|README\\.md:\\d+)" },
         { "text": "proposes a concrete edit", "type": "regex", "pattern": "\\b([Cc]hange|[Ee]dit|[Uu]pdate|[Aa]dd|[Rr]emove|[Rr]eplace|[Rr]ewrite|[Tt]ighten|[Ss]wap|[Dd]rop|[Ss]plit)\\b" }
@@ -23,11 +23,12 @@
       "expected_output": "An honest review that, if the SKILL.md actually conforms, returns a clear pass verdict with a Clean / passes section enumerating WHICH specific repo rules pass (not vibes). Should classify the skill type and use the same severity-tiered format as a non-pass review (with empty error/warn sections explicitly), so the output shape is comparable across runs. Should ground the verdict in skill-creator/references rules — not invent nits to look thorough.",
       "files": [],
       "assertions": [
-        { "text": "issues an explicit pass / approve verdict", "type": "regex", "pattern": "([Ll]ooks (good|solid|fine)|in good shape|no (major|blocking|significant|outstanding) issues?|0 error|zero (errors|findings)|[Ss]olid|[Ss]hip it|[Aa]pprove|[Hh]olds up|[Cc]onforms)" },
+        { "text": "issues a pass verdict in the documented SUMMARY shape (0 error / 0 warn / 0 info, NOT casual ship-it prose)", "type": "regex", "pattern": "(SUMMARY:\\s*0\\s+findings|0\\s*error\\s*/\\s*0\\s*warn\\s*/\\s*0\\s*info|zero\\s+(errors|findings))" },
         { "text": "classifies the skill as discipline / technique / pattern / reference", "type": "regex", "pattern": "\\b([Dd]iscipline|[Tt]echnique|[Pp]attern|[Rr]eference)\\s+(skill|category|type)\\b" },
         { "text": "produces a Clean / passes section enumerating what specifically conforms", "type": "regex", "pattern": "(##\\s+Clean|^Clean\\s*$|✓|passes:|conforms:|##\\s+What passes|specifically (passes|conforms))" },
+        { "text": "preserves the severity-tier shape on the pass case (## ERRORS / WARNS sections present, even if empty as `(none)`)", "type": "regex", "pattern": "##\\s+ERRORS[\\s\\S]{0,200}\\(none\\)[\\s\\S]{0,400}##\\s+WARNS[\\s\\S]{0,200}\\(none\\)", "flags": "s" },
         { "text": "cites Claude Code extension fields by name (argument-hint / user-invocable / model-invocable)", "type": "regex", "pattern": "(argument-hint|user-invocable|model-invocable)" },
-        { "text": "mentions running the lint to confirm", "type": "regex", "pattern": "(skill-tools lint|pnpm skill-tools lint|[Ll]int(ed|ing)? (this|the skill|it)|run the lint|lint pass|[Ll]int clean|[Ll]int:)" }
+        { "text": "mentions running the lint to confirm (verbatim command, not loose `Lint:` prefix)", "type": "regex", "pattern": "(pnpm\\s+skill-tools\\s+lint(\\s+\\S+)?|node\\s+packages/skill-tools[^\\n]*\\blint\\b|skill-tools\\s+lint\\s+\\S+)" }
       ]
     },
     {
@@ -39,7 +40,7 @@
       "assertions": [
         { "text": "names skill-eval as the behavioral validation tool", "type": "regex", "pattern": "(skill-eval|skill_eval)" },
         { "text": "explicitly checks / states whether skill-eval is available in the current context", "type": "regex", "pattern": "(skill-eval (is |has been |was )?(available|loaded|present|installed|not available|not loaded|missing|deferred|invocable)|skill-eval (skill )?(exists|is in|found at|located)|skills/skill-eval|whether (skill-eval|the skill-eval skill)|[Bb]ehavioral handoff)" },
-        { "text": "either invokes / proposes the exact invocation OR asks to install", "type": "regex", "pattern": "(/skill-eval\\s+code-reviewer|pnpm skill-tools eval|node packages/skill-tools|install skill-eval|add skill-eval|dispatch.{0,40}skill-eval)" },
+        { "text": "either invokes / proposes the exact documented invocation OR asks to install (no fabricated `pnpm skill-tools eval` form — the skill teaches the slash command + node packages/skill-tools/dist/index.mjs path)", "type": "regex", "pattern": "(/skill-eval\\s+code-reviewer|node\\s+packages/skill-tools/dist/index\\.mjs\\s+eval|install\\s+skill-eval|add\\s+skill-eval|dispatch[^\\n]{0,80}skill-eval)" },
         { "text": "classifies code-reviewer as discipline / technique / pattern / reference", "type": "regex", "pattern": "\\b([Dd]iscipline|[Tt]echnique|[Pp]attern|[Rr]eference)\\s+(skill|category|type)\\b" },
         { "text": "uses severity tiers in the static review", "type": "regex", "pattern": "(##\\s+(ERRORS?|WARNS?|INFOS?|errors?|warns?|infos?)|✗.{0,500}⚠|\\[error\\][\\s\\S]{0,400}\\[warn\\])" },
         { "text": "audits the eval assertion shapes for brittleness", "type": "regex", "pattern": "([Bb]rittle|[Nn]egative regex|per[-\\s]line|double[-\\s]assert|literal\\s+(word|match)|[Ff]alse[\\s-]positive|tighten|loose|matches?\\s+the\\s+prompt|prompt[\\s-]?echo)" }

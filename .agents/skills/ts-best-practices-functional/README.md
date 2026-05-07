@@ -25,6 +25,8 @@ npx skills add zrosenbauer/skills --skill ts-best-practices-functional
 - "use Result instead of throw"
 - "stop mutating this"
 - "refactor to factory function"
+- "compose these as pure functions"
+- "use immutable state"
 
 ## When NOT to use
 

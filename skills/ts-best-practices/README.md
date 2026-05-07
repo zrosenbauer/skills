@@ -28,6 +28,7 @@ Applies a consolidated TypeScript style across files when invoked:
 - "fix the typescript style"
 - "make this idiomatic typescript"
 - "apply typescript conventions"
+- "audit this ts file"
 
 ## When NOT to use
 

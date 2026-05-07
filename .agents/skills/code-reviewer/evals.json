@@ -24,9 +24,9 @@
           "pattern": "(bcrypt|argon2|scrypt|hash|plaintext)"
         },
         {
-          "text": "uses error/warn/info severity tiers",
+          "text": "uses the documented three-tier output structure (## ERRORS / WARNS / INFOS or ✗/⚠/ℹ markers — not bare prose mentioning these words)",
           "type": "regex",
-          "pattern": "(error|warn|info|✗|⚠|ℹ)"
+          "pattern": "(##\\s+(ERRORS?|WARNS?|INFOS?)|SUMMARY:\\s*\\d+\\s+findings|^✗\\s|^⚠\\s|^ℹ\\s|\\n✗\\s|\\n⚠\\s|\\nℹ\\s)"
         }
       ]
     },
@@ -48,9 +48,9 @@
           "pattern": "(\\bMap\\b|bucket|groupBy|group by|index by)"
         },
         {
-          "text": "names a concrete trigger scale",
+          "text": "reasons about the consequence of the trigger scale (not just restating it from the prompt — must include a derived term like 'becomes', 'at scale', 'reaches', or n^2 math)",
           "type": "regex",
-          "pattern": "(\\d+\\s*(entries|scores|items|rows|users|elements))"
+          "pattern": "(at\\s+\\d+|when\\s+(scores|n|the\\s+input)\\s+(reaches|grows|hits)|\\bn\\^?2\\b\\s*[≈=≥]|becomes\\s+\\d+\\s*[*x×]\\s*\\d+|on\\s+the\\s+order\\s+of)"
         }
       ]
     },
@@ -72,9 +72,9 @@
           "pattern": "(Principal|context|interface|extract|invert|boundary|seam)"
         },
         {
-          "text": "recommends fixing before the next features (change locality)",
+          "text": "explicitly recommends doing the refactor before the new features (structural cue, not just any 'before' in prose)",
           "type": "regex",
-          "pattern": "(before|first|prior|now|don't add|fix.+before)"
+          "pattern": "(refactor\\s+(this\\s+)?(first|before)|(do|tackle|land)\\s+(this\\s+|the\\s+)?refactor\\s+before|recommend\\s+(refactoring|fixing|restructuring|extracting)\\s+before|don.t\\s+add\\s+(more|the\\s+next))"
         }
       ]
     }

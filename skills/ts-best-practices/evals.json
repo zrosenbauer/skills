@@ -29,9 +29,9 @@
           "pattern": "@returns"
         },
         {
-          "text": "does not use `any`",
+          "text": "does not use `any` anywhere in the transcript (tempered greedy token; matches IFF `: any` is absent everywhere)",
           "type": "regex",
-          "pattern": "^(?!.*:\\s*any\\b).*$"
+          "pattern": "^(?:(?!:\\s*any\\b)[\\s\\S])*$"
         }
       ]
     },
@@ -53,14 +53,14 @@
           "pattern": "\\.exhaustive\\s*\\(\\s*\\)"
         },
         {
-          "text": "no else-if chains remain",
+          "text": "no else-if chains remain anywhere (tempered greedy token)",
           "type": "regex",
-          "pattern": "^(?!.*else\\s+if).*$"
+          "pattern": "^(?:(?!else\\s+if)[\\s\\S])*$"
         },
         {
-          "text": "no ternary used in the refactor",
+          "text": "no ternary used in the refactor (tempered greedy token)",
           "type": "regex",
-          "pattern": "^(?!.*\\?\\s*['\"\\w]+\\s*:\\s*['\"\\w]+).*$"
+          "pattern": "^(?:(?!\\?\\s*['\"\\w]+\\s*:\\s*['\"\\w]+)[\\s\\S])*$"
         }
       ]
     },

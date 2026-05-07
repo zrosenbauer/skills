@@ -4,11 +4,13 @@ description: >-
   This skill should be used when the user wants to write, review, or refactor
   TypeScript code to follow industry best practices. Common triggers include
   "follow ts best practices", "review this typescript", "fix the typescript
-  style", "make this idiomatic typescript", and "apply typescript conventions".
+  style", "make this idiomatic typescript", "apply typescript conventions",
+  and "audit this ts file".
   Bakes in branded types, discriminated unions, ts-pattern for multi-branch
   logic, JSDoc on exports, kebab-case file naming, and *Params/*Options
-  object-arg conventions. Skip when working with framework-specific components
-  or pure functional refactors — use ts-best-practices-functional instead.
+  object-arg conventions. Skip when the user wants pure functional refactors
+  (use ts-best-practices-functional) or is writing framework components
+  (React/Vue/Svelte have different conventions).
 # --- Claude Code extensions (ignored by other agents) ---
 argument-hint: '[<file-or-dir>]'
 user-invocable: true
@@ -178,12 +180,12 @@ type Status = (typeof STATUSES)[number] // "pending" | "active" | "completed"
 
 ### Conditionals
 
-| Scenario             | Use                                       | Why                           |
-| -------------------- | ----------------------------------------- | ----------------------------- |
-| Early return / guard | `if`                                      | Cleaner guard clauses         |
-| Simple A or B        | `call()` (from `@pkg/fp`) or local helper | Lightweight inline expression |
-| 3+ branches          | `ts-pattern`'s `match()`                  | Exhaustive, readable          |
-| Discriminated unions | `ts-pattern` with `.exhaustive()`         | Compile-time safety           |
+| Scenario             | Use                                          | Why                           |
+| -------------------- | -------------------------------------------- | ----------------------------- |
+| Early return / guard | `if`                                         | Cleaner guard clauses         |
+| Simple A or B        | Single inline ternary or a tiny `if/else`    | Lightweight, no library churn |
+| 3+ branches          | `ts-pattern`'s `match()`                     | Exhaustive, readable          |
+| Discriminated unions | `ts-pattern` with `.exhaustive()`            | Compile-time safety           |
 
 <good>
 import { match } from 'ts-pattern'
@@ -317,6 +319,18 @@ Compile-time exhaustiveness, type-narrowed callbacks, no nested ifs.
 
 </output>
 </example>
+
+## Rationalization table
+
+Captured from RED-baseline transcripts where agents without this skill skipped rules under pressure. Future agents: recognize your own pattern before reaching for the excuse.
+
+| Skipped rule | Verbatim excuse | Why it's wrong |
+|---|---|---|
+| Use `*Params` object for ≥2-arg functions | "im in a meeting in 5 min, just inline the strings — I'll refactor later" | "Later" never comes. Positional args swap silently at the call site (email vs name vs roleId), and the cost of the interface is one block of text that pays for itself the first time the signature changes. |
+| JSDoc on every exported function | "the change is tiny so I skipped JSDoc — the function name is self-documenting" | Names describe *what*, not *why*. The next reader (or model) loses the intent — and exports are the API surface, so docs there are highest-leverage. Add the JSDoc before merging, not after. |
+| Branded types for IDs (`UserId`, `OrgId`) | "they're both strings basically, branded types feel over-engineered for a fetch" | "Basically" is the rationalization. Real bugs from swapping `userId` and `orgId` ship to prod regularly; the type is one line and free at runtime. |
+| `ts-pattern` `match().exhaustive()` for ≥3 branches | "the existing `if/else` works, ts-pattern is overkill — my reviewer is gonna complain about churn" | The reviewer complains when a new variant is added and the `else` branch silently swallows it in prod. `.exhaustive()` is a compile-time tripwire — not a refactor for refactor's sake. |
+| Never use `any` | "this is internal/utility code, `any` is fine — `unknown` is more typing for the same thing" | `any` opts out of the type checker; `unknown` opts in and forces a guard. They're not the same thing. Internal code outlives the "internal" framing. |
 
 ## References
 

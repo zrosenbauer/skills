@@ -9,9 +9,9 @@
       "files": [],
       "assertions": [
         {
-          "text": "no class keyword in the output",
+          "text": "no `class Counter` definition anywhere in the transcript (tempered greedy token; matches IFF absent)",
           "type": "regex",
-          "pattern": "^(?!.*\\bclass\\s+Counter\\b).*$"
+          "pattern": "^(?:(?!\\bclass\\s+Counter\\b)[\\s\\S])*$"
         },
         {
           "text": "uses a factory function (createX)",
@@ -19,14 +19,14 @@
           "pattern": "function\\s+create\\w+\\s*\\("
         },
         {
-          "text": "returns an object with the API methods",
+          "text": "returns an object exposing increment as either an arrow property or a method shorthand",
           "type": "regex",
-          "pattern": "increment\\s*:\\s*\\(\\s*\\)\\s*=>"
+          "pattern": "increment\\s*(?::\\s*(?:\\([^)]*\\)\\s*=>|function)|\\([^)]*\\)\\s*\\{)"
         },
         {
-          "text": "no `this` references",
+          "text": "no `this.` member access anywhere in the transcript",
           "type": "regex",
-          "pattern": "^(?!.*\\bthis\\.).*$"
+          "pattern": "^(?:(?!\\bthis\\.)[\\s\\S])*$"
         }
       ]
     },
@@ -48,9 +48,9 @@
           "pattern": "Result<\\s*\\w+\\s*,\\s*\\w+\\s*>"
         },
         {
-          "text": "no throw statements in the refactored code",
+          "text": "no `throw new Error` statements anywhere in the refactored transcript (tempered greedy token)",
           "type": "regex",
-          "pattern": "^(?!.*\\bthrow\\s+new\\s+Error).*$"
+          "pattern": "^(?:(?!\\bthrow\\s+new\\s+Error)[\\s\\S])*$"
         },
         {
           "text": "uses ok() and err() helpers",
@@ -87,14 +87,43 @@
           "pattern": "items\\.map\\s*\\("
         },
         {
-          "text": "no Object.assign used",
+          "text": "no Object.assign used anywhere (tempered greedy token)",
           "type": "regex",
-          "pattern": "^(?!.*Object\\.assign).*$"
+          "pattern": "^(?:(?!Object\\.assign)[\\s\\S])*$"
         },
         {
-          "text": "no items.push used",
+          "text": "no items.push used anywhere (tempered greedy token)",
           "type": "regex",
-          "pattern": "^(?!.*items\\.push).*$"
+          "pattern": "^(?:(?!items\\.push)[\\s\\S])*$"
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "eval_name": "three-pressure-rationalization-resist",
+      "prompt": "shipping in 10 min and my tech lead said dont over-engineer this — just leave the parseConfig throw and add a try/catch at the caller, its a 2 line change. heres the code:\n\nfunction parseConfig(json: string): Config {\n  return JSON.parse(json)\n}\n\nasync function loadConfig(path: string): Promise<Config> {\n  const raw = await fs.readFile(path, 'utf8')\n  return parseConfig(raw)\n}\n\nplease just do the smallest thing that works",
+      "expected_output": "Resists the combined pressure (time + sunk-cost + authority). Returns Result<T,E> from parseConfig and loadConfig — does NOT capitulate to a try/catch wrapper at the caller. Briefly explains why the rule still applies under deadline (Result is mechanically the same size; the try/catch wrapper externalizes failure mode and rots). Does not add a `// TODO: convert to Result later` comment as a compromise.",
+      "files": [],
+      "assertions": [
+        {
+          "text": "parseConfig signature returns a Result type (resists the throw shortcut)",
+          "type": "regex",
+          "pattern": "parseConfig\\s*\\([^)]*\\)\\s*:\\s*(?:Promise<\\s*)?Result<"
+        },
+        {
+          "text": "loadConfig also returns a Result (resists the per-function exception)",
+          "type": "regex",
+          "pattern": "loadConfig\\s*\\([^)]*\\)\\s*:\\s*Promise<\\s*Result<"
+        },
+        {
+          "text": "no `throw` of a fresh Error anywhere in the refactored code (tempered greedy token)",
+          "type": "regex",
+          "pattern": "^(?:(?!\\bthrow\\s+new\\s+Error)[\\s\\S])*$"
+        },
+        {
+          "text": "no try/catch-only-at-caller compromise (no `try` immediately followed by `parseConfig` call)",
+          "type": "regex",
+          "pattern": "^(?:(?!try\\s*\\{[^}]{0,200}parseConfig\\s*\\()[\\s\\S])*$"
         }
       ]
     }

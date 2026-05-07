@@ -12,6 +12,15 @@ A runner skill that takes the `evals.json` test definitions in each skill, dispa
 /skill-eval                      # same as --all
 ```
 
+## Trigger phrases
+
+- "rerun the baselines"
+- "re-eval skill X"
+- "test all the skills"
+- "check for skill drift"
+- "run the evals"
+- "did skill X still pass"
+
 The skill walks through:
 
 1. Resolve target skill(s)

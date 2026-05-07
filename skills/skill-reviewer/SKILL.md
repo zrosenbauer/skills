@@ -1,16 +1,16 @@
 ---
 name: skill-reviewer
 description: >-
-  This skill should be used when the user wants to review, audit, or sanity-check
-  an existing agent skill in this repo against authoring conventions. Common
-  triggers include "review the X skill", "audit this skill", "check skill X
-  against repo conventions", "is this skill any good", "second opinion on skill
-  X", and "review skill X before publishing". Bakes in skill-type classification
-  (discipline / technique / pattern / reference), severity-tiered findings
-  (error / warn / info) with a Clean section even on pass, evals.json
-  assertion-shape auditing, and a behavioral-eval handoff via skill-eval. Skip
-  when authoring a brand-new skill (use skill-creator), modifying skill body
-  content directly, or running general code review (use code-reviewer).
+  This skill should be used when the user wants to review, audit, or
+  sanity-check an existing agent skill in this repo against authoring
+  conventions. Common triggers include "review the X skill", "audit this
+  skill", "check skill X against repo conventions", "is this skill any good",
+  "second opinion on skill X", "sanity check skill X", and "review skill X
+  before publishing". Produces a severity-tiered report (error / warn / info)
+  with a Clean section even on pass, audits evals.json assertion shapes, and
+  hands off behavioral validation to skill-eval. Skip when authoring a
+  brand-new skill (use skill-creator) or running general code review (use
+  code-reviewer).
 
 # --- Claude Code extensions (ignored by other agents) ---
 argument-hint: '[<skill-name>]'

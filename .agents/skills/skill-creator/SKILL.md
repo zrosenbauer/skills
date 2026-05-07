@@ -5,20 +5,24 @@ description: >-
   scaffold a SKILL.md, validate an existing skill against repo rules, or
   refactor a skill to match this monorepo's conventions. Common triggers
   include "build a skill for X", "create a new skill", "scaffold a skill",
-  "add a skill that does Y", "make me a skill", and "audit this skill against
-  our rules". Bakes in kebab-case naming, verbatim trigger phrases in
-  descriptions, selective XML for example boundaries, and a RED→GREEN
-  evaluation loop. Skip when modifying source code, debugging, or writing
-  non-skill markdown.
+  "add a skill that does Y", "make me a skill", "audit this skill against our
+  rules", and "refactor this skill to match repo conventions". Enforces
+  kebab-case naming, verbatim trigger phrases, selective XML for example
+  boundaries, and a RED→GREEN→REFACTOR cycle. Skip when modifying source
+  code, debugging an existing skill, or writing non-skill markdown.
+metadata:
+  internal: true # authoring tooling — not distributed as a user skill
 # --- Claude Code extensions (ignored by other agents) ---
 argument-hint: '[<skill-name>]'
 user-invocable: true
-model-invocable: false # manual-only: dispatcher does not auto-route
+model-invocable: false # manual-only authoring workflow; the human drives the loop
 ---
 
 # skill-creator
 
-Build, validate, and iterate agent skills in this monorepo. Bakes in the conventions every skill here follows: kebab-case naming, "Use when" trigger phrases, selective XML for example boundaries, and a RED→GREEN evaluation loop.
+Build, validate, and iterate agent skills in this monorepo. Bakes in the conventions every skill here follows: kebab-case naming, "Use when" trigger phrases, selective XML for example boundaries, and a RED→GREEN→REFACTOR evaluation cycle (see [`references/tdd-for-skills.md`](references/tdd-for-skills.md)).
+
+Why `model-invocable: false`: this is an interactive authoring workflow that requires human judgment at multiple steps (scenario design, name choice, RED-baseline interpretation). Auto-routing the dispatcher into a multi-turn authoring loop is the wrong default — the human invokes it explicitly via `/skill-creator`.
 
 ## When to use
 
@@ -129,9 +133,9 @@ Invoke `/skill-eval <name>` again — this dispatches Agent(general-purpose) for
 
 Acceptance: every eval that failed without the skill should now pass. If any still fail, the skill body is missing instructions — patch and rerun. If any **regress** (passed without, now fails with), the skill introduced a problem — also patch and rerun.
 
-### 7.5. Capture rationalizations (discipline skills only)
+### 7.5. REFACTOR — capture rationalizations (discipline skills only)
 
-If this is a **discipline skill** (one that enforces rules the agent might rationalize skipping — e.g., "always run tests", "never use `any`", "always use Result"), read the with-skill transcripts. When the subagent skipped a rule and explained why, capture the excuse **verbatim** into a `## Rationalization table` section at the bottom of `SKILL.md`.
+This is the REFACTOR phase of the RED→GREEN→REFACTOR cycle. If this is a **discipline skill** (one that enforces rules the agent might rationalize skipping — e.g., "always run tests", "never use `any`", "always use Result"), read the with-skill transcripts. When the subagent skipped a rule and explained why, capture the excuse **verbatim** into a `## Rationalization table` section at the bottom of `SKILL.md`.
 
 Format:
 
@@ -144,7 +148,7 @@ Format:
 | Use Result instead of throw | "this is just a quick prototype"  | Prototypes leak into prod; use Result anyway    |
 ```
 
-Capturing excuses verbatim — not sanitized — is the point. Future agents recognize their own pattern. Skip this step for reference / pattern / technique skills with no rules to weasel out of.
+Capturing excuses verbatim — not sanitized — is the point. Future agents recognize their own pattern. Skip this step only when the skill has no rules an agent could rationalize skipping (most reference skills, some pattern skills). Technique and discipline skills almost always benefit from a rationalization table.
 
 ### 8. Package
 
@@ -207,7 +211,6 @@ The `<bad>` example fails three rules: no "Use when" phrase, no verbatim trigger
 - [`references/naming.md`](references/naming.md) — naming rules
 - [`references/description.md`](references/description.md) — description rules + anti-shortcut patterns
 - [`references/xml-usage.md`](references/xml-usage.md) — when to use XML vs Markdown
-- [`references/tdd-for-skills.md`](references/tdd-for-skills.md) — RED→GREEN workflow
 - [`references/lint-checklist.md`](references/lint-checklist.md) — full self-lint checklist
 
 ## Templates
