@@ -1,4 +1,4 @@
-import { existsSync } from 'node:fs'
+import { statSync } from 'node:fs'
 import path from 'node:path'
 
 import { match } from 'ts-pattern'
@@ -46,7 +46,7 @@ export function grade(assertion: Assertion, ctx: GradeContext): GradingResult {
       }
     })
     .with({ type: 'file_exists' }, (a) => {
-      const outputsRoot = path.join(ctx.variantDir, 'outputs')
+      const outputsRoot = path.resolve(ctx.variantDir, 'outputs')
       const target = path.resolve(outputsRoot, a.path)
       if (target !== outputsRoot && !target.startsWith(outputsRoot + path.sep)) {
         return {
@@ -55,12 +55,15 @@ export function grade(assertion: Assertion, ctx: GradeContext): GradingResult {
           detail: `path "${a.path}" escapes outputs/ directory`,
         }
       }
-      const passed = existsSync(target)
-      return {
-        assertion,
-        passed,
-        detail: passed ? undefined : `expected output file missing: ${a.path}`,
+      let passed = false
+      let detail: string | undefined
+      try {
+        passed = statSync(target).isFile()
+        if (!passed) detail = `path "${a.path}" exists but is not a regular file`
+      } catch {
+        detail = `expected output file missing: ${a.path}`
       }
+      return { assertion, passed, detail: passed ? undefined : detail }
     })
     .exhaustive()
 }

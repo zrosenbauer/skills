@@ -135,12 +135,19 @@ function parseFrontmatter(skillMd: string, _fallbackName: string): SkillFrontmat
     const argHint = extractScalar(fmText, 'argument-hint')
     if (argHint !== undefined) raw['argument-hint'] = argHint
     const userInv = extractScalar(fmText, 'user-invocable')
-    if (userInv !== undefined) raw['user-invocable'] = userInv === 'true'
+    if (userInv !== undefined) {
+      const parsed = parseYamlBool(userInv)
+      if (parsed !== undefined) raw['user-invocable'] = parsed
+    }
     const modelInv = extractScalar(fmText, 'model-invocable')
-    if (modelInv !== undefined) raw['model-invocable'] = modelInv === 'true'
+    if (modelInv !== undefined) {
+      const parsed = parseYamlBool(modelInv)
+      if (parsed !== undefined) raw['model-invocable'] = parsed
+    }
     const internal = extractScalar(fmText, '  internal')
     if (internal !== undefined) {
-      raw.metadata = { internal: internal === 'true' }
+      const parsed = parseYamlBool(internal)
+      if (parsed !== undefined) raw.metadata = { internal: parsed }
     }
   }
   return skillFrontmatterSchema.parse(raw)
@@ -150,10 +157,25 @@ function extractScalar(fm: string, key: string): string | undefined {
   const re = new RegExp(`^${escapeRegExp(key)}:\\s*(.+?)\\s*$`, 'm')
   const m = fm.match(re)
   if (!m?.[1]) return undefined
-  return m[1]
-    .replace(/^['"]|['"]$/g, '')
-    .replace(/\s*#.*$/, '')
-    .trim()
+  const raw = m[1]
+  // Detect a fully-wrapped quoted scalar: ^"..."$ or ^'...'$.
+  // Inside quotes, `#` is literal — skip the comment-strip.
+  const quoted = /^(['"])(.*)\1$/.exec(raw)
+  if (quoted) return quoted[2]
+  return raw.replace(/\s*#.*$/, '').trim()
+}
+
+const TRUE_VALUES = new Set(['true', 'True', 'TRUE', 'yes', 'Yes', 'YES', 'on', 'On', 'ON'])
+const FALSE_VALUES = new Set(['false', 'False', 'FALSE', 'no', 'No', 'NO', 'off', 'Off', 'OFF'])
+
+/**
+ * Coerce a YAML scalar to boolean using the YAML 1.1 truthy/falsy set.
+ * Returns undefined for invalid values so the schema can produce a clean error.
+ */
+function parseYamlBool(v: string): boolean | undefined {
+  if (TRUE_VALUES.has(v)) return true
+  if (FALSE_VALUES.has(v)) return false
+  return undefined
 }
 
 function extractFolded(fm: string, key: string): string | undefined {

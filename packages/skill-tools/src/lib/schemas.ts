@@ -1,3 +1,5 @@
+import path from 'node:path'
+
 import { z } from 'zod'
 
 /**
@@ -48,7 +50,8 @@ export const assertionSchema = z.discriminatedUnion('type', [
       .string()
       .refine(
         (p) =>
-          !p.startsWith('/') &&
+          !path.posix.isAbsolute(p) &&
+          !path.win32.isAbsolute(p) &&
           !p
             .split(/[\\/]/)
             .some((seg) => seg === '..'),

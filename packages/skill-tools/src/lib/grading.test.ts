@@ -106,6 +106,30 @@ describe('grade', () => {
       expect(result.detail).toContain('missing')
     })
 
+    it('passes when variantDir is a relative path', () => {
+      writeFileSync(path.join(tmpDir, 'outputs', 'config.json'), '{}')
+      const relativeVariantDir = path.relative(process.cwd(), tmpDir)
+      const assertion: Assertion = {
+        text: 'wrote config',
+        type: 'file_exists',
+        path: 'config.json',
+      }
+      const result = grade(assertion, { variantDir: relativeVariantDir, transcript: '' })
+      expect(result.passed).toBe(true)
+    })
+
+    it('fails with a clear detail when the path is a directory, not a file', () => {
+      mkdirSync(path.join(tmpDir, 'outputs', 'config.json'))
+      const assertion: Assertion = {
+        text: 'wrote config',
+        type: 'file_exists',
+        path: 'config.json',
+      }
+      const result = grade(assertion, { variantDir: tmpDir, transcript: '' })
+      expect(result.passed).toBe(false)
+      expect(result.detail).toContain('not a regular file')
+    })
+
     it('rejects paths that escape the outputs/ directory', () => {
       // Bypass schema validation deliberately to simulate an assertion that
       // slipped past an older lint — runtime should still refuse it.

@@ -4,7 +4,12 @@ import path from 'node:path'
 import { command } from '@kidd-cli/core'
 import { z } from 'zod'
 
-import { type BenchmarkFile, benchmarkFileSchema, type GradingFile } from '../lib/schemas.js'
+import {
+  type BenchmarkFile,
+  benchmarkFileSchema,
+  type EvalCase,
+  type GradingFile,
+} from '../lib/schemas.js'
 import {
   discoverSkills,
   findRepoRoot,
@@ -55,7 +60,22 @@ export default command({
       process.exit(1)
     }
 
-    const benchmark = aggregate(skill.location.name, iteration)
+    if (!skill.evalsFile) {
+      ctx.log.warn(
+        `⚠ skill "${skill.location.name}" has no evals.json — falling back to filesystem-only aggregation`
+      )
+    }
+    const definedEvals: ReadonlyArray<EvalCase> = skill.evalsFile
+      ? skill.evalsFile.evals
+      : iteration.evals.map((s: ScenarioSummary) => ({
+          id: s.evalId,
+          eval_name: s.evalName,
+          prompt: '',
+          expected_output: '',
+          files: [],
+          assertions: [],
+        }))
+    const benchmark = aggregate(skill.location.name, iteration, definedEvals)
     const benchmarkJsonPath = path.join(iteration.dir, 'benchmark.json')
     const benchmarkMdPath = path.join(iteration.dir, 'benchmark.md')
     writeFileSync(benchmarkJsonPath, JSON.stringify(benchmark, null, 2) + '\n')
@@ -73,13 +93,36 @@ export default command({
   },
 })
 
-export function aggregate(skillName: string, iteration: IterationSummary): BenchmarkFile {
-  const evals = iteration.evals.map((s: ScenarioSummary) => {
-    const withSkillCounts = countResults(s.withSkill?.grading)
-    const withoutSkillCounts = countResults(s.withoutSkill?.grading)
+export function aggregate(
+  skillName: string,
+  iteration: IterationSummary,
+  definedEvals: ReadonlyArray<EvalCase>
+): BenchmarkFile {
+  const onDisk = new Map(iteration.evals.map((s: ScenarioSummary) => [s.evalId, s]))
+  // Empty `definedEvals` falls back to iteration-derived list — preserves
+  // current behavior when no evals.json is available.
+  const source: ReadonlyArray<{ id: number; eval_name: string }> =
+    definedEvals.length > 0
+      ? definedEvals
+      : iteration.evals.map((s) => ({ id: s.evalId, eval_name: s.evalName }))
+  const evals = source.map((defined) => {
+    const found = onDisk.get(defined.id)
+    if (!found) {
+      // Eval defined in evals.json but no on-disk variant data — both
+      // variants count as missing so `incomplete_evals` reflects reality.
+      return {
+        eval_id: defined.id,
+        eval_name: defined.eval_name,
+        with_skill: { passed: 0, total: 0 },
+        without_skill: { passed: 0, total: 0 },
+        missing: { with_skill: true, without_skill: true },
+      }
+    }
+    const withSkillCounts = countResults(found.withSkill?.grading)
+    const withoutSkillCounts = countResults(found.withoutSkill?.grading)
     return {
-      eval_id: s.evalId,
-      eval_name: s.evalName,
+      eval_id: found.evalId,
+      eval_name: found.evalName,
       with_skill: { passed: withSkillCounts.passed, total: withSkillCounts.total },
       without_skill: { passed: withoutSkillCounts.passed, total: withoutSkillCounts.total },
       missing: {

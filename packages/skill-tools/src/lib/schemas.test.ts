@@ -78,6 +78,24 @@ describe('assertionSchema', () => {
     })
     expect(result.success).toBe(false)
   })
+
+  it('rejects a file_exists assertion with a Windows drive-letter absolute path', () => {
+    const result = assertionSchema.safeParse({
+      text: 'windows-absolute',
+      type: 'file_exists',
+      path: 'C:\\Users\\foo\\file.txt',
+    })
+    expect(result.success).toBe(false)
+  })
+
+  it('rejects a file_exists assertion with a UNC-style backslash path', () => {
+    const result = assertionSchema.safeParse({
+      text: 'unc',
+      type: 'file_exists',
+      path: '\\\\server\\share\\file',
+    })
+    expect(result.success).toBe(false)
+  })
 })
 
 describe('evalCaseSchema', () => {

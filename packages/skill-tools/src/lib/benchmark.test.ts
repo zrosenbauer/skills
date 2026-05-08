@@ -1,8 +1,30 @@
 import { describe, expect, it } from 'vitest'
 
-import type { GradingFile } from './schemas.js'
+import type { EvalCase, GradingFile } from './schemas.js'
 import type { IterationSummary, ScenarioSummary, VariantSummary } from './workspace.js'
 import { aggregate, renderMarkdown } from '../commands/benchmark.js'
+
+function definedFromScenarios(scenarios: ScenarioSummary[]): EvalCase[] {
+  return scenarios.map((s) => ({
+    id: s.evalId,
+    eval_name: s.evalName,
+    prompt: 'placeholder prompt for tests',
+    expected_output: 'placeholder',
+    files: [],
+    assertions: [{ text: 'sentinel', type: 'contains', substring: 'x' }],
+  }))
+}
+
+function defined(id: number, name: string): EvalCase {
+  return {
+    id,
+    eval_name: name,
+    prompt: 'placeholder prompt for tests',
+    expected_output: 'placeholder',
+    files: [],
+    assertions: [{ text: 'sentinel', type: 'contains', substring: 'x' }],
+  }
+}
 
 function buildGrading(passed: number, total: number, variant: 'with_skill' | 'without_skill'): GradingFile {
   return {
@@ -69,7 +91,7 @@ describe('aggregate', () => {
       }),
     ])
 
-    const result = aggregate('demo', iteration)
+    const result = aggregate('demo', iteration, definedFromScenarios(iteration.evals))
 
     expect(result.totals).toEqual({
       with_skill_passed: 5,
@@ -98,7 +120,7 @@ describe('aggregate', () => {
       }),
     ])
 
-    const result = aggregate('demo', iteration)
+    const result = aggregate('demo', iteration, definedFromScenarios(iteration.evals))
 
     // The missing without_skill on eval 1 must NOT contribute to without_skill_total.
     expect(result.totals.without_skill_total).toBe(3)
@@ -127,7 +149,7 @@ describe('aggregate', () => {
       }),
     ])
 
-    const result = aggregate('demo', iteration)
+    const result = aggregate('demo', iteration, definedFromScenarios(iteration.evals))
 
     expect(result.totals.incomplete_evals).toBe(1)
     expect(result.evals[0]?.missing).toEqual({ with_skill: true, without_skill: true })
@@ -146,11 +168,99 @@ describe('aggregate', () => {
       }),
     ])
 
-    const result = aggregate('demo', iteration)
+    const result = aggregate('demo', iteration, definedFromScenarios(iteration.evals))
 
     expect(result.evals[0]?.missing.with_skill).toBe(true)
     expect(result.totals.incomplete_evals).toBe(1)
     expect(result.totals.with_skill_total).toBe(0)
+  })
+
+  it('cross-references evals.json — defined evals with no on-disk dir become missing rows', () => {
+    // evals.json defines 3 evals (ids 0,1,2) but only id 1 produced a directory.
+    const iteration = buildIteration([
+      buildScenario({
+        evalId: 1,
+        evalName: 'middle',
+        withSkill: buildGrading(2, 2, 'with_skill'),
+        withoutSkill: buildGrading(1, 2, 'without_skill'),
+      }),
+    ])
+    const definedEvals: EvalCase[] = [
+      defined(0, 'first'),
+      defined(1, 'middle'),
+      defined(2, 'last'),
+    ]
+
+    const result = aggregate('demo', iteration, definedEvals)
+
+    // All three defined evals must appear in output.
+    expect(result.evals).toHaveLength(3)
+    expect(result.evals[0]?.eval_id).toBe(0)
+    expect(result.evals[0]?.eval_name).toBe('first')
+    expect(result.evals[0]?.missing).toEqual({ with_skill: true, without_skill: true })
+    expect(result.evals[1]?.eval_id).toBe(1)
+    expect(result.evals[1]?.missing).toEqual({ with_skill: false, without_skill: false })
+    expect(result.evals[2]?.eval_id).toBe(2)
+    expect(result.evals[2]?.eval_name).toBe('last')
+    expect(result.evals[2]?.missing).toEqual({ with_skill: true, without_skill: true })
+
+    // Two defined-but-missing evals — `incomplete_evals` reflects reality.
+    expect(result.totals.incomplete_evals).toBe(2)
+    // Missing rows must NOT inflate denominators.
+    expect(result.totals.with_skill_total).toBe(2)
+    expect(result.totals.without_skill_total).toBe(2)
+  })
+
+  it('all defined evals on disk — behavior unchanged from filesystem-only path', () => {
+    const iteration = buildIteration([
+      buildScenario({
+        evalId: 0,
+        evalName: 'a',
+        withSkill: buildGrading(1, 2, 'with_skill'),
+        withoutSkill: buildGrading(0, 2, 'without_skill'),
+      }),
+      buildScenario({
+        evalId: 1,
+        evalName: 'b',
+        withSkill: buildGrading(2, 2, 'with_skill'),
+        withoutSkill: buildGrading(1, 2, 'without_skill'),
+      }),
+      buildScenario({
+        evalId: 2,
+        evalName: 'c',
+        withSkill: buildGrading(3, 3, 'with_skill'),
+        withoutSkill: buildGrading(2, 3, 'without_skill'),
+      }),
+    ])
+    const definedEvals: EvalCase[] = [defined(0, 'a'), defined(1, 'b'), defined(2, 'c')]
+
+    const result = aggregate('demo', iteration, definedEvals)
+
+    expect(result.evals).toHaveLength(3)
+    expect(result.totals.incomplete_evals).toBe(0)
+    expect(result.totals.with_skill_passed).toBe(6)
+    expect(result.totals.with_skill_total).toBe(7)
+    expect(result.totals.without_skill_passed).toBe(3)
+    expect(result.totals.without_skill_total).toBe(7)
+  })
+
+  it('empty definedEvals — falls back to iteration-derived list (regression)', () => {
+    const iteration = buildIteration([
+      buildScenario({
+        evalId: 5,
+        evalName: 'fs-only',
+        withSkill: buildGrading(1, 1, 'with_skill'),
+        withoutSkill: buildGrading(1, 1, 'without_skill'),
+      }),
+    ])
+
+    const result = aggregate('demo', iteration, [])
+
+    expect(result.evals).toHaveLength(1)
+    expect(result.evals[0]?.eval_id).toBe(5)
+    expect(result.evals[0]?.eval_name).toBe('fs-only')
+    expect(result.totals.incomplete_evals).toBe(0)
+    expect(result.totals.with_skill_total).toBe(1)
   })
 })
 
@@ -164,7 +274,7 @@ describe('renderMarkdown', () => {
         withoutSkill: 'absent',
       }),
     ])
-    const benchmark = aggregate('demo', iteration)
+    const benchmark = aggregate('demo', iteration, definedFromScenarios(iteration.evals))
 
     const md = renderMarkdown(benchmark)
 
@@ -182,7 +292,7 @@ describe('renderMarkdown', () => {
         withoutSkill: buildGrading(0, 1, 'without_skill'),
       }),
     ])
-    const benchmark = aggregate('demo', iteration)
+    const benchmark = aggregate('demo', iteration, definedFromScenarios(iteration.evals))
 
     const md = renderMarkdown(benchmark)
 
