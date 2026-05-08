@@ -71,7 +71,7 @@ Pressure-test the gap _before_ writing the skill. See [`references/pressure-scen
 1. Ask the user for **3+ pressure scenarios**: realistic prompts (not abstract "convert this PDF" — specific, messy, with personal context).
 2. For each scenario, decide assertions (regex / contains / file_exists) — see [`references/evals-json.md`](references/evals-json.md).
 3. Write `skills/<name>/evals.json` from the [`templates/evals.json.template`](templates/evals.json.template).
-4. Invoke [`/skill-eval <name>`](../../../skills/skill-eval) which dispatches Agent(general-purpose) for each scenario _without_ the skill loaded and saves transcripts to `<name>-workspace/iteration-1/eval-K-name/without_skill/`.
+4. Invoke [`/skill-eval <name>`](../../../skills/skill-eval) which dispatches Agent(general-purpose) for each scenario _without_ the skill loaded and saves transcripts to `skills/<name>/.workspace/iteration-1/eval-K-name/without_skill/`.
 5. Inspect the without-skill transcripts (open one in `pnpm skill-tools view <name>`). If the baseline already passes the assertions cleanly, the skill is unnecessary — **tell the user and stop**. Better to skip than ship a no-op skill.
 
 The transcripts are gitignored; the `evals.json` is committed.
@@ -129,7 +129,7 @@ The full rule list lives in [`references/lint-checklist.md`](references/lint-che
 
 ### 7. GREEN phase — re-run with the skill loaded
 
-Invoke `/skill-eval <name>` again — this dispatches Agent(general-purpose) for each scenario _with_ the new skill in context, saves to `<name>-workspace/iteration-1/eval-K-name/with_skill/`, then grades.
+Invoke `/skill-eval <name>` again — this dispatches Agent(general-purpose) for each scenario _with_ the new skill in context, saves to `skills/<name>/.workspace/iteration-1/eval-K-name/with_skill/`, then grades.
 
 Acceptance: every eval that failed without the skill should now pass. If any still fail, the skill body is missing instructions — patch and rerun. If any **regress** (passed without, now fails with), the skill introduced a problem — also patch and rerun.
 
@@ -164,7 +164,7 @@ Optional companions for non-trivial skills:
 - `references/<topic>.md` — deeper rules referenced from SKILL.md
 - `templates/<thing>.template` — boilerplate the skill scaffolds from
 
-The sibling `<name>-workspace/` directory (transcripts, grading, benchmarks) is gitignored — only `evals.json` ships with the skill.
+The nested `<skill>/.workspace/` directory (transcripts, grading, benchmarks) is gitignored — only `evals.json` ships with the skill.
 
 ## Examples
 

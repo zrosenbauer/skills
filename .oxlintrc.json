@@ -31,7 +31,7 @@
     ".turbo",
     ".kidd",
     ".claude",
-    "*-workspace",
+    "**/.workspace",
     "**/*.d.ts"
   ]
 }

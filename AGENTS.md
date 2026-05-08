@@ -15,8 +15,8 @@ A personal monorepo for [agent skills](https://skills.sh) authored by Zac Rosenb
 │       ├── SKILL.md     # the skill
 │       ├── evals.json   # ≥3 pressure scenarios + assertions (committed)
 │       ├── LICENSE
-│       └── README.md
-├── <name>-workspace/    # GITIGNORED sibling — transcripts, grading, benchmarks
+│       ├── README.md
+│       └── .workspace/  # GITIGNORED — transcripts, grading, benchmarks (per skill)
 ├── .agents/skills/      # OPTIONAL local-only skills — not published (currently empty)
 ├── packages/
 │   └── skill-tools/     # CLI for linting + evaluating skills (kidd + Ink TUI)
@@ -90,7 +90,7 @@ Authoring and evaluating skills:
 - **New skills go through `/skill-creator`.** It enforces naming, description quality, the RED→GREEN cycle, and writes `evals.json` for you. Hand-authoring skills is allowed but they must still pass `pnpm skill-tools lint --severity error`.
 - All skills (public and authoring/eval tooling like `skill-creator`, `skill-eval`) live in `skills/<kebab-case>/`.
 - Local-only skills can optionally live in `.agents/skills/<kebab-case>/`. Mark them with `metadata.internal: true` to hide from the skills CLI and lint.
-- Skill workspaces (`<name>-workspace/`) are gitignored — only `evals.json` ships.
+- Skill workspaces (nested at `<skill>/.workspace/`) are gitignored — only `evals.json` ships.
 - Shared utilities go in `packages/<name>/` with their own `package.json` and follow the workspace name convention `@zrosenbauer/<name>`.
 - Don't add a `package.json` to a skill directory unless it actually needs JS deps — most skills are pure markdown.
 - Prefer editing existing skills over forking. If forking from a third-party skill, keep the upstream `LICENSE` alongside it.

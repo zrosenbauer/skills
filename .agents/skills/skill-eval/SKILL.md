@@ -56,9 +56,9 @@ If `--all` (or empty), find every directory with both `SKILL.md` and `evals.json
 
 ### 2. Determine the next iteration number
 
-For each target skill, look at the sibling-of-the-skill-dir workspace at `skills/<skill-name>-workspace/` (or `.agents/skills/<skill-name>-workspace/`, depending on the skill's location). If it doesn't exist, the next iteration is `1`. Otherwise scan `iteration-N/` directories and use `max(N) + 1`.
+For each target skill, look at its nested workspace at `skills/<skill-name>/.workspace/` (or `.agents/skills/<skill-name>/.workspace/`, depending on the skill's location). If it doesn't exist, the next iteration is `1`. Otherwise scan `iteration-N/` directories and use `max(N) + 1`.
 
-Create `skills/<skill-name>-workspace/iteration-<N>/` (the `*-workspace/` pattern is gitignored).
+Create `skills/<skill-name>/.workspace/iteration-<N>/` (the `.workspace/` pattern is gitignored).
 
 ### 3. Dispatch each eval via the Agent tool
 
@@ -82,7 +82,7 @@ inline so it can be analyzed.
 Save the agent's reply (the entire response text) to:
 
 ```
-<skill-name>-workspace/iteration-<N>/eval-<id>-<eval_name>/without_skill/transcript.md
+skills/<skill-name>/.workspace/iteration-<N>/eval-<id>-<eval_name>/without_skill/transcript.md
 ```
 
 #### 3b. WITH skill (GREEN run)
@@ -108,7 +108,7 @@ catch.
 Save the response to:
 
 ```
-<skill-name>-workspace/iteration-<N>/eval-<id>-<eval_name>/with_skill/transcript.md
+skills/<skill-name>/.workspace/iteration-<N>/eval-<id>-<eval_name>/with_skill/transcript.md
 ```
 
 ### 4. Grade each transcript
@@ -150,7 +150,7 @@ Suggest the user run `pnpm skill-tools view <skill-name>` to navigate transcript
 <input>"rerun the baselines for ts-best-practices"</input>
 <output>
 1. Resolve: skill at `skills/ts-best-practices/`, evals.json present with 3 cases.
-2. Workspace: `skills/ts-best-practices-workspace/iteration-2/` (iteration-1 already exists).
+2. Workspace: `skills/ts-best-practices/.workspace/iteration-2/` (iteration-1 already exists).
 3. For each eval: dispatch Agent(general-purpose) twice (without/with skill), save transcripts.
 4. Grade each transcript via skill-tools eval.
 5. Aggregate via skill-tools benchmark → benchmark.md.
@@ -169,7 +169,7 @@ Suggest the user run `pnpm skill-tools view <skill-name>` to navigate transcript
 
 <good>
 Saved transcript verbatim to:
-  skills/ts-best-practices-workspace/iteration-2/eval-0-validate-config/with_skill/transcript.md
+  skills/ts-best-practices/.workspace/iteration-2/eval-0-validate-config/with_skill/transcript.md
 </good>
 
 <bad>

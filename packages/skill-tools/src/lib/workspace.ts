@@ -173,7 +173,7 @@ function escapeRegExp(s: string): string {
  * Read every iteration in a skill's workspace dir (gitignored sibling).
  */
 export function readWorkspace(skill: SkillRecord): IterationSummary[] {
-  const workspaceDir = `${skill.location.dir}-workspace`
+  const workspaceDir = path.join(skill.location.dir, '.workspace')
   if (!existsSync(workspaceDir)) return []
 
   const iterations: IterationSummary[] = []

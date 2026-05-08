@@ -22,8 +22,8 @@ pnpm install
 │       ├── SKILL.md     # the skill itself
 │       ├── evals.json   # ≥3 pressure scenarios + assertions (committed)
 │       ├── LICENSE
-│       └── README.md
-├── <name>-workspace/    # gitignored sibling — transcripts, grading, benchmarks
+│       ├── README.md
+│       └── .workspace/  # gitignored — transcripts, grading, benchmarks (per skill)
 ├── .agents/skills/      # optional local-only skills (currently empty)
 ├── packages/
 │   └── skill-tools/     # CLI for linting + evaluating skills (kidd + Ink TUI)
@@ -97,7 +97,7 @@ References:
 - [`evals.json` schema](./skills/skill-creator/references/evals-json.md)
 - [Pressure scenarios guide](./skills/skill-creator/references/pressure-scenarios.md)
 
-The runner skill `/skill-eval` re-runs baselines (e.g. after a Claude version upgrade), and `pnpm skill-tools benchmark <name>` aggregates the iteration grading into `benchmark.md`. Transcripts and grading live in a gitignored sibling `<name>-workspace/`.
+The runner skill `/skill-eval` re-runs baselines (e.g. after a Claude version upgrade), and `pnpm skill-tools benchmark <name>` aggregates the iteration grading into `benchmark.md`. Transcripts and grading live in a gitignored `<skill>/.workspace/` directory inside each skill.
 
 ## Scripts
 

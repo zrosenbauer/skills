@@ -49,7 +49,8 @@ export default command({
     const transcript = fs.readFileSync(ctx.args.transcript, 'utf8')
 
     const variantDir = path.join(
-      `${skill.location.dir}-workspace`,
+      skill.location.dir,
+      '.workspace',
       `iteration-${ctx.args.iteration}`,
       `eval-${evalCase.id}-${evalCase.eval_name}`,
       ctx.args.variant
