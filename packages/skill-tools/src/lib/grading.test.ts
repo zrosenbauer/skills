@@ -105,6 +105,20 @@ describe('grade', () => {
       expect(result.passed).toBe(false)
       expect(result.detail).toContain('missing')
     })
+
+    it('rejects paths that escape the outputs/ directory', () => {
+      // Bypass schema validation deliberately to simulate an assertion that
+      // slipped past an older lint — runtime should still refuse it.
+      const assertion = {
+        text: 'sneaky',
+        type: 'file_exists',
+        path: '../escape',
+      } as unknown as Assertion
+      const result = grade(assertion, { variantDir: tmpDir, transcript: '' })
+      expect(result.passed).toBe(false)
+      expect(result.detail).toContain('escapes outputs/ directory')
+      expect(result.detail).toContain('../escape')
+    })
   })
 })
 

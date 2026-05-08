@@ -46,7 +46,15 @@ export function grade(assertion: Assertion, ctx: GradeContext): GradingResult {
       }
     })
     .with({ type: 'file_exists' }, (a) => {
-      const target = path.join(ctx.variantDir, 'outputs', a.path)
+      const outputsRoot = path.join(ctx.variantDir, 'outputs')
+      const target = path.resolve(outputsRoot, a.path)
+      if (target !== outputsRoot && !target.startsWith(outputsRoot + path.sep)) {
+        return {
+          assertion,
+          passed: false,
+          detail: `path "${a.path}" escapes outputs/ directory`,
+        }
+      }
       const passed = existsSync(target)
       return {
         assertion,

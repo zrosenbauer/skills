@@ -39,12 +39,24 @@ export const assertionSchema = z.discriminatedUnion('type', [
   z.object({
     text: z.string(),
     type: z.literal('contains'),
-    substring: z.string(),
+    substring: z.string().min(1, { message: 'contains substring must be non-empty' }),
   }),
   z.object({
     text: z.string(),
     type: z.literal('file_exists'),
-    path: z.string(),
+    path: z
+      .string()
+      .refine(
+        (p) =>
+          !p.startsWith('/') &&
+          !p
+            .split(/[\\/]/)
+            .some((seg) => seg === '..'),
+        {
+          message:
+            'file_exists path must be a relative path inside outputs/ — no `..` segments, no leading `/`',
+        }
+      ),
   }),
 ])
 export type Assertion = z.infer<typeof assertionSchema>
@@ -60,7 +72,9 @@ export const evalCaseSchema = z.object({
   prompt: z.string().min(10),
   expected_output: z.string().min(1),
   files: z.array(z.string()).default([]),
-  assertions: z.array(assertionSchema).default([]),
+  assertions: z
+    .array(assertionSchema)
+    .min(1, { message: 'eval must define at least one assertion' }),
 })
 export type EvalCase = z.infer<typeof evalCaseSchema>
 
@@ -111,6 +125,12 @@ export type TimingFile = z.infer<typeof timingFileSchema>
 
 /**
  * Aggregate of grading.json files across one iteration of one skill.
+ *
+ * `missing.with_skill` / `missing.without_skill` flag variants whose
+ * grading.json was absent or unparseable. Missing variants are excluded from
+ * the passed/total counters so they don't silently pad the denominator with
+ * zeros. The top-level `totals.incomplete_evals` counts distinct evals where
+ * either variant is missing.
  */
 export const benchmarkFileSchema = z.object({
   skill_name: z.string(),
@@ -128,6 +148,10 @@ export const benchmarkFileSchema = z.object({
         passed: z.number().int().nonnegative(),
         total: z.number().int().nonnegative(),
       }),
+      missing: z.object({
+        with_skill: z.boolean(),
+        without_skill: z.boolean(),
+      }),
     })
   ),
   totals: z.object({
@@ -135,6 +159,7 @@ export const benchmarkFileSchema = z.object({
     with_skill_total: z.number().int().nonnegative(),
     without_skill_passed: z.number().int().nonnegative(),
     without_skill_total: z.number().int().nonnegative(),
+    incomplete_evals: z.number().int().nonnegative(),
   }),
 })
 export type BenchmarkFile = z.infer<typeof benchmarkFileSchema>

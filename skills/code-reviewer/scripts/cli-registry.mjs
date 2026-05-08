@@ -18,7 +18,7 @@
  */
 
 import { execFileSync } from 'node:child_process'
-import { existsSync } from 'node:fs'
+import { existsSync, statSync } from 'node:fs'
 import path from 'node:path'
 
 /** @type {CliEntry[]} */
@@ -196,7 +196,20 @@ export function locateBinary(binary) {
   for (const dir of dirs) {
     if (!dir) continue
     const candidate = path.join(dir, binary)
-    if (existsSync(candidate)) return { available: true, path: candidate }
+    let stat
+    try {
+      // Follow symlinks (e.g. /usr/local/bin/claude → real binary).
+      stat = statSync(candidate)
+    } catch {
+      // ENOENT, EACCES on parent dir, dangling symlink, etc.
+      continue
+    }
+    if (!stat.isFile()) continue
+    // POSIX: any execute bit (owner / group / other). On Windows, executability
+    // is determined by file extension (PATHEXT), not mode bits, so fall back to
+    // the existence-style check there to avoid false negatives.
+    if (process.platform !== 'win32' && (stat.mode & 0o111) === 0) continue
+    return { available: true, path: candidate }
   }
   return { available: false, path: null }
 }

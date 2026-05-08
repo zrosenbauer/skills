@@ -10,6 +10,7 @@ import {
   type SkillRecord,
   readWorkspace,
 } from '../lib/workspace.js'
+import { parseEditorEnv } from './editor.js'
 import { IterationList } from './IterationList.js'
 import { ScenarioList } from './ScenarioList.js'
 import { SkillList } from './SkillList.js'
@@ -117,6 +118,16 @@ function openInEditor({ scenario, variant }: OpenInEditorParams): void {
     .with('without_skill', () => scenario.withoutSkill)
     .exhaustive()
   if (!variantSummary?.transcriptPath) return
-  const editor = process.env.EDITOR ?? 'vi'
-  spawnSync(editor, [variantSummary.transcriptPath], { stdio: 'inherit' })
+  const editorRaw = process.env.EDITOR ?? 'vi'
+  const parsed = parseEditorEnv(editorRaw)
+  if (!parsed) return
+  const result = spawnSync(parsed.cmd, [...parsed.args, variantSummary.transcriptPath], {
+    stdio: 'inherit',
+  })
+  if (result.error) {
+    // process.stderr is more reliable than console here since Ink takes over stdout
+    process.stderr.write(
+      `\nopenInEditor: failed to spawn "${editorRaw}": ${result.error.message}\n`,
+    )
+  }
 }

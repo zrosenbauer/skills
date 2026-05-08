@@ -26,6 +26,15 @@ export const RULES: Rule[] = [
           }),
   },
   {
+    code: 'FM_PARSE_FAILED',
+    severity: 'error',
+    description: 'frontmatter must parse against the schema',
+    check: (skill) =>
+      skill.frontmatterParseError
+        ? fail({ message: `frontmatter failed schema validation: ${skill.frontmatterParseError}` })
+        : pass,
+  },
+  {
     code: 'FM_MISSING_NAME',
     severity: 'error',
     description: 'Frontmatter must include `name`',

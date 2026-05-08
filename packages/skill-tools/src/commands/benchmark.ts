@@ -63,24 +63,51 @@ export default command({
 
     ctx.log.info(`Wrote ${benchmarkJsonPath}`)
     ctx.log.info(`Wrote ${benchmarkMdPath}`)
+
+    if (benchmark.totals.incomplete_evals > 0) {
+      ctx.log.warn(
+        `⚠ benchmark incomplete: ${benchmark.totals.incomplete_evals} evals are missing grading data`
+      )
+      process.exitCode = 1
+    }
   },
 })
 
-function aggregate(skillName: string, iteration: IterationSummary): BenchmarkFile {
-  const evals = iteration.evals.map((s: ScenarioSummary) => ({
-    eval_id: s.evalId,
-    eval_name: s.evalName,
-    with_skill: countResults(s.withSkill?.grading),
-    without_skill: countResults(s.withoutSkill?.grading),
-  }))
+export function aggregate(skillName: string, iteration: IterationSummary): BenchmarkFile {
+  const evals = iteration.evals.map((s: ScenarioSummary) => {
+    const withSkillCounts = countResults(s.withSkill?.grading)
+    const withoutSkillCounts = countResults(s.withoutSkill?.grading)
+    return {
+      eval_id: s.evalId,
+      eval_name: s.evalName,
+      with_skill: { passed: withSkillCounts.passed, total: withSkillCounts.total },
+      without_skill: { passed: withoutSkillCounts.passed, total: withoutSkillCounts.total },
+      missing: {
+        with_skill: withSkillCounts.missing,
+        without_skill: withoutSkillCounts.missing,
+      },
+    }
+  })
   const totals = evals.reduce(
     (acc, e) => ({
-      with_skill_passed: acc.with_skill_passed + e.with_skill.passed,
-      with_skill_total: acc.with_skill_total + e.with_skill.total,
-      without_skill_passed: acc.without_skill_passed + e.without_skill.passed,
-      without_skill_total: acc.without_skill_total + e.without_skill.total,
+      // Missing variants contribute 0+0 — kept explicit so the denominator
+      // doesn't silently inflate when grading data is absent.
+      with_skill_passed: acc.with_skill_passed + (e.missing.with_skill ? 0 : e.with_skill.passed),
+      with_skill_total: acc.with_skill_total + (e.missing.with_skill ? 0 : e.with_skill.total),
+      without_skill_passed:
+        acc.without_skill_passed + (e.missing.without_skill ? 0 : e.without_skill.passed),
+      without_skill_total:
+        acc.without_skill_total + (e.missing.without_skill ? 0 : e.without_skill.total),
+      incomplete_evals:
+        acc.incomplete_evals + (e.missing.with_skill || e.missing.without_skill ? 1 : 0),
     }),
-    { with_skill_passed: 0, with_skill_total: 0, without_skill_passed: 0, without_skill_total: 0 }
+    {
+      with_skill_passed: 0,
+      with_skill_total: 0,
+      without_skill_passed: 0,
+      without_skill_total: 0,
+      incomplete_evals: 0,
+    }
   )
   return benchmarkFileSchema.parse({
     skill_name: skillName,
@@ -94,12 +121,13 @@ function aggregate(skillName: string, iteration: IterationSummary): BenchmarkFil
 function countResults(grading: GradingFile | null | undefined): {
   passed: number
   total: number
+  missing: boolean
 } {
-  if (!grading) return { passed: 0, total: 0 }
-  return { passed: grading.passed_count, total: grading.total_count }
+  if (!grading) return { passed: 0, total: 0, missing: true }
+  return { passed: grading.passed_count, total: grading.total_count, missing: false }
 }
 
-function renderMarkdown(b: BenchmarkFile): string {
+export function renderMarkdown(b: BenchmarkFile): string {
   const lines: string[] = [
     `# Benchmark: ${b.skill_name} — iteration ${b.iteration}`,
     '',
@@ -107,16 +135,19 @@ function renderMarkdown(b: BenchmarkFile): string {
     '',
     `**With skill:** ${b.totals.with_skill_passed} / ${b.totals.with_skill_total} passed`,
     `**Without skill:** ${b.totals.without_skill_passed} / ${b.totals.without_skill_total} passed`,
-    '',
-    '## Per-eval breakdown',
-    '',
-    '| ID | Eval | With skill | Without skill |',
-    '|----|------|------------|---------------|',
   ]
+  if (b.totals.incomplete_evals > 0) {
+    lines.push(`**Incomplete evals:** ${b.totals.incomplete_evals}`)
+  }
+  lines.push('', '## Per-eval breakdown', '')
+  lines.push('| ID | Eval | With skill | Without skill |')
+  lines.push('|----|------|------------|---------------|')
   for (const e of b.evals) {
-    lines.push(
-      `| ${e.eval_id} | ${e.eval_name} | ${e.with_skill.passed}/${e.with_skill.total} | ${e.without_skill.passed}/${e.without_skill.total} |`
-    )
+    const withCell = e.missing.with_skill ? 'MISSING' : `${e.with_skill.passed}/${e.with_skill.total}`
+    const withoutCell = e.missing.without_skill
+      ? 'MISSING'
+      : `${e.without_skill.passed}/${e.without_skill.total}`
+    lines.push(`| ${e.eval_id} | ${e.eval_name} | ${withCell} | ${withoutCell} |`)
   }
   return lines.join('\n') + '\n'
 }

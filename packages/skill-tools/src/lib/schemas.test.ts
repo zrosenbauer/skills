@@ -48,16 +48,52 @@ describe('assertionSchema', () => {
       })
     ).toThrow()
   })
+
+  it('rejects a contains assertion with empty substring', () => {
+    const result = assertionSchema.safeParse({
+      text: 'always passes',
+      type: 'contains',
+      substring: '',
+    })
+    expect(result.success).toBe(false)
+    if (!result.success) {
+      expect(result.error.issues.some((i) => /non-empty/.test(i.message))).toBe(true)
+    }
+  })
+
+  it('rejects a file_exists assertion with a `..` segment', () => {
+    const result = assertionSchema.safeParse({
+      text: 'escapes',
+      type: 'file_exists',
+      path: '../../etc/passwd',
+    })
+    expect(result.success).toBe(false)
+  })
+
+  it('rejects a file_exists assertion with an absolute path', () => {
+    const result = assertionSchema.safeParse({
+      text: 'absolute',
+      type: 'file_exists',
+      path: '/etc/passwd',
+    })
+    expect(result.success).toBe(false)
+  })
 })
 
 describe('evalCaseSchema', () => {
+  const minimalAssertion = {
+    text: 'has output',
+    type: 'contains' as const,
+    substring: 'output',
+  }
+
   it('accepts a kebab-case eval_name', () => {
     const parsed = evalCaseSchema.parse({
       id: 0,
       eval_name: 'parse-config',
       prompt: 'parse this config file please',
       expected_output: 'a parsed config',
-      assertions: [],
+      assertions: [minimalAssertion],
     })
     expect(parsed.eval_name).toBe('parse-config')
   })
@@ -69,19 +105,20 @@ describe('evalCaseSchema', () => {
         eval_name: 'parseConfig',
         prompt: 'parse this config',
         expected_output: 'a parsed config',
+        assertions: [minimalAssertion],
       })
     ).toThrow()
   })
 
-  it('defaults files and assertions to empty arrays', () => {
+  it('defaults files to empty array', () => {
     const parsed = evalCaseSchema.parse({
       id: 0,
       eval_name: 'parse-config',
       prompt: 'parse this config',
       expected_output: 'parsed config',
+      assertions: [minimalAssertion],
     })
     expect(parsed.files).toEqual([])
-    expect(parsed.assertions).toEqual([])
   })
 
   it('rejects too-short prompts', () => {
@@ -91,12 +128,43 @@ describe('evalCaseSchema', () => {
         eval_name: 'short',
         prompt: 'short',
         expected_output: 'output',
+        assertions: [minimalAssertion],
       })
     ).toThrow()
+  })
+
+  it('rejects evals with zero assertions', () => {
+    const result = evalCaseSchema.safeParse({
+      id: 0,
+      eval_name: 'parse-config',
+      prompt: 'parse this config file please',
+      expected_output: 'a parsed config',
+      assertions: [],
+    })
+    expect(result.success).toBe(false)
+    if (!result.success) {
+      expect(result.error.issues.some((i) => /at least one assertion/.test(i.message))).toBe(
+        true
+      )
+    }
+  })
+
+  it('rejects evals with assertions field omitted', () => {
+    const result = evalCaseSchema.safeParse({
+      id: 0,
+      eval_name: 'parse-config',
+      prompt: 'parse this config file please',
+      expected_output: 'a parsed config',
+    })
+    expect(result.success).toBe(false)
   })
 })
 
 describe('evalsFileSchema', () => {
+  const oneAssertion = [
+    { text: 'has r', type: 'contains' as const, substring: 'r' },
+  ]
+
   it('requires at least 3 evals', () => {
     expect(() =>
       evalsFileSchema.parse({
@@ -107,6 +175,7 @@ describe('evalsFileSchema', () => {
             eval_name: 'one',
             prompt: 'do something concrete',
             expected_output: 'a result',
+            assertions: oneAssertion,
           },
         ],
       })
@@ -117,9 +186,27 @@ describe('evalsFileSchema', () => {
     const parsed = evalsFileSchema.parse({
       skill_name: 'my-skill',
       evals: [
-        { id: 0, eval_name: 'one', prompt: 'do thing one', expected_output: 'r' },
-        { id: 1, eval_name: 'two', prompt: 'do thing two', expected_output: 'r' },
-        { id: 2, eval_name: 'three', prompt: 'do thing three', expected_output: 'r' },
+        {
+          id: 0,
+          eval_name: 'one',
+          prompt: 'do thing one',
+          expected_output: 'r',
+          assertions: oneAssertion,
+        },
+        {
+          id: 1,
+          eval_name: 'two',
+          prompt: 'do thing two',
+          expected_output: 'r',
+          assertions: oneAssertion,
+        },
+        {
+          id: 2,
+          eval_name: 'three',
+          prompt: 'do thing three',
+          expected_output: 'r',
+          assertions: oneAssertion,
+        },
       ],
     })
     expect(parsed.evals).toHaveLength(3)

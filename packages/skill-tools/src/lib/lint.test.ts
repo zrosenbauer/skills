@@ -86,6 +86,7 @@ ${body}
       'model-invocable': true,
       metadata: opts.internal ? { internal: true } : undefined,
     },
+    frontmatterParseError: null,
     bodyLineCount: body.split('\n').length,
     hasReadme: opts.hasReadme ?? true,
     hasLicense: opts.hasLicense ?? true,

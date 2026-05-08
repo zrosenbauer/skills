@@ -25,6 +25,7 @@ export interface SkillLocation {
 export interface SkillRecord {
   location: SkillLocation
   frontmatter: SkillFrontmatter
+  frontmatterParseError: string | null
   bodyLineCount: number
   hasReadme: boolean
   hasLicense: boolean
@@ -89,7 +90,11 @@ export function discoverSkills(repoRoot: string): SkillRecord[] {
 
 function readSkill(location: SkillLocation): SkillRecord {
   const skillMd = readFileSync(path.join(location.dir, 'SKILL.md'), 'utf8')
-  const frontmatter = parseFrontmatter(skillMd, location.name)
+  const fmResult = attempt(() => parseFrontmatter(skillMd, location.name))
+  const frontmatter: SkillFrontmatter = fmResult.ok
+    ? fmResult.value
+    : { name: location.name, description: '' }
+  const frontmatterParseError: string | null = fmResult.ok ? null : fmResult.error.message
   const body = skillMd.replace(FRONTMATTER_PATTERN, '')
 
   const evalsPath = path.join(location.dir, 'evals.json')
@@ -103,6 +108,7 @@ function readSkill(location: SkillLocation): SkillRecord {
   return {
     location,
     frontmatter,
+    frontmatterParseError,
     bodyLineCount: body.split('\n').length,
     hasReadme: existsSync(path.join(location.dir, 'README.md')),
     hasLicense: existsSync(path.join(location.dir, 'LICENSE')),
@@ -117,13 +123,15 @@ function readSkill(location: SkillLocation): SkillRecord {
  * read here — only the keys we care about. Full YAML lives in the agent's
  * head (and in skill-creator's lint), not here.
  */
-function parseFrontmatter(skillMd: string, fallbackName: string): SkillFrontmatter {
+function parseFrontmatter(skillMd: string, _fallbackName: string): SkillFrontmatter {
   const match = skillMd.match(FRONTMATTER_PATTERN)
   const raw: Record<string, unknown> = {}
   if (match?.[1]) {
     const fmText = match[1]
-    raw.name = extractScalar(fmText, 'name') ?? fallbackName
-    raw.description = extractFolded(fmText, 'description') ?? ''
+    const nameFromYaml = extractScalar(fmText, 'name')
+    if (nameFromYaml !== undefined) raw.name = nameFromYaml
+    const descFromYaml = extractFolded(fmText, 'description')
+    if (descFromYaml !== undefined) raw.description = descFromYaml
     const argHint = extractScalar(fmText, 'argument-hint')
     if (argHint !== undefined) raw['argument-hint'] = argHint
     const userInv = extractScalar(fmText, 'user-invocable')
@@ -134,9 +142,6 @@ function parseFrontmatter(skillMd: string, fallbackName: string): SkillFrontmatt
     if (internal !== undefined) {
       raw.metadata = { internal: internal === 'true' }
     }
-  } else {
-    raw.name = fallbackName
-    raw.description = ''
   }
   return skillFrontmatterSchema.parse(raw)
 }
