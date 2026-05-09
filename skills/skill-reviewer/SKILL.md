@@ -67,12 +67,12 @@ Capture the lint output verbatim — it's the floor, not the ceiling. Lint passi
 
 Pick exactly one — this dictates which audit lens to apply (per [`skill-creator/references/pressure-scenarios.md`](../skill-creator/references/pressure-scenarios.md)):
 
-| Type | Examples | Audit focus |
-|---|---|---|
+| Type           | Examples                                                      | Audit focus                                                                                           |
+| -------------- | ------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------- |
 | **Discipline** | "always run the test", "never use `any`", "always use Result" | Rationalization table present? Pressure scenarios combine 3 pressures (time + sunk-cost + authority)? |
-| **Technique** | "use ts-pattern for branching", "use zod for parsing" | Scenarios stress variation + missing information? Skill triggers across phrasings? |
-| **Pattern** | "use *Params for ≥2-arg fns", "kebab-case files" | Scenarios include counter-examples + recognition (when NOT to fire)? |
-| **Reference** | "API X works like…", "convention Y says…" | Scenarios mix retrieval + gap testing? Skill declines questions outside its scope? |
+| **Technique**  | "use ts-pattern for branching", "use zod for parsing"         | Scenarios stress variation + missing information? Skill triggers across phrasings?                    |
+| **Pattern**    | "use \*Params for ≥2-arg fns", "kebab-case files"             | Scenarios include counter-examples + recognition (when NOT to fire)?                                  |
+| **Reference**  | "API X works like…", "convention Y says…"                     | Scenarios mix retrieval + gap testing? Skill declines questions outside its scope?                    |
 
 State the classification explicitly. If you can't classify it cleanly, that's itself a finding (the skill's purpose is fuzzy).
 
@@ -112,16 +112,14 @@ Beyond the lint pass:
 
 Read every assertion. Common brittleness patterns to flag (per [`evals-json.md`](../skill-creator/references/evals-json.md)):
 
-| Pattern | Why it's broken |
-|---|---|
-| Negative regex anchored per-line (`^(?!.*X).*$`) | Matches if any line lacks X — passes even when X appears on another line |
-| Regex matches a substring of the prompt itself | Agent restating the prompt verbatim trips the assertion without doing the work |
-| Two assertions checking the same property (`regex /@param/` + `contains "@param"`) | Double-assert; over-fits to one phrasing |
-| Literal-word match on common English (`(error|warn|info)` as plain words) | "error" / "warn" appear in any prose; assertion has no teeth |
-| LLM-as-judge phrasing leaking in (`"output conveys expertise"`) | Drifts across model versions; not deterministic |
-| < 3 evals on a public skill | Insufficient pressure surface (lint also catches) |
-| All scenarios share one phrasing / one happy path | Misses recognition + counter-example coverage |
-| Single-pressure on a discipline skill | Discipline skills need 3 pressures combined; one pressure is too easy |
+- **Negative regex anchored per-line** (`^(?!.*X).*$`) — matches if any line lacks X; passes even when X appears on another line.
+- **Regex matches a substring of the prompt itself** — agent restating the prompt verbatim trips the assertion without doing the work.
+- **Two assertions checking the same property** (e.g. `regex /@param/` + `contains "@param"`) — double-assert; over-fits to one phrasing.
+- **Literal-word match on common English** (e.g. plain `(error|warn|info)` as words) — those words appear in any prose; assertion has no teeth.
+- **LLM-as-judge phrasing leaking in** (e.g. `"output conveys expertise"`) — drifts across model versions; not deterministic.
+- **< 3 evals on a public skill** — insufficient pressure surface (lint also catches).
+- **All scenarios share one phrasing / one happy path** — misses recognition + counter-example coverage.
+- **Single-pressure on a discipline skill** — discipline skills need 3 pressures combined; one pressure is too easy.
 
 Also check: pressure scenarios match the skill type (per step 2). A discipline skill with technique-shaped scenarios is mis-pressured.
 
@@ -284,14 +282,14 @@ Nothing manufactured. If you want depth beyond the structural review, run `node 
 
 Captured from RED-baseline transcripts where reviewers without this skill skipped rules. Future reviewers: recognize your own pattern.
 
-| Skipped rule | Verbatim excuse | Why it's wrong |
-|---|---|---|
-| Read `pressure-scenarios.md` / `evals-json.md` / `tdd-for-skills.md` | "relied on lint-checklist summary" | Lint enforces mechanical rules; these refs cover assertion shape, scenario-vs-skill-type fit, and the RED→GREEN cycle that lint cannot check |
-| Classify the skill type (discipline / technique / pattern / reference) | (omitted entirely) | Different types need different audits — discipline skills require a rationalization table and 3-pressure scenarios; technique skills need variation tests; without classification you're applying the wrong lens |
-| Use severity-tiered output (`error` / `warn` / `info`) even on a pass | "used numbered findings" / "prose verdict" | Comparable output across runs; numbered lists drift in shape; prose ("looks solid") invites manufactured-nits or vague-pass failure modes |
-| Include a Clean section listing what specifically passes | "said 'looks solid' / 'ship it'" | Pass verdicts without specifics rot — six months later nobody knows what was actually checked. Clean sections force grounding in specific rules |
-| Check whether `skill-eval` is invocable before recommending it | "I located the tooling" without checking if it's loadable in the session | Pushes work onto the user to verify the recommendation. Step 7 requires explicit availability check + result statement |
-| Run the static review without offering the behavioral handoff | "the static review covered the structural concerns" | Static review can't catch "skill doesn't actually change agent behavior" — that's exactly what `skill-eval` exists for. Skipping it leaves the second half of the request undone |
+| Skipped rule                                                           | Verbatim excuse                                                          | Why it's wrong                                                                                                                                                                                                   |
+| ---------------------------------------------------------------------- | ------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Read `pressure-scenarios.md` / `evals-json.md` / `tdd-for-skills.md`   | "relied on lint-checklist summary"                                       | Lint enforces mechanical rules; these refs cover assertion shape, scenario-vs-skill-type fit, and the RED→GREEN cycle that lint cannot check                                                                     |
+| Classify the skill type (discipline / technique / pattern / reference) | (omitted entirely)                                                       | Different types need different audits — discipline skills require a rationalization table and 3-pressure scenarios; technique skills need variation tests; without classification you're applying the wrong lens |
+| Use severity-tiered output (`error` / `warn` / `info`) even on a pass  | "used numbered findings" / "prose verdict"                               | Comparable output across runs; numbered lists drift in shape; prose ("looks solid") invites manufactured-nits or vague-pass failure modes                                                                        |
+| Include a Clean section listing what specifically passes               | "said 'looks solid' / 'ship it'"                                         | Pass verdicts without specifics rot — six months later nobody knows what was actually checked. Clean sections force grounding in specific rules                                                                  |
+| Check whether `skill-eval` is invocable before recommending it         | "I located the tooling" without checking if it's loadable in the session | Pushes work onto the user to verify the recommendation. Step 7 requires explicit availability check + result statement                                                                                           |
+| Run the static review without offering the behavioral handoff          | "the static review covered the structural concerns"                      | Static review can't catch "skill doesn't actually change agent behavior" — that's exactly what `skill-eval` exists for. Skipping it leaves the second half of the request undone                                 |
 
 ## References
 

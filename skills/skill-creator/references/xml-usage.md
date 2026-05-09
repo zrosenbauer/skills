@@ -85,3 +85,13 @@ Build agent skills.
 1. Discover
 2. Name
 ```
+
+## Tables vs bullets
+
+Both render fine for the agent — but tokens cost real money on every dispatch. Three-tier guideline:
+
+- **2-column key→value tables → use bullets.** A bullet `- **key** — value` is shorter, more robust, and just as scannable. Only reach for a 2-column table if you're already using tables nearby for visual consistency.
+- **3+ column tables with parallel rows → keep as tables.** The structure earns its tokens when readers need to scan a column ("which providers support feature X?") rather than read top-to-bottom. The `## Rationalization table` convention in discipline skills is the canonical example.
+- **Any table whose cells contain `|` characters (regex alternation, pipes in code) → use bullets.** Markdown will parse those pipes as column separators and render the table broken. The bug is silent at authoring time (preview tools forgive it) and loud at agent-context time (the model sees malformed structure).
+
+Token math is rough but consistent: a 2-column 8-row table runs ~3-4× the tokens of the equivalent bullet list, almost entirely from `|` padding and the `| --- |` separator row. A 3+ column table is closer to break-even because each row carries more semantic content per byte of structure.
