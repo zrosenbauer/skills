@@ -8,9 +8,12 @@ description: >-
   this", "harsh review of", "adversarial review", and "security review
   of". Picks one of four reviewer personas (adversarial, security,
   architecture, performance). Reviews local files, `git diff`, or
-  `git diff --staged` only — does not fetch external content. Skip when
-  the user wants formatting fixes (use a linter) or refactoring patterns
-  (use ts-best-practices or ts-best-practices-functional).
+  `git diff --staged` only — does not fetch external content. Optionally
+  hands the review off to another AI CLI on the local machine for an
+  independent cross-model second opinion (with secret-shield preflight
+  + prompt-shield wrap). Skip when the user wants formatting fixes (use
+  a linter) or refactoring patterns (use ts-best-practices or
+  ts-best-practices-functional).
 
 # --- Claude Code extensions (ignored by other agents) ---
 argument-hint: '[<file|dir|diff|staged>]'
@@ -20,7 +23,7 @@ model-invocable: true
 
 # code-reviewer
 
-Reviews code in the current working tree through a chosen persona. The reference docs live in [`references/`](references/) and are loaded **on demand** — the SKILL.md keeps the trigger surface lean; specifics for each persona get pulled in only when the user picks one.
+Reviews code in the current working tree through a chosen persona. The reference docs live in [`references/`](references/) and are loaded **on demand** — the SKILL.md keeps the trigger surface lean; specifics for each persona / mode get pulled in only when the user picks one.
 
 ## When to use
 
@@ -75,11 +78,27 @@ Ask the user (use `AskUserQuestion` in Claude Code, or your agent's equivalent) 
 
 Only load the reference(s) the user picked. Don't pre-load all four — that's the whole point of progressive disclosure.
 
-### 3. Run the review
+### 3. Choose mode — in-process or cross-model (opt-in)
 
-Apply the loaded persona reference as the guiding lens. Read the code in scope, produce findings.
+Default is **in-process**: the current agent runs the review.
 
-### 4. Format the output
+If the user explicitly asks for a "second opinion via <cli>" or "cross-model review" — and only then — offer the cross-model option:
+
+```bash
+node scripts/detect-clis.mjs --available-only --pretty
+```
+
+The script outputs JSON of available AI CLIs on `$PATH` (codex, gemini, aider, etc.). Parse it, ask the user (`AskUserQuestion` or equivalent) which CLI to dispatch to. See [`references/cross-model-handoff.md`](references/cross-model-handoff.md) for invocation patterns.
+
+If the user didn't ask for cross-model, skip to step 4 in-process.
+
+### 4. Run the review
+
+**In-process:** apply the loaded persona reference as the guiding lens. Read the code in scope, produce findings.
+
+**Cross-model:** see [`references/cross-model-handoff.md`](references/cross-model-handoff.md) — uses the bundled `invoke-cli.mjs` with secret-shield preflight + prompt-shield wrap. Capture the child CLI's stdout verbatim as the review.
+
+### 5. Format the output
 
 Apply [`references/review-output-format.md`](references/review-output-format.md):
 
@@ -95,8 +114,9 @@ Apply [`references/review-output-format.md`](references/review-output-format.md)
 <output>
 1. Scope: read every file under `src/auth/`.
 2. Persona: load `references/adversarial-reviewer.md`.
-3. Run review through the adversarial lens — assume the code is broken, look for race conditions, missing null handling, leaked credentials, ignored errors.
-4. Format per `references/review-output-format.md`. Output:
+3. Mode: in-process (default — no cross-model requested).
+4. Run review through the adversarial lens — assume the code is broken, look for race conditions, missing null handling, leaked credentials, ignored errors.
+5. Format per `references/review-output-format.md`. Output:
 
 ```
 SUMMARY: 11 findings (3 error / 5 warn / 3 info)
@@ -115,27 +135,39 @@ WARNS
 </example>
 
 <example>
-<input>"security review of the staged changes"</input>
+<input>"security review of the staged changes via codex" — cross-model second opinion</input>
 <output>
 1. Scope: `git diff --staged`.
 2. Persona: load `references/security-reviewer.md`.
-3. Run review through the security lens — input validation, authn/authz boundaries, secret handling, injection sinks.
-4. Format per `references/review-output-format.md`.
+3. Mode: cross-model (user asked for codex). Run `node scripts/detect-clis.mjs --available-only`. Pick `codex`.
+4. Compose: write trusted instructions to `persona.md`, write `git diff --staged` output to `diff.txt`. Invoke `node scripts/invoke-cli.mjs codex --instructions persona.md --untrusted-content diff.txt --secret-mode redact --timeout 120`. Capture stdout.
+5. Present the verbatim output with a header noting the model used.
 </output>
 </example>
 
 <example>
 <good>
 Loaded only `references/adversarial-reviewer.md` because the user picked
-"adversarial". Other persona refs stayed on disk.
+"adversarial". Other persona refs stayed on disk. Default mode was
+in-process; cross-model handoff stayed unloaded.
 </good>
 
 <bad>
-Pre-loaded all four persona references "just in case". Wastes context
-budget on every dispatch.
+Pre-loaded all four persona references and `cross-model-handoff.md`
+"just in case". Wastes context budget on every dispatch.
 </bad>
 
 The bad example violates the skill's progressive-disclosure design — references exist precisely so we don't pay the context cost when they're not needed.
+
+## Security
+
+Cross-model mode forwards local file / diff content to a third-party AI CLI on the same machine. That crosses a trust boundary even though the source content is local: code under review can contain embedded secrets (API keys, tokens) and prompt-injection-style markers (intentionally or accidentally). Two complementary mitigations are built into `scripts/invoke-cli.mjs` and fire when the agent uses the `--instructions <file> --untrusted-content <file>` form.
+
+**Credential exfiltration:** the script runs a regex-based secret scan on the content before composing the prompt. Default `--secret-mode scan` refuses to forward when any known secret format (AWS, GitHub, OpenAI, Anthropic, Slack, Stripe, Google API, JWT, PEM private keys) is detected. `--secret-mode redact` substitutes `[REDACTED-{type}-{n}]` placeholders. `--secret-mode allow` skips the check (use only when you've already audited the content). Source: [`scripts/secret-shield/`](scripts/secret-shield/).
+
+**Prompt injection:** the script generates a fresh 12-hex salt per invocation and wraps the content in `<untrusted-{{salt}}>...</untrusted-{{salt}}>` with an anti-injection preamble before piping to the child CLI. Attacker-embedded closing tags (whether intentional or accidental) can't escape the wrap because they can't predict the salt. Source: [`scripts/prompt-shield/`](scripts/prompt-shield/).
+
+In-process review (the default) does not cross trust boundaries — no external sink, no preflight needed. Background and threat model: [`contributing/prompt-injection.md`](../../contributing/prompt-injection.md).
 
 ## References
 
@@ -143,4 +175,6 @@ The bad example violates the skill's progressive-disclosure design — reference
 - [`references/security-reviewer.md`](references/security-reviewer.md) — security-focused review lens
 - [`references/architecture-reviewer.md`](references/architecture-reviewer.md) — design / coupling / modularity
 - [`references/performance-reviewer.md`](references/performance-reviewer.md) — complexity, memory, I/O
+- [`references/cross-model-handoff.md`](references/cross-model-handoff.md) — how to invoke detected CLIs
 - [`references/review-output-format.md`](references/review-output-format.md) — three-tier output spec
+- [`scripts/detect-clis.mjs`](scripts/detect-clis.mjs) — node script, ships with the skill, probes for ~20 AI CLIs and emits JSON
