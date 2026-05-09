@@ -9,20 +9,20 @@
 # repo via Snyk's UI. To wire the token instead: Settings → Secrets → Actions →
 # new secret named SNYK_TOKEN (value from app.snyk.io/account).
 
-name: audit-skills
+name: ci-skills
 
 on:
   pull_request:
     paths:
       - 'skills/**'
       - 'skill-scripts/**'
-      - '.github/workflows/audit-skills.yml'
+      - '.github/workflows/ci-skills.yaml'
   push:
     branches: [main]
     paths:
       - 'skills/**'
       - 'skill-scripts/**'
-      - '.github/workflows/audit-skills.yml'
+      - '.github/workflows/ci-skills.yaml'
   workflow_dispatch:
 
 jobs:
