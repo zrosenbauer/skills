@@ -9,32 +9,37 @@
  *
  *   2. Wrapped composition (--instructions + --untrusted-content) — for
  *      forwarding third-party content (PR diffs, scraped pages, issue bodies)
- *      to the child CLI. The script composes:
+ *      to the child CLI. The script:
  *
- *        <instructions verbatim>
+ *        1. Runs secret-shield on the untrusted content. Default
+ *           --secret-mode=scan refuses to forward if any known secret is
+ *           detected. --secret-mode=redact replaces matches with
+ *           [REDACTED-{type}-{n}] placeholders. --secret-mode=allow skips.
+ *        2. Composes the final prompt:
  *
- *        <anti-injection preamble naming the salted tag>
+ *             <instructions verbatim>
  *
- *        <untrusted-{{salt}}>
- *        <untrusted content verbatim>
- *        </untrusted-{{salt}}>
+ *             <anti-injection preamble naming the salted tag>
  *
- *      The salt is fresh per-invocation, so attacker-embedded closing tags
- *      cannot escape the wrap. See contributing/prompt-injection.md.
+ *             <untrusted-{{salt}}>
+ *             <untrusted content (possibly redacted)>
+ *             </untrusted-{{salt}}>
+ *
+ *           The salt is fresh per-invocation, so attacker-embedded closing
+ *           tags cannot escape the wrap.
+ *
+ *      Together these mitigate W011 (indirect prompt injection — handled by
+ *      the wrap) and W007 (credential exfiltration — handled by the
+ *      secret-shield preflight). See contributing/prompt-injection.md.
  *
  * Usage:
  *   node invoke-cli.mjs <cli-id> [--timeout <seconds>] [--dry-run]
- *   node invoke-cli.mjs <cli-id> --instructions <file> --untrusted-content <file> [...]
- *
- * Reads the prompt from stdin (mode 1) or composes it from the two files
- * (mode 2). Looks up <cli-id> in `cli-registry.mjs`. Prefers `stdinTemplate`
- * (pipes prompt to the child's stdin); falls back to `promptTemplate` (passes
- * the prompt as the last argv argument). Times out after <timeout> seconds
- * (default 120s).
+ *   node invoke-cli.mjs <cli-id> --instructions <file> --untrusted-content <file> \
+ *        [--secret-mode scan|redact|allow] [...]
  *
  * Exit codes:
  *   0  — child exited 0
- *   1  — argument error (no cli-id, unknown id, empty prompt, missing file)
+ *   1  — argument error, missing file, or secrets detected with --secret-mode=scan
  *   2  — child exited non-zero
  *   3  — timeout
  *   4  — child binary not on $PATH
@@ -43,6 +48,7 @@
  *   echo "review this code" | node invoke-cli.mjs codex
  *   node invoke-cli.mjs codex --instructions persona.md --untrusted-content diff.txt
  *   node invoke-cli.mjs codex --instructions p.md --untrusted-content d.txt --dry-run
+ *   node invoke-cli.mjs codex -i p.md -u d.txt --secret-mode redact
  */
 
 import { spawnSync } from 'node:child_process'
@@ -50,6 +56,7 @@ import { existsSync, readFileSync } from 'node:fs'
 
 import { buildInvocation, findEntry, locateBinary } from './cli-registry.mjs'
 import { composeWrappedPrompt } from './prompt-shield/compose.mjs'
+import { redactSecrets, scanForSecrets } from './secret-shield/scan.mjs'
 
 const argv = process.argv.slice(2)
 const cliId = argv[0]
@@ -58,7 +65,7 @@ const flags = parseFlags(argv.slice(1))
 if (!cliId || cliId.startsWith('--')) {
   process.stderr.write(
     'Usage: invoke-cli <cli-id> [--timeout <s>] [--dry-run]\n' +
-      '       invoke-cli <cli-id> --instructions <file> --untrusted-content <file> [...]\n'
+      '       invoke-cli <cli-id> --instructions <file> --untrusted-content <file> [--secret-mode scan|redact|allow]\n'
   )
   process.exit(1)
 }
@@ -93,6 +100,8 @@ if (flags.dryRun) {
         stdinBytes: plan.stdin === null ? 0 : Buffer.byteLength(plan.stdin),
         wrapped: composition.wrapped,
         wrappedSalt: composition.salt ?? null,
+        secretMode: composition.secretMode,
+        secretsRedacted: composition.secretsRedacted,
       },
       null,
       2
@@ -129,10 +138,12 @@ if (result.stderr) process.stderr.write(result.stderr)
 process.exit(result.status === 0 ? 0 : 2)
 
 /**
- * Resolve the prompt from either flags (composed + wrapped) or stdin (verbatim).
+ * Resolve the prompt from either flags (composed + wrapped + scrubbed) or
+ * stdin (verbatim). Applies secret-shield preflight when --untrusted-content
+ * is present (default scan mode).
  *
  * @param {ReturnType<typeof parseFlags>} f
- * @returns {{ prompt: string, wrapped: boolean, salt: string | null }}
+ * @returns {{ prompt: string, wrapped: boolean, salt: string | null, secretMode: string, secretsRedacted: number }}
  */
 function composePrompt(f) {
   if (f.untrustedContent && !f.instructions) {
@@ -142,16 +153,59 @@ function composePrompt(f) {
 
   if (f.instructions && f.untrustedContent) {
     const instructions = readFileOrExit(f.instructions, '--instructions')
-    const untrusted = readFileOrExit(f.untrustedContent, '--untrusted-content')
+    let untrusted = readFileOrExit(f.untrustedContent, '--untrusted-content')
+    let secretsRedacted = 0
+
+    if (f.secretMode !== 'allow') {
+      const { findings, hasFindings } = scanForSecrets({ content: untrusted })
+      if (hasFindings) {
+        if (f.secretMode === 'scan') {
+          process.stderr.write(
+            `Aborted: ${findings.length} secret(s) detected in --untrusted-content.\n` +
+              'Use --secret-mode redact to scrub, or --secret-mode allow to forward verbatim.\n'
+          )
+          for (const fnd of findings) {
+            process.stderr.write(
+              `  ${fnd.severity}\t${fnd.id}\tline ${fnd.line}, col ${fnd.column}\n`
+            )
+          }
+          process.exit(1)
+        }
+        if (f.secretMode === 'redact') {
+          const result = redactSecrets({ content: untrusted })
+          untrusted = result.content
+          secretsRedacted = result.findings.length
+        }
+      }
+    }
+
     const composed = composeWrappedPrompt({ instructions, untrusted })
-    return { prompt: composed.prompt, wrapped: true, salt: composed.salt }
+    return {
+      prompt: composed.prompt,
+      wrapped: true,
+      salt: composed.salt,
+      secretMode: f.secretMode,
+      secretsRedacted,
+    }
   }
 
   if (f.instructions) {
-    return { prompt: readFileOrExit(f.instructions, '--instructions'), wrapped: false, salt: null }
+    return {
+      prompt: readFileOrExit(f.instructions, '--instructions'),
+      wrapped: false,
+      salt: null,
+      secretMode: 'allow',
+      secretsRedacted: 0,
+    }
   }
 
-  return { prompt: readStdin(), wrapped: false, salt: null }
+  return {
+    prompt: readStdin(),
+    wrapped: false,
+    salt: null,
+    secretMode: 'allow',
+    secretsRedacted: 0,
+  }
 }
 
 /**
@@ -173,6 +227,7 @@ function parseFlags(rest) {
   let dryRun = false
   let instructions = null
   let untrustedContent = null
+  let secretMode = 'scan'
   for (let i = 0; i < rest.length; i += 1) {
     const a = rest[i]
     if (a === '--dry-run') {
@@ -210,8 +265,18 @@ function parseFlags(rest) {
       i += 1
       continue
     }
+    if (a === '--secret-mode') {
+      const next = rest[i + 1]
+      if (!next || !['scan', 'redact', 'allow'].includes(next)) {
+        process.stderr.write('--secret-mode must be one of: scan, redact, allow\n')
+        process.exit(1)
+      }
+      secretMode = next
+      i += 1
+      continue
+    }
   }
-  return { timeout, dryRun, instructions, untrustedContent }
+  return { timeout, dryRun, instructions, untrustedContent, secretMode }
 }
 
 function readStdin() {

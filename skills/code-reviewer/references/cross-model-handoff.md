@@ -54,7 +54,7 @@ See [`contributing/prompt-injection.md`](../../../contributing/prompt-injection.
 
 ## Step 4 — Invoke the CLI
 
-Use the bundled `invoke-cli.mjs` script with the two-file form. It handles the stdin-vs-argv choice, the salted-tag wrap, timeouts, and shell-quoting hazards:
+Use the bundled `invoke-cli.mjs` script with the two-file form. It handles the stdin-vs-argv choice, the secret-shield preflight, the salted-tag wrap, timeouts, and shell-quoting hazards:
 
 ```bash
 PERSONA_FILE=$(mktemp)
@@ -64,6 +64,7 @@ DIFF_FILE=$(mktemp)
 node scripts/invoke-cli.mjs <cli-id> \
   --instructions "$PERSONA_FILE" \
   --untrusted-content "$DIFF_FILE" \
+  --secret-mode redact \
   --timeout 120
 rm "$PERSONA_FILE" "$DIFF_FILE"
 ```
@@ -71,12 +72,21 @@ rm "$PERSONA_FILE" "$DIFF_FILE"
 The script:
 
 - Looks up `<cli-id>` in the same registry `detect-clis.mjs` uses
-- Composes a final prompt: `[instructions] + [anti-injection preamble naming the salted tag] + [<untrusted-{{salt}}>...content...</untrusted-{{salt}}>]`
+- **Runs secret-shield on the untrusted content first.** Default `--secret-mode scan` refuses to forward when any AWS/GitHub/OpenAI/Anthropic/Slack/Stripe/Google/JWT/PEM key is detected (exit 1 with finding details). Pass `--secret-mode redact` to substitute `[REDACTED-{type}-{n}]` placeholders and continue. `--secret-mode allow` skips the check.
+- Composes a final prompt: `[instructions] + [anti-injection preamble naming the salted tag] + [<untrusted-{{salt}}>...(possibly redacted) content...</untrusted-{{salt}}>]`
 - Generates a fresh 12-hex salt per invocation — attacker cannot forge a closing tag
 - Prefers `stdinTemplate` (pipes the composed prompt to the child's stdin); falls back to `promptTemplate` argv substitution when the CLI doesn't support stdin
 - Times out after `--timeout` seconds (default 120s) — prevents a hanging interactive CLI from locking the agent
 - Returns the child's stdout on stdout, stderr on stderr
-- Exit codes: `0` success, `1` argument error or missing file, `2` child exited non-zero, `3` timeout, `4` binary not on $PATH
+- Exit codes: `0` success, `1` argument error / missing file / secrets detected, `2` child exited non-zero, `3` timeout, `4` binary not on $PATH
+
+### When to pick scan vs redact vs allow
+
+| Mode             | Behavior                                                  | Use when                                                                  |
+| ---------------- | --------------------------------------------------------- | ------------------------------------------------------------------------- |
+| `scan` (default) | Exit 1 if any secret detected; print findings             | You want a hard stop and a chance to inspect the source before continuing |
+| `redact`         | Replace each match with `[REDACTED-{type}-{n}]`, continue | You trust the persona to work on placeholder content (most reviews)       |
+| `allow`          | Skip the check, forward verbatim                          | You've already audited the diff and know it's clean                       |
 
 ### Legacy stdin mode (trusted-only)
 
@@ -94,7 +104,8 @@ If you're not sure the invocation will work, do a dry run first — prints the p
 
 ```bash
 node scripts/invoke-cli.mjs codex --dry-run \
-  --instructions "$PERSONA_FILE" --untrusted-content "$DIFF_FILE"
+  --instructions "$PERSONA_FILE" --untrusted-content "$DIFF_FILE" \
+  --secret-mode redact
 # {
 #   "cli": { "id": "codex", "name": "OpenAI Codex", "binary": "codex" },
 #   "mode": "stdin",
@@ -102,7 +113,9 @@ node scripts/invoke-cli.mjs codex --dry-run \
 #   "args": ["exec", "-"],
 #   "stdinBytes": 4271,
 #   "wrapped": true,
-#   "wrappedSalt": "a8f2c91d4e7b"
+#   "wrappedSalt": "a8f2c91d4e7b",
+#   "secretMode": "redact",
+#   "secretsRedacted": 0
 # }
 ```
 

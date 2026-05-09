@@ -110,7 +110,7 @@ Apply [`references/review-output-format.md`](references/review-output-format.md)
 - Group findings by severity (`error` / `warn` / `info` — matches our skill-tools tiers)
 - Use `file:line` references so the user can click to source
 - Include a one-line summary at the top
-- Keep verbatim quotes from the code where useful (don't paraphrase)
+- Quote relevant lines for context — secrets are scrubbed by the secret-shield preflight before any cross-model handoff (see Security)
 
 ## Examples
 
@@ -167,15 +167,16 @@ The bad example violates the skill's progressive-disclosure design — reference
 
 PR-mode and cross-model mode both cross trust boundaries:
 
-- **PR-mode** (`gh pr diff`) ingests attacker-controllable content. Anyone with PR access can put hidden instructions in a diff (indirect prompt injection).
+- **PR-mode** (`gh pr diff`) ingests attacker-controllable content. Anyone with PR access can put hidden instructions in a diff (indirect prompt injection) and any secrets that landed in the diff would leak to whatever model reviews it.
 - **Cross-model mode** forwards that content to a third-party AI CLI on the local machine. The receiving model sees the diff too.
 
-Mitigation built into the bundled scripts:
+Two complementary mitigations are built into `scripts/invoke-cli.mjs`. Both fire when the agent uses the `--instructions <file> --untrusted-content <file>` form.
 
-- `scripts/invoke-cli.mjs` exposes `--instructions <file> --untrusted-content <file>`. The script generates a fresh 12-hex salt per invocation and wraps the untrusted content in `<untrusted-{{salt}}>...</untrusted-{{salt}}>` with an anti-injection preamble before piping to the child CLI. Attacker-embedded closing tags can't escape the wrap because they can't predict the salt.
-- The cross-model handoff reference instructs the agent to use the two-file form whenever the payload contains third-party content. See [`references/cross-model-handoff.md`](references/cross-model-handoff.md) Step 3.
+**Indirect prompt injection (W011):** the script generates a fresh 12-hex salt per invocation and wraps the untrusted content in `<untrusted-{{salt}}>...</untrusted-{{salt}}>` with an anti-injection preamble before piping to the child CLI. Attacker-embedded closing tags can't escape the wrap because they can't predict the salt. Source: [`scripts/prompt-shield/`](scripts/prompt-shield/).
 
-Background and threat model: [`contributing/prompt-injection.md`](../../contributing/prompt-injection.md). The user is still responsible for trusting the source repository before invoking PR-mode review — wrapping mitigates content coercion, not the decision to review hostile code in the first place.
+**Credential exfiltration (W007):** the script runs a regex-based secret scan on the untrusted content before composing the prompt. Default `--secret-mode scan` refuses to forward when any known secret format (AWS, GitHub, OpenAI, Anthropic, Slack, Stripe, Google API, JWT, PEM private keys) is detected. `--secret-mode redact` substitutes `[REDACTED-{type}-{n}]` placeholders. `--secret-mode allow` skips the check (use only when you've already audited the diff). Source: [`scripts/secret-shield/`](scripts/secret-shield/).
+
+Background and threat model: [`contributing/prompt-injection.md`](../../contributing/prompt-injection.md). The user is still responsible for trusting the source repository before invoking PR-mode review — these mitigations address coercion and exfiltration mechanics, not the decision to review hostile code in the first place.
 
 ## References
 

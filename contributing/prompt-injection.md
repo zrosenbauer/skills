@@ -1,6 +1,6 @@
-# Prompt injection (and how to keep skills out of trouble)
+# Prompt injection + secret leakage (and how to keep skills out of trouble)
 
-Skills that forward third-party content into an LLM are graded on it. This doc explains the concept, how [skills.sh](https://skills.sh) detects it, and the patterns that meaningfully reduce risk — including what doesn't work.
+Skills that forward third-party content into an LLM are graded on two related concerns: (1) hostile content steering the model (W011, indirect prompt injection) and (2) sensitive content leaving your trust boundary (W007, credential exfiltration). This doc explains both, how [skills.sh](https://skills.sh) detects them, and the patterns that meaningfully reduce risk — including what doesn't work.
 
 ## The concept
 
@@ -23,10 +23,11 @@ Indirect is the dangerous one for skills. The user is benign; the _content the a
 
 The skills.sh audit pipeline runs a custom rule set (W-codes) on `SKILL.md` and shipped scripts. The two that hit untrusted-content patterns:
 
-| Rule     | Trigger                                                                                       | Default severity |
-| -------- | --------------------------------------------------------------------------------------------- | ---------------- |
-| **W011** | Skill ingests third-party content (PR diffs, issues, scraped pages) and routes it into an LLM | Medium           |
-| **W012** | Skill instructs the agent to fetch a runtime URL whose content shapes agent behavior          | Medium           |
+| Rule     | Trigger                                                                                                                          | Default severity |
+| -------- | -------------------------------------------------------------------------------------------------------------------------------- | ---------------- |
+| **W007** | Skill handles credentials insecurely — e.g. instructs the agent to forward code/diffs verbatim, which may carry embedded secrets | High             |
+| **W011** | Skill ingests third-party content (PR diffs, issues, scraped pages) and routes it into an LLM                                    | Medium           |
+| **W012** | Skill instructs the agent to fetch a runtime URL whose content shapes agent behavior                                             | Medium           |
 
 The auditor also assigns a **confidence score** (0–1). Verbatim forwarding scores high; mitigations like delimiter wrapping or sanitization lower it. A higher overall risk level (High/Critical) typically requires stacking multiple W-codes — e.g. W011 + W007 (credentials in CLI args) is what pushed `degausai/wonda/wonda-cli` from Medium to High.
 
@@ -136,19 +137,49 @@ Does the skill ingest content from outside the agent's trust boundary?
       5. Accept Medium W011 as the structural floor — don't chase Pass
 ```
 
+## Secret leakage (W007)
+
+`prompt-shield` solves W011 — it stops attacker-authored content from _steering_ the model. It does **not** solve W007: secrets embedded in the wrapped block still leave your trust boundary verbatim. The wrap labels them as data; it doesn't strip them.
+
+W007 needs a complementary mitigation: **detect known secret formats in the untrusted content before forwarding**. Unlike prompt injection (where the attack surface is unbounded), secret detection is tractable because keys have documented formats:
+
+| Format               | Example                           | Pattern                                 |
+| -------------------- | --------------------------------- | --------------------------------------- |
+| AWS Access Key       | `AKIAIOSFODNN7EXAMPLE`            | `AKIA[0-9A-Z]{16}`                      |
+| GitHub PAT (classic) | `ghp_xxx...`                      | `ghp_[A-Za-z0-9]{36}`                   |
+| OpenAI API Key       | `sk-xxx...`                       | `sk-[A-Za-z0-9]{48}`                    |
+| Anthropic API Key    | `sk-ant-api03-xxx...`             | `sk-ant-api[0-9]{2}-[A-Za-z0-9_-]{40,}` |
+| PEM Private Key      | `-----BEGIN ... PRIVATE KEY-----` | (literal block)                         |
+
+This repo ships [`skill-scripts/secret-shield/`](../skill-scripts/secret-shield/) with a curated regex registry and three modes:
+
+- **`scan`** (default) — refuse to forward, exit 1 with finding details. Forces an explicit decision.
+- **`redact`** — substitute `[REDACTED-{type}-{n}]` placeholders, continue. Right default for most reviews.
+- **`allow`** — skip the check. Use only after auditing the diff.
+
+Skills that forward third-party content should consume both helpers. The pipeline composes:
+
+```text
+content from gh pr diff
+   ↓ secret-shield (W007 mitigation: scrub credentials)
+redacted content
+   ↓ prompt-shield wrap (W011 mitigation: anti-injection delimiters)
+final prompt → external CLI
+```
+
 ## Reusing the wrap helper across skills
 
 This repo ships a canonical implementation: [`skill-scripts/prompt-shield/`](../skill-scripts/prompt-shield/). Every skill that needs the salted-tag wrap should consume it from there rather than re-implementing — one source of truth means one place to patch and re-audit.
 
 **To consume it from a skill:**
 
-1. Add `<skill>/scripts.json` listing the script:
+1. Add `<skill>/scripts.json` listing the script(s) you need:
 
    ```json
-   { "scripts": ["prompt-shield"] }
+   { "scripts": ["prompt-shield", "secret-shield"] }
    ```
 
-2. Run sync to vendor a copy into `<skill>/scripts/prompt-shield/`:
+2. Run sync to vendor copies into `<skill>/scripts/<name>/`:
 
    ```bash
    pnpm skill-tools sync-scripts

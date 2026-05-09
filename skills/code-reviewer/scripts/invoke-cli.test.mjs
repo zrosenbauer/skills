@@ -193,3 +193,119 @@ test('legacy stdin mode still works (no flags = verbatim)', () => {
   assert.equal(plan.wrappedSalt, null)
   assert.equal(plan.stdinBytes, Buffer.byteLength('verbatim trusted prompt'))
 })
+
+test('--secret-mode scan (default) refuses to forward when secrets present', () => {
+  const tmp = withTempFiles({
+    'persona.md': 'review',
+    'diff.txt': `${'AKIA' + 'IOSFODNN7EXAMPLE'}\n`,
+  })
+  try {
+    const r = run([
+      'codex',
+      '--dry-run',
+      '--instructions',
+      tmp.paths['persona.md'],
+      '--untrusted-content',
+      tmp.paths['diff.txt'],
+    ])
+    assert.equal(r.status, 1)
+    assert.match(r.stderr, /Aborted/)
+    assert.match(r.stderr, /aws-access-key/)
+  } finally {
+    tmp.cleanup()
+  }
+})
+
+test('--secret-mode redact rewrites secrets and proceeds', () => {
+  const tmp = withTempFiles({
+    'persona.md': 'review',
+    'diff.txt': `aws_key=${'AKIA' + 'IOSFODNN7EXAMPLE'}\n`,
+  })
+  try {
+    const r = run([
+      'codex',
+      '--dry-run',
+      '--instructions',
+      tmp.paths['persona.md'],
+      '--untrusted-content',
+      tmp.paths['diff.txt'],
+      '--secret-mode',
+      'redact',
+    ])
+    assert.equal(r.status, 0)
+    const plan = JSON.parse(r.stdout)
+    assert.equal(plan.wrapped, true)
+    assert.equal(plan.secretMode, 'redact')
+    assert.equal(plan.secretsRedacted, 1)
+  } finally {
+    tmp.cleanup()
+  }
+})
+
+test('--secret-mode allow forwards secrets verbatim', () => {
+  const tmp = withTempFiles({
+    'persona.md': 'review',
+    'diff.txt': `aws=${'AKIA' + 'IOSFODNN7EXAMPLE'}\n`,
+  })
+  try {
+    const r = run([
+      'codex',
+      '--dry-run',
+      '--instructions',
+      tmp.paths['persona.md'],
+      '--untrusted-content',
+      tmp.paths['diff.txt'],
+      '--secret-mode',
+      'allow',
+    ])
+    assert.equal(r.status, 0)
+    const plan = JSON.parse(r.stdout)
+    assert.equal(plan.secretMode, 'allow')
+    assert.equal(plan.secretsRedacted, 0)
+  } finally {
+    tmp.cleanup()
+  }
+})
+
+test('--secret-mode rejects invalid values', () => {
+  const tmp = withTempFiles({ 'p.md': 'p', 'd.txt': 'safe' })
+  try {
+    const r = run([
+      'codex',
+      '--dry-run',
+      '--instructions',
+      tmp.paths['p.md'],
+      '--untrusted-content',
+      tmp.paths['d.txt'],
+      '--secret-mode',
+      'banana',
+    ])
+    assert.equal(r.status, 1)
+    assert.match(r.stderr, /one of: scan, redact, allow/)
+  } finally {
+    tmp.cleanup()
+  }
+})
+
+test('clean untrusted content passes through scan mode', () => {
+  const tmp = withTempFiles({
+    'persona.md': 'review',
+    'diff.txt': '+ added line\n- removed line\n',
+  })
+  try {
+    const r = run([
+      'codex',
+      '--dry-run',
+      '--instructions',
+      tmp.paths['persona.md'],
+      '--untrusted-content',
+      tmp.paths['diff.txt'],
+    ])
+    assert.equal(r.status, 0)
+    const plan = JSON.parse(r.stdout)
+    assert.equal(plan.secretMode, 'scan')
+    assert.equal(plan.secretsRedacted, 0)
+  } finally {
+    tmp.cleanup()
+  }
+})
