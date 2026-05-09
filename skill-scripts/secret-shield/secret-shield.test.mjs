@@ -7,6 +7,10 @@ import { test } from 'node:test'
 
 const SCRIPT = path.join(import.meta.dirname, 'secret-shield.mjs')
 
+// Synthesized at runtime so this source file does not contain the literal
+// AWS access-key pattern (which would self-flag the repo's secret scanners).
+const FAKE_AWS_KEY = ['AKIA', 'IOSFODNN7EXAMPLE'].join('')
+
 function run(args = []) {
   return spawnSync('node', [SCRIPT, ...args], { encoding: 'utf8' })
 }
@@ -60,7 +64,7 @@ test('--scan exits 0 on clean content with JSON report', () => {
 })
 
 test('--scan exits 1 when secrets present, reports findings', () => {
-  const t = withTempFile('dirty.txt', `aws=${'AKIA' + 'IOSFODNN7EXAMPLE'}\n`)
+  const t = withTempFile('dirty.txt', `aws=${FAKE_AWS_KEY}\n`)
   try {
     const r = run(['--scan', t.file])
     assert.equal(r.status, 1)
@@ -73,7 +77,7 @@ test('--scan exits 1 when secrets present, reports findings', () => {
 })
 
 test('--scan --quiet suppresses stdout, only exits with code', () => {
-  const t = withTempFile('dirty.txt', `aws=${'AKIA' + 'IOSFODNN7EXAMPLE'}\n`)
+  const t = withTempFile('dirty.txt', `aws=${FAKE_AWS_KEY}\n`)
   try {
     const r = run(['--scan', '--quiet', t.file])
     assert.equal(r.status, 1)
@@ -84,12 +88,12 @@ test('--scan --quiet suppresses stdout, only exits with code', () => {
 })
 
 test('--redact writes redacted content to stdout, exits 0', () => {
-  const t = withTempFile('dirty.txt', `aws=${'AKIA' + 'IOSFODNN7EXAMPLE'}\n`)
+  const t = withTempFile('dirty.txt', `aws=${FAKE_AWS_KEY}\n`)
   try {
     const r = run(['--redact', t.file])
     assert.equal(r.status, 0)
     assert.match(r.stdout, /\[REDACTED-aws-access-key-1]/)
-    assert.ok(!r.stdout.includes('AKIA' + 'IOSFODNN7EXAMPLE'))
+    assert.ok(!r.stdout.includes(FAKE_AWS_KEY))
   } finally {
     t.cleanup()
   }

@@ -9,6 +9,10 @@ import { buildInvocation, findEntry } from './cli-registry.mjs'
 
 const SCRIPT = path.join(import.meta.dirname, 'invoke-cli.mjs')
 
+// Synthesized at runtime so this source file does not contain the literal
+// AWS access-key pattern (which would self-flag the repo's secret scanners).
+const FAKE_AWS_KEY = ['AKIA', 'IOSFODNN7EXAMPLE'].join('')
+
 function run(args = [], stdin = '') {
   return spawnSync('node', [SCRIPT, ...args], { encoding: 'utf8', input: stdin })
 }
@@ -197,7 +201,7 @@ test('legacy stdin mode still works (no flags = verbatim)', () => {
 test('--secret-mode scan (default) refuses to forward when secrets present', () => {
   const tmp = withTempFiles({
     'persona.md': 'review',
-    'diff.txt': `${'AKIA' + 'IOSFODNN7EXAMPLE'}\n`,
+    'diff.txt': `${FAKE_AWS_KEY}\n`,
   })
   try {
     const r = run([
@@ -219,7 +223,7 @@ test('--secret-mode scan (default) refuses to forward when secrets present', () 
 test('--secret-mode redact rewrites secrets and proceeds', () => {
   const tmp = withTempFiles({
     'persona.md': 'review',
-    'diff.txt': `aws_key=${'AKIA' + 'IOSFODNN7EXAMPLE'}\n`,
+    'diff.txt': `aws_key=${FAKE_AWS_KEY}\n`,
   })
   try {
     const r = run([
@@ -245,7 +249,7 @@ test('--secret-mode redact rewrites secrets and proceeds', () => {
 test('--secret-mode allow forwards secrets verbatim', () => {
   const tmp = withTempFiles({
     'persona.md': 'review',
-    'diff.txt': `aws=${'AKIA' + 'IOSFODNN7EXAMPLE'}\n`,
+    'diff.txt': `aws=${FAKE_AWS_KEY}\n`,
   })
   try {
     const r = run([

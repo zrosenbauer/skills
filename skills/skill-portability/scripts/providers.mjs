@@ -177,26 +177,30 @@ export function ids() {
  * Used by `--check`. Network-dependent — only invoke when explicitly asked.
  */
 export async function checkFreshness({ timeoutMs = 5000 } = {}) {
-  const results = []
-  for (const p of providers) {
-    const urlResults = await Promise.all(
-      p.docUrls.map(async (url) => {
-        const ctrl = new AbortController()
-        const t = setTimeout(() => ctrl.abort(), timeoutMs)
-        try {
-          const res = await fetch(url, { method: 'HEAD', signal: ctrl.signal, redirect: 'follow' })
-          return { url, status: res.status, ok: res.ok }
-        } catch (err) {
-          return { url, status: 0, ok: false, error: String(err?.message ?? err) }
-        } finally {
-          clearTimeout(t)
-        }
-      })
-    )
-    const anyOk = urlResults.some((r) => r.ok)
-    results.push({ id: p.id, anyOk, urls: urlResults })
-  }
-  return results
+  return Promise.all(
+    providers.map(async (p) => {
+      const urlResults = await Promise.all(
+        p.docUrls.map(async (url) => {
+          const ctrl = new AbortController()
+          const t = setTimeout(() => ctrl.abort(), timeoutMs)
+          try {
+            const res = await fetch(url, {
+              method: 'HEAD',
+              signal: ctrl.signal,
+              redirect: 'follow',
+            })
+            return { url, status: res.status, ok: res.ok }
+          } catch (err) {
+            return { url, status: 0, ok: false, error: String(err?.message ?? err) }
+          } finally {
+            clearTimeout(t)
+          }
+        })
+      )
+      const anyOk = urlResults.some((r) => r.ok)
+      return { id: p.id, anyOk, urls: urlResults }
+    })
+  )
 }
 
 // ---------- CLI ----------

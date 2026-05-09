@@ -262,7 +262,7 @@ export const RULES: Rule[] = [
         for (const a of e.assertions) {
           if (a.type !== 'regex') continue
           try {
-            new RegExp(a.pattern, a.flags ?? '')
+            RegExp(a.pattern, a.flags ?? '')
           } catch (err) {
             return fail({
               message: `eval "${e.eval_name}" has invalid regex /${a.pattern}/${a.flags ?? ''}: ${(err as Error).message}`,

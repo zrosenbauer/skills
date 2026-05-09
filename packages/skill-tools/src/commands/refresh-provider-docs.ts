@@ -56,6 +56,9 @@ export default command({
     let failCount = 0
 
     for (const provider of targets) {
+      // Sequential on purpose: keeps console output deterministic and avoids
+      // hammering provider docs with parallel fetches.
+      // oxlint-disable-next-line no-await-in-loop
       const result = await tryUrls(provider.docUrls, ctx.args.timeout * 1000)
       if (result.ok && result.text) {
         const target = path.join(outDir, `${provider.id}.md`)
@@ -94,6 +97,8 @@ export default command({
 async function tryUrls(urls: string[], timeoutMs: number): Promise<FetchResult> {
   let last: FetchResult = { url: '', status: 0, ok: false, bytes: 0, error: 'no urls' }
   for (const url of urls) {
+    // Sequential fallback: stop at the first 2xx; do not race the URLs.
+    // oxlint-disable-next-line no-await-in-loop
     const result = await fetchWithTimeout(url, timeoutMs)
     if (result.ok) return result
     last = result
