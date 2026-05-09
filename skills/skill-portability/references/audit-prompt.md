@@ -4,6 +4,8 @@ The verbatim prompt the parent agent hands to each per-provider subagent in step
 
 Keep all four subagent prompts identical except for the per-provider data — the parent does the cross-provider aggregation in step 4, not the subagents.
 
+The parent agent reads `localDocPath` for each provider with the `Read` tool BEFORE dispatching, then inlines the snapshot contents into `{{provider.snapshot}}` below. The subagent never fetches at runtime.
+
 ## Template
 
 ```
@@ -19,9 +21,10 @@ PROVIDER METADATA (from scripts/providers.mjs):
 - toolSurface:           {{provider.toolSurface}}
 - notes:                 {{provider.notes}}
 
-DOC URLS TO CONSULT (in priority order — try the first, fall back to the
-next on 4xx/5xx):
-{{provider.docUrls bulleted}}
+PROVIDER DOCS (bundled snapshot from {{provider.localDocPath}}):
+---
+{{provider.snapshot}}
+---
 
 SKILL CONTENT TO AUDIT:
 ---
@@ -32,9 +35,11 @@ SKILL CONTENT TO AUDIT:
 
 YOUR JOB:
 
-1. WebFetch the first docUrl above. If it returns 4xx/5xx, fall back to the
-   next URL. If all URLs fail, set FORMAT/BODY/TOOLS to "unknown" and explain
-   in NOTES.
+1. Use the bundled provider doc snapshot above as the authoritative reference.
+   Do NOT WebFetch any URL — the snapshot was committed at authoring time
+   and is what this audit is grounded in. If the snapshot is empty / sparse
+   / clearly incomplete (e.g. only a page title survived HTML stripping),
+   lean on the PROVIDER METADATA fields instead and flag the gap in NOTES.
 
 2. Evaluate the skill against three layers:
 
@@ -84,14 +89,12 @@ FORMAT: SKILL.md must be renamed to .cursor/rules/code-reviewer.mdc; the
         Claude Code via lazy load, but Cursor reads only the single .mdc.
 BODY: <example> tags render as fenced code in Cursor's chat panel rather
       than being parsed as structure. Acceptable but not load-bearing.
-TOOLS: AskUserQuestion, gh
+TOOLS: AskUserQuestion
 NOTES:
 - Frontmatter `argument-hint`, `user-invocable`, `model-invocable` are
   silently ignored by Cursor — harmless.
-- The "load on demand" persona-reference pattern (lines 70–82 of SKILL.md)
-  doesn't survive the port. Inline at least one persona before shipping
-  to Cursor users.
-- `gh pr diff` runs fine via Cursor's run_terminal_cmd; it's the
-  AskUserQuestion call that needs replacing with a chat prompt the user
+- The "load on demand" persona-reference pattern doesn't survive the
+  port. Inline at least one persona before shipping to Cursor users.
+- Cursor lacks `AskUserQuestion`; replace with a chat prompt the user
   answers free-form.
 ```
