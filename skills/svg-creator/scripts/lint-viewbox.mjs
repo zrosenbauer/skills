@@ -1,10 +1,11 @@
 #!/usr/bin/env node
-// Strict viewBox lint for SVG assets in this art repo.
+// Strict viewBox lint for SVG assets.
 //
-// Enforces the AGENTS.md "Image / Asset Generation" rule: the viewBox must
-// start at "0 0" and equal the actual content extents — no offsets, no
-// padding. Padding baked into an asset cannot be removed downstream and
-// breaks alignment in any layout that consumes it.
+// Enforces the rule: the viewBox must start at "0 0" and equal the actual
+// content extents — no offsets, no padding. Padding baked into an asset
+// cannot be removed downstream; it fights `object-fit: contain`, breaks
+// alignment in any layout that consumes the asset, and makes the asset
+// unreusable at different sizes.
 //
 // Usage:
 //   node lint-viewbox.mjs <path>...   # check one or more SVG files
@@ -109,10 +110,10 @@ function check(path) {
   if (minX !== 0 || minY !== 0) {
     console.error(`✗ ${rel}: viewBox must start with "0 0" — got "${parts.join(' ')}"`)
     console.error(
-      `  Fix: shift all content so its bounding box is at (0, 0), then set viewBox="0 0 ${w} ${h}".`,
+      `  Fix: shift all content so its bounding box is at (0, 0), then set viewBox="0 0 ${w} ${h}".`
     )
     console.error(
-      `  Why: an offset viewBox bakes empty pixels into the asset. AGENTS.md "Image / Asset Generation" forbids it.`,
+      `  Why: an offset viewBox bakes empty pixels into the asset and breaks alignment in any consumer.`
     )
     return false
   }

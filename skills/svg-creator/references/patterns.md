@@ -6,9 +6,10 @@ recreate it.
 
 ## GitHub repo banner (wide hero)
 
-The default banner aspect for repo READMEs is roughly 5:1. Existing banners in
-this repo live at `1280×256` (5:1) and render well on GitHub mobile and
-desktop. Bake background fully — no transparent margins.
+The default banner aspect for repo READMEs is roughly 5:1. `1280×256` is a
+solid default — renders well on GitHub mobile and desktop, fits inside the
+readable column on most themes. Bake the background fully — no transparent
+margins.
 
 ```svg
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 256" width="1280" height="256">
