@@ -21,10 +21,10 @@ npx skills add zrosenbauer/skills --skill code-reviewer
 
 | Persona      | When to use                                                             | Reference                                                                    |
 | ------------ | ----------------------------------------------------------------------- | ---------------------------------------------------------------------------- |
-| Adversarial  | Default for "harsh review", devil's advocate, before-merge sanity check | [`references/adversarial-reviewer.md`](references/adversarial-reviewer.md)   |
-| Security     | Threat-model the code; OWASP / CWE categories                           | [`references/security-reviewer.md`](references/security-reviewer.md)         |
-| Architecture | Boundaries, coupling, change locality, dependency direction             | [`references/architecture-reviewer.md`](references/architecture-reviewer.md) |
-| Performance  | Algorithmic complexity, I/O patterns, GC pressure                       | [`references/performance-reviewer.md`](references/performance-reviewer.md)   |
+| Adversarial  | Default for "harsh review", devil's advocate, before-merge sanity check | [`references/personas/adversarial.md`](references/personas/adversarial.md)   |
+| Security     | Threat-model the code; OWASP / CWE categories                           | [`references/personas/security.md`](references/personas/security.md)         |
+| Architecture | Boundaries, coupling, change locality, dependency direction             | [`references/personas/architecture.md`](references/personas/architecture.md) |
+| Performance  | Algorithmic complexity, I/O patterns, GC pressure                       | [`references/personas/performance.md`](references/personas/performance.md)   |
 
 ## Trigger phrases
 

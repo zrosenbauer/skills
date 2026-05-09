@@ -287,6 +287,44 @@ test('--secret-mode rejects invalid values', () => {
   }
 })
 
+test("--untrusted-content '-' reads from stdin (with --instructions file)", () => {
+  const tmp = withTempFiles({ 'persona.md': 'review carefully' })
+  try {
+    const r = run(
+      ['codex', '--dry-run', '--instructions', tmp.paths['persona.md'], '--untrusted-content', '-'],
+      '+ piped diff line\n- removed\n'
+    )
+    assert.equal(r.status, 0)
+    const plan = JSON.parse(r.stdout)
+    assert.equal(plan.wrapped, true)
+    assert.match(plan.wrappedSalt, /^[0-9a-f]{12}$/)
+    assert.ok(plan.stdinBytes > 0)
+  } finally {
+    tmp.cleanup()
+  }
+})
+
+test("--instructions '-' reads persona from stdin (with --untrusted-content file)", () => {
+  const tmp = withTempFiles({ 'diff.txt': '+ added\n' })
+  try {
+    const r = run(
+      ['codex', '--dry-run', '--instructions', '-', '--untrusted-content', tmp.paths['diff.txt']],
+      'review the patch'
+    )
+    assert.equal(r.status, 0)
+    const plan = JSON.parse(r.stdout)
+    assert.equal(plan.wrapped, true)
+  } finally {
+    tmp.cleanup()
+  }
+})
+
+test("rejects '-' for both --instructions and --untrusted-content", () => {
+  const r = run(['codex', '--dry-run', '--instructions', '-', '--untrusted-content', '-'], 'x')
+  assert.equal(r.status, 1)
+  assert.match(r.stderr, /both --instructions and --untrusted-content/)
+})
+
 test('clean untrusted content passes through scan mode', () => {
   const tmp = withTempFiles({
     'persona.md': 'review',

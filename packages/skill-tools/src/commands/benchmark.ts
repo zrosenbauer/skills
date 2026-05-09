@@ -186,7 +186,9 @@ export function renderMarkdown(b: BenchmarkFile): string {
   lines.push('| ID | Eval | With skill | Without skill |')
   lines.push('|----|------|------------|---------------|')
   for (const e of b.evals) {
-    const withCell = e.missing.with_skill ? 'MISSING' : `${e.with_skill.passed}/${e.with_skill.total}`
+    const withCell = e.missing.with_skill
+      ? 'MISSING'
+      : `${e.with_skill.passed}/${e.with_skill.total}`
     const withoutCell = e.missing.without_skill
       ? 'MISSING'
       : `${e.without_skill.passed}/${e.without_skill.total}`

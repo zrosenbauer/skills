@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest'
 
+import { aggregate, renderMarkdown } from '../commands/benchmark.js'
 import type { EvalCase, GradingFile } from './schemas.js'
 import type { IterationSummary, ScenarioSummary, VariantSummary } from './workspace.js'
-import { aggregate, renderMarkdown } from '../commands/benchmark.js'
 
 function definedFromScenarios(scenarios: ScenarioSummary[]): EvalCase[] {
   return scenarios.map((s) => ({
@@ -26,7 +26,11 @@ function defined(id: number, name: string): EvalCase {
   }
 }
 
-function buildGrading(passed: number, total: number, variant: 'with_skill' | 'without_skill'): GradingFile {
+function buildGrading(
+  passed: number,
+  total: number,
+  variant: 'with_skill' | 'without_skill'
+): GradingFile {
   return {
     eval_id: 1,
     eval_name: 'sample',
@@ -185,11 +189,7 @@ describe('aggregate', () => {
         withoutSkill: buildGrading(1, 2, 'without_skill'),
       }),
     ])
-    const definedEvals: EvalCase[] = [
-      defined(0, 'first'),
-      defined(1, 'middle'),
-      defined(2, 'last'),
-    ]
+    const definedEvals: EvalCase[] = [defined(0, 'first'), defined(1, 'middle'), defined(2, 'last')]
 
     const result = aggregate('demo', iteration, definedEvals)
 

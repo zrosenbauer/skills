@@ -1,7 +1,6 @@
 import { isEmpty } from 'es-toolkit/compat'
 
 import type { SkillRecord } from '../workspace.js'
-
 import { type CheckResult, pass } from './types.js'
 
 /**
@@ -9,13 +8,7 @@ import { type CheckResult, pass } from './types.js'
  * optional) so callers can forward `fix` through without conditional spreads
  * under `exactOptionalPropertyTypes: true`.
  */
-export function fail({
-  message,
-  fix,
-}: {
-  message: string
-  fix?: string | undefined
-}): CheckResult {
+export function fail({ message, fix }: { message: string; fix?: string | undefined }): CheckResult {
   return fix === undefined ? { message } : { message, fix }
 }
 
@@ -31,7 +24,9 @@ export function checkFieldNonEmpty({
   fix?: string
 }) {
   return ({ frontmatter }: SkillRecord): CheckResult =>
-    isEmpty(frontmatter[field]) ? fail({ message: `Frontmatter is missing \`${field}\``, fix }) : pass
+    isEmpty(frontmatter[field])
+      ? fail({ message: `Frontmatter is missing \`${field}\``, fix })
+      : pass
 }
 
 /**

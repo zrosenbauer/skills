@@ -89,12 +89,12 @@ Don't chase asymptotic improvements. A skill that passes 4/5 scenarios is shippa
 
 ## Where the artifacts live
 
-| File                                                                   | Committed       | Purpose                                                     |
-| ---------------------------------------------------------------------- | --------------- | ----------------------------------------------------------- |
-| `skills/<name>/evals.json`                                                       | yes             | Test definitions: prompts, expected outputs, assertions     |
-| `skills/<name>/.workspace/iteration-N/eval-K-name/with_skill/transcript.md`      | no (gitignored) | Subagent output with skill loaded                           |
-| `skills/<name>/.workspace/iteration-N/eval-K-name/without_skill/transcript.md`   | no (gitignored) | Subagent output without skill (baseline)                    |
-| `skills/<name>/.workspace/iteration-N/eval-K-name/<variant>/grading.json`        | no (gitignored) | Per-assertion pass/fail, written by `skill-tools eval`      |
-| `skills/<name>/.workspace/iteration-N/benchmark.{json,md}`                       | no (gitignored) | Aggregate per iteration, written by `skill-tools benchmark` |
+| File                                                                           | Committed       | Purpose                                                     |
+| ------------------------------------------------------------------------------ | --------------- | ----------------------------------------------------------- |
+| `skills/<name>/evals.json`                                                     | yes             | Test definitions: prompts, expected outputs, assertions     |
+| `skills/<name>/.workspace/iteration-N/eval-K-name/with_skill/transcript.md`    | no (gitignored) | Subagent output with skill loaded                           |
+| `skills/<name>/.workspace/iteration-N/eval-K-name/without_skill/transcript.md` | no (gitignored) | Subagent output without skill (baseline)                    |
+| `skills/<name>/.workspace/iteration-N/eval-K-name/<variant>/grading.json`      | no (gitignored) | Per-assertion pass/fail, written by `skill-tools eval`      |
+| `skills/<name>/.workspace/iteration-N/benchmark.{json,md}`                     | no (gitignored) | Aggregate per iteration, written by `skill-tools benchmark` |
 
 Test definitions are deterministic and worth versioning. Transcripts and grading are stochastic LLM outputs that drift; committing them creates noise.

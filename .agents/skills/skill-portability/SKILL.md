@@ -71,13 +71,13 @@ Verbatim trigger phrases:
 
 Determine what the user is auditing.
 
-| Input              | Action                                                                      |
-| ------------------ | --------------------------------------------------------------------------- |
-| Directory path     | Read the SKILL.md (or .mdc / AGENTS.md) inside                              |
-| Single file path   | Read the file directly                                                      |
-| Glob               | Expand and audit each match                                                 |
-| Pasted content     | Treat the prompt body as the skill content                                  |
-| Empty `$ARGUMENTS` | List `skills/*/SKILL.md` and ask the user which to audit                    |
+| Input              | Action                                                   |
+| ------------------ | -------------------------------------------------------- |
+| Directory path     | Read the SKILL.md (or .mdc / AGENTS.md) inside           |
+| Single file path   | Read the file directly                                   |
+| Glob               | Expand and audit each match                              |
+| Pasted content     | Treat the prompt body as the skill content               |
+| Empty `$ARGUMENTS` | List `skills/*/SKILL.md` and ask the user which to audit |
 
 Parse the frontmatter (YAML between leading `---` markers) and remember the
 body content. Both feed into the per-provider checks.
@@ -190,16 +190,16 @@ verdicts.
 3. Fan out one parallel `Agent` call per provider — Claude Code, Cursor, Codex CLI, Agents-Skills Baseline.
 4. Aggregate verdicts:
 
-   | Provider                | Verdict      | Notes                                                              |
-   | ----------------------- | ------------ | ------------------------------------------------------------------ |
-   | Claude Code             | compatible   | native format                                                      |
-   | Cursor                  | partial      | needs `.cursor/rules/code-reviewer.mdc`; references/ won't load    |
-   | OpenAI Codex CLI        | partial      | rename to AGENTS.md; `AskUserQuestion` not in tool surface         |
-   | Agents-Skills Baseline  | compatible   | loads from `.agents/skills/`; tool names vary per consumer         |
+| Provider               | Verdict    | Notes                                                           |
+| ---------------------- | ---------- | --------------------------------------------------------------- |
+| Claude Code            | compatible | native format                                                   |
+| Cursor                 | partial    | needs `.cursor/rules/code-reviewer.mdc`; references/ won't load |
+| OpenAI Codex CLI       | partial    | rename to AGENTS.md; `AskUserQuestion` not in tool surface      |
+| Agents-Skills Baseline | compatible | loads from `.agents/skills/`; tool names vary per consumer      |
 
 5. Write `skills/code-reviewer/COMPAT.md` with full per-provider bodies.
-</output>
-</example>
+   </output>
+   </example>
 
 <example>
 <input>Pasted: a `.mdc` file with `globs:` and `alwaysApply:` in frontmatter — "will this load in claude code?"</input>
@@ -210,18 +210,18 @@ verdicts.
 3. Fan out 4 parallel agents.
 4. Verdicts:
 
-   - Claude Code: **incompatible** — missing required `name` field; `skills`
-     CLI rejects without it. `globs`/`alwaysApply` are silently ignored.
-   - Cursor: **compatible** — this is native `.mdc` format.
-   - Codex CLI: **partial** — Codex reads AGENTS.md as plain markdown;
-     frontmatter is silently ignored, content would still apply.
-   - Continue.dev: **partial** — move to `.continue/rules/<name>.md`;
-     `globs` is supported, `alwaysApply` is not.
+- Claude Code: **incompatible** — missing required `name` field; `skills`
+  CLI rejects without it. `globs`/`alwaysApply` are silently ignored.
+- Cursor: **compatible** — this is native `.mdc` format.
+- Codex CLI: **partial** — Codex reads AGENTS.md as plain markdown;
+  frontmatter is silently ignored, content would still apply.
+- Continue.dev: **partial** — move to `.continue/rules/<name>.md`;
+  `globs` is supported, `alwaysApply` is not.
 
 5. Recommend: add `name: <kebab-case>` to make portable; consider dropping
    `alwaysApply` since only Cursor honors it.
-</output>
-</example>
+   </output>
+   </example>
 
 <example>
 <good>

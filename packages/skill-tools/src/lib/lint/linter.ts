@@ -2,7 +2,6 @@ import { readFileSync } from 'node:fs'
 import path from 'node:path'
 
 import type { SkillRecord } from '../workspace.js'
-
 import { RULES } from './rules.js'
 import type { Finding, Rule, SkillLintResult } from './types.js'
 
@@ -42,5 +41,5 @@ export function summarize(results: SkillLintResult[]): {
 }
 
 export const lintRules: ReadonlyArray<Pick<Rule, 'code' | 'severity' | 'description'>> = RULES.map(
-  ({ code, severity, description }) => ({ code, severity, description }),
+  ({ code, severity, description }) => ({ code, severity, description })
 )

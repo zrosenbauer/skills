@@ -161,9 +161,7 @@ describe('evalCaseSchema', () => {
     })
     expect(result.success).toBe(false)
     if (!result.success) {
-      expect(result.error.issues.some((i) => /at least one assertion/.test(i.message))).toBe(
-        true
-      )
+      expect(result.error.issues.some((i) => /at least one assertion/.test(i.message))).toBe(true)
     }
   })
 
@@ -179,9 +177,7 @@ describe('evalCaseSchema', () => {
 })
 
 describe('evalsFileSchema', () => {
-  const oneAssertion = [
-    { text: 'has r', type: 'contains' as const, substring: 'r' },
-  ]
+  const oneAssertion = [{ text: 'has r', type: 'contains' as const, substring: 'r' }]
 
   it('requires at least 3 evals', () => {
     expect(() =>

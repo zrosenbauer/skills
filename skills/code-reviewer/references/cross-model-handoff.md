@@ -43,10 +43,10 @@ Two threats apply when forwarding local code to a third-party CLI:
 1. **Credential exfiltration** — local files can carry embedded secrets (API keys, tokens) that you don't want sent to another LLM provider.
 2. **Prompt injection** — code under review can contain markers (intentional or accidental) that try to steer the receiving model.
 
-Both mitigations are built into `invoke-cli.mjs` and fire when you separate the inputs into two files:
+Both mitigations are built into `invoke-cli.mjs` and fire when you separate the inputs into two streams:
 
-- **`persona.md`** — the trusted prefix: persona body (e.g. `references/adversarial-reviewer.md`), the scope marker, the output-format spec from `references/review-output-format.md`. Anything you control.
-- **`diff.txt`** — the forwarded payload: file contents or `git diff` / `git diff --staged` output from the local working tree.
+- **Trusted prefix** (`--instructions`) — the persona body (e.g. `references/personas/adversarial.md`), the scope marker, the output-format spec from `references/review-output-format.md`. Anything you control. Pass it as a file path; the persona refs already exist on disk so you don't need a temp file.
+- **Forwarded payload** (`--untrusted-content`) — file contents or `git diff` / `git diff --staged` output from the local working tree. Pass `-` to read from stdin so you can pipe `git diff` directly with no temp file. For multi-file scope, write the concatenated content to a temp file or use shell process substitution.
 
 Keep the persona file complete — strip nothing. Keep the content complete too; truncation hides the bugs. Total composed prompt should fit in the target model's context. If the code is huge:
 
@@ -57,20 +57,28 @@ See [`contributing/prompt-injection.md`](../../../contributing/prompt-injection.
 
 ## Step 4 — Invoke the CLI
 
-Use the bundled `invoke-cli.mjs` script with the two-file form. It handles the stdin-vs-argv choice, the secret-shield preflight, the salted-tag wrap, timeouts, and shell-quoting hazards:
+Use the bundled `invoke-cli.mjs` script. It handles the stdin-vs-argv choice, the secret-shield preflight, the salted-tag wrap, timeouts, and shell-quoting hazards. Both `--instructions` and `--untrusted-content` accept a file path or `-` to read from stdin (only one of the two flags may be `-` per invocation).
+
+For a `git diff --staged` review, the persona ref is already on disk and the diff streams from stdin — no temp files needed:
 
 ```bash
-PERSONA_FILE=$(mktemp)
-DIFF_FILE=$(mktemp)
-# Write trusted instructions to PERSONA_FILE (persona body + format spec).
-# Write untrusted content (diff, file, scraped page) to DIFF_FILE.
-node scripts/invoke-cli.mjs <cli-id> \
-  --instructions "$PERSONA_FILE" \
-  --untrusted-content "$DIFF_FILE" \
+git diff --staged | node scripts/invoke-cli.mjs <cli-id> \
+  --instructions skills/code-reviewer/references/personas/adversarial.md \
+  --untrusted-content - \
   --secret-mode redact \
   --timeout 120
-rm "$PERSONA_FILE" "$DIFF_FILE"
 ```
+
+For multi-file file-path scope (no diff, just raw files), concatenate to a temp file or use shell process substitution:
+
+```bash
+node scripts/invoke-cli.mjs <cli-id> \
+  --instructions skills/code-reviewer/references/personas/adversarial.md \
+  --untrusted-content <(cat src/auth/*.ts) \
+  --secret-mode redact
+```
+
+If you need to inject a custom persona (not one of the bundled refs), `mktemp` is fine — but reach for it only when an on-disk persona file doesn't already exist.
 
 The script:
 
@@ -106,8 +114,9 @@ Use this only when the entire prompt is content you wrote. The moment you concat
 If you're not sure the invocation will work, do a dry run first — prints the planned command without spawning the CLI:
 
 ```bash
-node scripts/invoke-cli.mjs codex --dry-run \
-  --instructions "$PERSONA_FILE" --untrusted-content "$DIFF_FILE" \
+git diff --staged | node scripts/invoke-cli.mjs codex --dry-run \
+  --instructions skills/code-reviewer/references/personas/adversarial.md \
+  --untrusted-content - \
   --secret-mode redact
 # {
 #   "cli": { "id": "codex", "name": "OpenAI Codex", "binary": "codex" },

@@ -18,11 +18,11 @@ npx skills add zrosenbauer/skills --skill skill-portability
 
 ## The three audit layers
 
-| Layer        | Question answered                                                                  |
-| ------------ | ---------------------------------------------------------------------------------- |
-| Format       | Will the provider's loader accept this file? Required frontmatter present?         |
-| Body         | Are body conventions (XML tags, headings, sections) parsed by the provider?        |
-| Tool surface | Does the body name tools (`AskUserQuestion`, `TodoWrite`) the provider exposes?    |
+| Layer        | Question answered                                                               |
+| ------------ | ------------------------------------------------------------------------------- |
+| Format       | Will the provider's loader accept this file? Required frontmatter present?      |
+| Body         | Are body conventions (XML tags, headings, sections) parsed by the provider?     |
+| Tool surface | Does the body name tools (`AskUserQuestion`, `TodoWrite`) the provider exposes? |
 
 ## Trigger phrases
 

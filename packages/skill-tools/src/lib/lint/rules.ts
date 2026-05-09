@@ -104,7 +104,9 @@ export const RULES: Rule[] = [
     description: 'description should be at most 1024 characters',
     check: ({ frontmatter }) =>
       frontmatter.description.length > 1024
-        ? fail({ message: `description is ${frontmatter.description.length} chars (target ≤ 1024)` })
+        ? fail({
+            message: `description is ${frontmatter.description.length} chars (target ≤ 1024)`,
+          })
         : pass,
   },
   {

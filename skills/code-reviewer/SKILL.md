@@ -70,10 +70,10 @@ Resolve `$ARGUMENTS` to a concrete set of files + diff:
 
 Ask the user (use `AskUserQuestion` in Claude Code, or your agent's equivalent) which review angle:
 
-- **Adversarial** — devil's advocate, harsh, looks for everything wrong → load [`references/adversarial-reviewer.md`](references/adversarial-reviewer.md)
-- **Security** — threat modeling, OWASP, input handling → load [`references/security-reviewer.md`](references/security-reviewer.md)
-- **Architecture** — design, abstractions, coupling, modularity → load [`references/architecture-reviewer.md`](references/architecture-reviewer.md)
-- **Performance** — algorithmic complexity, memory, I/O patterns → load [`references/performance-reviewer.md`](references/performance-reviewer.md)
+- **Adversarial** — devil's advocate, harsh, looks for everything wrong → load [`references/personas/adversarial.md`](references/personas/adversarial.md)
+- **Security** — threat modeling, OWASP, input handling → load [`references/personas/security.md`](references/personas/security.md)
+- **Architecture** — design, abstractions, coupling, modularity → load [`references/personas/architecture.md`](references/personas/architecture.md)
+- **Performance** — algorithmic complexity, memory, I/O patterns → load [`references/personas/performance.md`](references/personas/performance.md)
 - **All four sequentially** — load each, run separate passes, merge findings
 
 Only load the reference(s) the user picked. Don't pre-load all four — that's the whole point of progressive disclosure.
@@ -113,7 +113,7 @@ Apply [`references/review-output-format.md`](references/review-output-format.md)
 <input>"review the auth refactor in src/auth/" with adversarial persona</input>
 <output>
 1. Scope: read every file under `src/auth/`.
-2. Persona: load `references/adversarial-reviewer.md`.
+2. Persona: load `references/personas/adversarial.md`.
 3. Mode: in-process (default — no cross-model requested).
 4. Run review through the adversarial lens — assume the code is broken, look for race conditions, missing null handling, leaked credentials, ignored errors.
 5. Format per `references/review-output-format.md`. Output:
@@ -138,16 +138,16 @@ WARNS
 <input>"security review of the staged changes via codex" — cross-model second opinion</input>
 <output>
 1. Scope: `git diff --staged`.
-2. Persona: load `references/security-reviewer.md`.
+2. Persona: load `references/personas/security.md`.
 3. Mode: cross-model (user asked for codex). Run `node scripts/detect-clis.mjs --available-only`. Pick `codex`.
-4. Compose: write trusted instructions to `persona.md`, write `git diff --staged` output to `diff.txt`. Invoke `node scripts/invoke-cli.mjs codex --instructions persona.md --untrusted-content diff.txt --secret-mode redact --timeout 120`. Capture stdout.
+4. Invoke: pipe the diff via stdin and point `--instructions` at the persona ref already on disk. `git diff --staged | node scripts/invoke-cli.mjs codex --instructions references/personas/security.md --untrusted-content - --secret-mode redact --timeout 120`. Capture stdout.
 5. Present the verbatim output with a header noting the model used.
 </output>
 </example>
 
 <example>
 <good>
-Loaded only `references/adversarial-reviewer.md` because the user picked
+Loaded only `references/personas/adversarial.md` because the user picked
 "adversarial". Other persona refs stayed on disk. Default mode was
 in-process; cross-model handoff stayed unloaded.
 </good>
@@ -171,10 +171,10 @@ In-process review (the default) does not cross trust boundaries — no external 
 
 ## References
 
-- [`references/adversarial-reviewer.md`](references/adversarial-reviewer.md) — harsh, devil's-advocate persona
-- [`references/security-reviewer.md`](references/security-reviewer.md) — security-focused review lens
-- [`references/architecture-reviewer.md`](references/architecture-reviewer.md) — design / coupling / modularity
-- [`references/performance-reviewer.md`](references/performance-reviewer.md) — complexity, memory, I/O
+- [`references/personas/adversarial.md`](references/personas/adversarial.md) — harsh, devil's-advocate persona
+- [`references/personas/security.md`](references/personas/security.md) — security-focused review lens
+- [`references/personas/architecture.md`](references/personas/architecture.md) — design / coupling / modularity
+- [`references/personas/performance.md`](references/personas/performance.md) — complexity, memory, I/O
 - [`references/cross-model-handoff.md`](references/cross-model-handoff.md) — how to invoke detected CLIs
 - [`references/review-output-format.md`](references/review-output-format.md) — three-tier output spec
 - [`scripts/detect-clis.mjs`](scripts/detect-clis.mjs) — node script, ships with the skill, probes for ~20 AI CLIs and emits JSON

@@ -9,7 +9,9 @@
  *
  *   2. Wrapped composition (--instructions + --untrusted-content) — for
  *      forwarding third-party content (PR diffs, scraped pages, issue bodies)
- *      to the child CLI. The script:
+ *      to the child CLI. Either flag accepts a file path or `-` to read
+ *      from stdin (only one of the two flags may be `-` per invocation).
+ *      The script:
  *
  *        1. Runs secret-shield on the untrusted content. Default
  *           --secret-mode=scan refuses to forward if any known secret is
@@ -47,6 +49,7 @@
  * Examples:
  *   echo "review this code" | node invoke-cli.mjs codex
  *   node invoke-cli.mjs codex --instructions persona.md --untrusted-content diff.txt
+ *   git diff --staged | node invoke-cli.mjs codex --instructions persona.md --untrusted-content -
  *   node invoke-cli.mjs codex --instructions p.md --untrusted-content d.txt --dry-run
  *   node invoke-cli.mjs codex -i p.md -u d.txt --secret-mode redact
  */
@@ -151,9 +154,16 @@ function composePrompt(f) {
     process.exit(1)
   }
 
+  if (f.instructions === '-' && f.untrustedContent === '-') {
+    process.stderr.write("Cannot use '-' (stdin) for both --instructions and --untrusted-content\n")
+    process.exit(1)
+  }
+
+  const stdinHolder = { cached: null, consumed: false }
+
   if (f.instructions && f.untrustedContent) {
-    const instructions = readFileOrExit(f.instructions, '--instructions')
-    let untrusted = readFileOrExit(f.untrustedContent, '--untrusted-content')
+    const instructions = readSource(f.instructions, '--instructions', stdinHolder)
+    let untrusted = readSource(f.untrustedContent, '--untrusted-content', stdinHolder)
     let secretsRedacted = 0
 
     if (f.secretMode !== 'allow') {
@@ -191,7 +201,7 @@ function composePrompt(f) {
 
   if (f.instructions) {
     return {
-      prompt: readFileOrExit(f.instructions, '--instructions'),
+      prompt: readSource(f.instructions, '--instructions', stdinHolder),
       wrapped: false,
       salt: null,
       secretMode: 'allow',
@@ -206,6 +216,26 @@ function composePrompt(f) {
     secretMode: 'allow',
     secretsRedacted: 0,
   }
+}
+
+/**
+ * Resolve a flag value to file content, or read from stdin if the value is `-`.
+ * Stdin can only be consumed once per invocation; subsequent `-` triggers an error.
+ *
+ * @param {string} source — file path or `-`
+ * @param {string} flagName
+ * @param {{ cached: string | null, consumed: boolean }} stdinHolder
+ * @returns {string}
+ */
+function readSource(source, flagName, stdinHolder) {
+  if (source !== '-') return readFileOrExit(source, flagName)
+  if (stdinHolder.consumed) {
+    process.stderr.write(`Cannot use '-' (stdin) for both --instructions and --untrusted-content\n`)
+    process.exit(1)
+  }
+  stdinHolder.consumed = true
+  if (stdinHolder.cached === null) stdinHolder.cached = readStdin()
+  return stdinHolder.cached
 }
 
 /**

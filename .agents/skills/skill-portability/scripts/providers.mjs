@@ -39,23 +39,44 @@ export const providers = [
     id: 'claude-code',
     name: 'Claude Code (Anthropic)',
     fileFormat: 'SKILL.md',
-    fileLocation: '~/.claude/skills/<name>/SKILL.md (global) or .claude/skills/<name>/SKILL.md (project) or skills/<name>/SKILL.md (via npx skills add)',
+    fileLocation:
+      '~/.claude/skills/<name>/SKILL.md (global) or .claude/skills/<name>/SKILL.md (project) or skills/<name>/SKILL.md (via npx skills add)',
     docUrls: [
       'https://docs.claude.com/en/docs/claude-code/skills',
       'https://docs.claude.com/llms.txt',
       'https://skills.sh',
     ],
     requiredFrontmatter: ['name', 'description'],
-    optionalFrontmatter: ['argument-hint', 'user-invocable', 'model-invocable', 'allowed-tools', 'metadata'],
+    optionalFrontmatter: [
+      'argument-hint',
+      'user-invocable',
+      'model-invocable',
+      'allowed-tools',
+      'metadata',
+    ],
     ignoredFrontmatter: [],
     forbiddenFrontmatter: [],
     toolSurface: [
-      'Read', 'Write', 'Edit', 'Bash', 'Glob', 'Grep',
-      'WebFetch', 'WebSearch', 'AskUserQuestion',
-      'TaskCreate', 'TaskUpdate', 'TaskList', 'TaskGet',
-      'Agent', 'Skill', 'NotebookEdit', 'ExitPlanMode',
+      'Read',
+      'Write',
+      'Edit',
+      'Bash',
+      'Glob',
+      'Grep',
+      'WebFetch',
+      'WebSearch',
+      'AskUserQuestion',
+      'TaskCreate',
+      'TaskUpdate',
+      'TaskList',
+      'TaskGet',
+      'Agent',
+      'Skill',
+      'NotebookEdit',
+      'ExitPlanMode',
     ],
-    notes: 'Reference implementation. Frontmatter `name` must match directory name. Description should contain "Use when" + verbatim trigger phrases.',
+    notes:
+      'Reference implementation. Frontmatter `name` must match directory name. Description should contain "Use when" + verbatim trigger phrases.',
   },
   {
     id: 'cursor',
@@ -72,10 +93,17 @@ export const providers = [
     ignoredFrontmatter: ['name', 'argument-hint', 'user-invocable', 'model-invocable'],
     forbiddenFrontmatter: [],
     toolSurface: [
-      'Read', 'Edit', 'codebase_search', 'grep_search', 'file_search',
-      'run_terminal_cmd', 'list_dir', 'edit_file',
+      'Read',
+      'Edit',
+      'codebase_search',
+      'grep_search',
+      'file_search',
+      'run_terminal_cmd',
+      'list_dir',
+      'edit_file',
     ],
-    notes: 'Cursor uses `.mdc` rule files in `.cursor/rules/`, NOT directories with SKILL.md. Companion files (references/, templates/) do not load. Cursor-specific frontmatter: `globs` (file-pattern triggers), `alwaysApply` (boolean — load on every chat).',
+    notes:
+      'Cursor uses `.mdc` rule files in `.cursor/rules/`, NOT directories with SKILL.md. Companion files (references/, templates/) do not load. Cursor-specific frontmatter: `globs` (file-pattern triggers), `alwaysApply` (boolean — load on every chat).',
   },
   {
     id: 'openai-codex-cli',
@@ -91,10 +119,9 @@ export const providers = [
     optionalFrontmatter: [],
     ignoredFrontmatter: ['name', 'description', 'argument-hint', 'globs', 'alwaysApply'],
     forbiddenFrontmatter: [],
-    toolSurface: [
-      'shell', 'apply_patch', 'web_search', 'read_file',
-    ],
-    notes: 'AGENTS.md is plain markdown — no frontmatter is read by the agent itself. Frontmatter from a SKILL.md is silently ignored. To "port" a SKILL.md you typically rename to AGENTS.md and inline the description into the body. Codex tool names differ from Claude Code (e.g., `shell` vs `Bash`, `apply_patch` vs `Edit`).',
+    toolSurface: ['shell', 'apply_patch', 'web_search', 'read_file'],
+    notes:
+      'AGENTS.md is plain markdown — no frontmatter is read by the agent itself. Frontmatter from a SKILL.md is silently ignored. To "port" a SKILL.md you typically rename to AGENTS.md and inline the description into the body. Codex tool names differ from Claude Code (e.g., `shell` vs `Bash`, `apply_patch` vs `Edit`).',
   },
   {
     id: 'agents-skills-baseline',
@@ -109,7 +136,13 @@ export const providers = [
     ],
     requiredFrontmatter: ['name', 'description'],
     optionalFrontmatter: ['license', 'metadata', 'allowed-tools'],
-    ignoredFrontmatter: ['argument-hint', 'user-invocable', 'model-invocable', 'globs', 'alwaysApply'],
+    ignoredFrontmatter: [
+      'argument-hint',
+      'user-invocable',
+      'model-invocable',
+      'globs',
+      'alwaysApply',
+    ],
     forbiddenFrontmatter: [],
     toolSurface: [],
     notes:
@@ -146,7 +179,7 @@ export async function checkFreshness({ timeoutMs = 5000 } = {}) {
         } finally {
           clearTimeout(t)
         }
-      }),
+      })
     )
     const anyOk = urlResults.some((r) => r.ok)
     results.push({ id: p.id, anyOk, urls: urlResults })
@@ -169,7 +202,9 @@ function renderTable(rows) {
     fileFormat: p.fileFormat,
     docUrl: p.docUrls[0] ?? '',
   }))
-  const widths = cols.map((c) => Math.max(c.label.length, ...data.map((r) => String(r[c.key]).length)))
+  const widths = cols.map((c) =>
+    Math.max(c.label.length, ...data.map((r) => String(r[c.key]).length))
+  )
   const line = (vals) => vals.map((v, i) => String(v).padEnd(widths[i])).join('  ')
   const out = [line(cols.map((c) => c.label)), line(widths.map((w) => '-'.repeat(w)))]
   for (const r of data) out.push(line(cols.map((c) => r[c.key])))
@@ -201,7 +236,8 @@ async function main() {
 }
 
 // Run main() only when invoked as a CLI, not when imported.
-const invokedDirectly = import.meta.url === `file://${process.argv[1]}` || process.argv[1]?.endsWith('providers.mjs')
+const invokedDirectly =
+  import.meta.url === `file://${process.argv[1]}` || process.argv[1]?.endsWith('providers.mjs')
 if (invokedDirectly) {
   main().catch((err) => {
     process.stderr.write(`providers: ${err?.stack ?? err}\n`)

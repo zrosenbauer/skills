@@ -127,7 +127,7 @@ function openInEditor({ scenario, variant }: OpenInEditorParams): void {
   if (result.error) {
     // process.stderr is more reliable than console here since Ink takes over stdout
     process.stderr.write(
-      `\nopenInEditor: failed to spawn "${editorRaw}": ${result.error.message}\n`,
+      `\nopenInEditor: failed to spawn "${editorRaw}": ${result.error.message}\n`
     )
   }
 }

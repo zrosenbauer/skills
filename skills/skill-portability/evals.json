@@ -13,7 +13,12 @@
           "type": "regex",
           "pattern": "\\|.*Claude.*\\|.*Cursor.*\\|"
         },
-        { "text": "names OpenAI Codex CLI explicitly", "type": "regex", "pattern": "codex", "flags": "i" },
+        {
+          "text": "names OpenAI Codex CLI explicitly",
+          "type": "regex",
+          "pattern": "codex",
+          "flags": "i"
+        },
         {
           "text": "covers the Agents-Skills baseline (or a baseline-compatible consumer)",
           "type": "regex",
@@ -40,7 +45,12 @@
       "expected_output": "Identifies the file as a Cursor .mdc rule, not a SKILL.md. Notes that `globs` and `alwaysApply` are Cursor-specific fields and the file lacks the `name` field required by Claude Code and the `skills` CLI. Verdict: incompatible for Claude Code, incompatible for Codex (which expects AGENTS.md format), native to Cursor. Calls out what would need to change to make it portable (add `name`, drop Cursor-specific fields or move them under a namespaced key).",
       "files": [],
       "assertions": [
-        { "text": "identifies file as Cursor format", "type": "regex", "pattern": "cursor", "flags": "i" },
+        {
+          "text": "identifies file as Cursor format",
+          "type": "regex",
+          "pattern": "cursor",
+          "flags": "i"
+        },
         {
           "text": "flags missing name field",
           "type": "regex",
