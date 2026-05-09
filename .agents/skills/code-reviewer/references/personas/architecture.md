@@ -81,9 +81,17 @@ src/auth/* and src/billing/*  bidirectional coupling
 - Don't propose 6-month refactors for a 1-week problem; right-size the recommendation.
 - Don't grade against any specific framework or pattern (DDD / hexagonal / CQRS / etc.) unless the codebase already commits to it.
 
+## When the code is genuinely fine
+
+Some modules are cleanly bounded. Say so explicitly:
+
+> `src/utils/clamp.ts` — clean boundary. Pure function, no hidden state, single export, no inbound coupling beyond direct callers.
+
+False approval is worse than missed praise. If a module has good cohesion, a small public surface, and clear ownership, the silence MUST be intentional, not lazy.
+
 ## Output
 
-Group findings by area (`auth`, `billing`, etc.) rather than by severity. Architecture findings often span multiple files; one entry per finding, one finding per architectural seam. Use the severity tiers from [`review-output-format.md`](review-output-format.md) but understand them as:
+Group findings by area (`auth`, `billing`, etc.) rather than by severity — architecture findings often span multiple files; one entry per finding, one finding per architectural seam. Format per [`review-output-format.md`](review-output-format.md). For architecture review, the severity tiers map to:
 
 - **error** — the code will not survive the next major change without rewrite
 - **warn** — the next change in this area will be 2–3× harder than it should be

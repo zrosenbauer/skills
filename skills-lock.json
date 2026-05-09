@@ -5,37 +5,37 @@
       "source": "zrosenbauer/skills",
       "sourceType": "github",
       "skillPath": "skills/code-reviewer/SKILL.md",
-      "computedHash": "06ad598d79404ce19081be8f1d962b1e5a1e8f6bd8b7097d2cc3146708b91489"
+      "computedHash": "6d79e1ccff5c36ba4c06ba376e4acae0394862037fefc24f9f14c66baa1a4f97"
     },
     "skill-creator": {
       "source": "zrosenbauer/skills",
       "sourceType": "github",
       "skillPath": "skills/skill-creator/SKILL.md",
-      "computedHash": "740f600309dd7b7d9b0fc336aa9f2cf435bf22a7db6ae9754c60f9cf8e235a99"
+      "computedHash": "9862dce5d6bf6c39436d1e2f3c3775892fee4aa9e7aef09b130b896aef3e8d78"
     },
     "skill-eval": {
       "source": "zrosenbauer/skills",
       "sourceType": "github",
       "skillPath": "skills/skill-eval/SKILL.md",
-      "computedHash": "1cecb979cacee2e29653428245cb463e002a9488a50d2b5e9a366f1613524172"
+      "computedHash": "f2c87870dd4f2dbba10c2d32cc42ee912c92d3bf1b2f002bd66bee60fa501e58"
     },
     "skill-portability": {
       "source": "zrosenbauer/skills",
       "sourceType": "github",
       "skillPath": "skills/skill-portability/SKILL.md",
-      "computedHash": "d3be8be10cd70477e41805fa260214b99ed37bee9a4a24b43b6858b8b4d27ab1"
+      "computedHash": "8bf6b8e723602afe1a15fbdf9f395c555e6308e27cf42ec0f8ee1252b06ccad6"
     },
     "ts-best-practices": {
       "source": "zrosenbauer/skills",
       "sourceType": "github",
       "skillPath": "skills/ts-best-practices/SKILL.md",
-      "computedHash": "a3fc353cabf8371f968cd26ea7f30d49e4ab10bdc4707e49dd43889ff6fb9f39"
+      "computedHash": "031ee926560cd40663fe77af0f61da13b722735fe23b86035f9827bfee47be89"
     },
     "ts-best-practices-functional": {
       "source": "zrosenbauer/skills",
       "sourceType": "github",
       "skillPath": "skills/ts-best-practices-functional/SKILL.md",
-      "computedHash": "8e5464f7e35b7f52881991995abc15ad58446150b525fb3ced9615f98518ab1f"
+      "computedHash": "d8946fff3cce95c6f02c37442e8b2f77a143ae6fd929d9688824855097017765"
     }
   }
 }

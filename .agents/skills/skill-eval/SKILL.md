@@ -10,8 +10,6 @@ description: >-
   / contains / file_exists — no LLM-as-judge), and the iteration-N
   workspace convention. Skip when authoring a new skill (use skill-creator)
   or modifying skill content directly.
-metadata:
-  internal: true # eval orchestrator — not distributed as a user skill
 # --- Claude Code extensions (ignored by other agents) ---
 argument-hint: '[<skill-name>|--all]'
 user-invocable: true

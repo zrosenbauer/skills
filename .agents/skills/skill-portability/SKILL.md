@@ -5,10 +5,11 @@ description: >-
   skill is portable across providers. Common triggers include "is this skill
   cross-provider safe", "will my skill work in cursor", "audit skill
   compatibility", "check if this loads in codex", and "which providers
-  support this skill". Spawns one agent per provider in parallel against
-  authoritative llms.txt docs and produces a compatibility matrix plus a
-  COMPAT.md report. Skip when authoring a new skill (use skill-creator) or
-  rerunning baselines (use skill-eval).
+  support this skill". Spawns one agent per provider in parallel using
+  bundled provider-doc snapshots (refreshed on cadence — never fetched at
+  runtime) and produces a compatibility matrix plus a COMPAT.md report.
+  Skip when authoring a new skill (use skill-creator) or rerunning
+  baselines (use skill-eval).
 
 # --- Claude Code extensions (ignored by other agents) ---
 argument-hint: '[<skill-path-or-name>]'
@@ -30,10 +31,12 @@ for the canonical list. The audit covers three layers:
 3. **Tool-surface-level** — does the body name tools (e.g.,
    `AskUserQuestion`) that only exist in one provider?
 
-The canonical provider list, doc URLs, and required/forbidden frontmatter
-fields live in [`scripts/providers.mjs`](scripts/providers.mjs). The skill
-reads from that script — never hardcodes provider details in the body — so
-adding a new provider means updating one file.
+The canonical provider list, required/forbidden frontmatter fields, and
+**bundled doc snapshots** live in [`scripts/providers.mjs`](scripts/providers.mjs)
+and [`references/providers/`](references/providers/). Provider docs are
+refreshed at authoring time via `pnpm skill-tools refresh-provider-docs`
+and committed — the audit never fetches at runtime, so per-provider
+verdicts are deterministic and offline-capable.
 
 ## When to use
 
@@ -92,8 +95,8 @@ node skills/skill-portability/scripts/providers.mjs --pretty
 ```
 
 Capture the JSON. Each entry has `id`, `name`, `fileFormat`, `fileLocation`,
-`docUrls`, `requiredFrontmatter`, `optionalFrontmatter`, `ignoredFrontmatter`,
-`forbiddenFrontmatter`, `toolSurface`, and `notes`.
+`docUrls`, `localDocPath`, `requiredFrontmatter`, `optionalFrontmatter`,
+`ignoredFrontmatter`, `forbiddenFrontmatter`, `toolSurface`, and `notes`.
 
 This script is the single source of truth. Don't hardcode provider details
 into the audit body — re-run the script each time.
@@ -104,14 +107,20 @@ Dispatch one `Agent` call per provider returned by step 2 (concurrent — one
 tool message with all tool uses). Don't hardcode the count — `providers.mjs`
 is the source of truth and may grow. Each agent gets:
 
-- The provider entry from step 2 (id, format requirements, docUrls,
-  toolSurface, notes)
+- The provider entry from step 2 (id, format requirements, toolSurface, notes)
+- **The bundled provider doc snapshot** read from `localDocPath` (e.g.
+  `references/providers/cursor.md`). Read the file with the `Read` tool
+  before dispatching the subagent and pass its contents inline in the
+  subagent prompt — do NOT instruct the subagent to fetch.
 - The skill content from step 1 (frontmatter + body)
 - These instructions to the subagent:
 
-  > Fetch the first-listed `docUrls` entry via WebFetch (prefer `llms.txt` /
-  > `llms-full.txt` over HTML when both are listed). If it 404s, try the next
-  > URL. Then evaluate the skill against three layers:
+  > Use the provider doc snapshot included in this prompt — it was bundled
+  > with the skill at authoring time and is the authoritative reference
+  > for this audit. Do NOT WebFetch any URL; if the snapshot is missing
+  > details, surface that as a NOTES finding rather than fetching.
+  >
+  > Evaluate the skill against three layers:
   >
   > 1. **Format**: does it match `fileFormat`? Are all `requiredFrontmatter`
   >    fields present? Are any `forbiddenFrontmatter` fields present?
@@ -130,8 +139,7 @@ is the source of truth and may grow. Each agent gets:
   > NOTES: <2–3 specific findings with file/line references where possible>
   > ```
 
-Use `subagent_type: "general-purpose"` (not `Explore` — Explore can't
-WebFetch authoritative provider docs reliably). Run all dispatches in **one**
+Use `subagent_type: "general-purpose"`. Run all dispatches in **one**
 message so they execute concurrently.
 
 ### 4. Aggregate the verdicts into a matrix
@@ -163,18 +171,32 @@ Two outputs:
 For bulk audits (glob input), produce one combined matrix where rows are
 skills, columns are providers, and write `COMPAT.md` at the repo root.
 
-### 6. Handle stale URLs
+### 6. Handle missing or stale snapshots
 
-If any subagent reports its `docUrls` all 404'd, surface this in the inline
-output:
+If any provider's `localDocPath` doesn't exist or its snapshot is empty /
+truncated to a placeholder, surface this in the inline output:
 
 ```
-⚠ Stale provider docs for `cursor` — all 3 docUrls returned 4xx.
-  Update scripts/providers.mjs or run `node scripts/providers.mjs --check`.
+⚠ Provider snapshot missing or sparse: `cursor` — references/providers/cursor.md
+  is 503 bytes (likely SPA-rendered upstream). Verdict relies on the
+  `notes` field. Run `pnpm skill-tools refresh-provider-docs` to refresh.
 ```
 
-Don't silently fall back to guessing — bad provider data leads to bad
-verdicts.
+Don't silently fall back to WebFetch — that's exactly the runtime fetch
+behavior the bundled-snapshot design avoids. If a snapshot is genuinely
+missing, treat it as `unknown` in the verdict rather than guessing.
+
+To refresh snapshots from upstream (dev-time, not runtime):
+
+```bash
+pnpm skill-tools refresh-provider-docs
+```
+
+To verify URLs still resolve (HEAD requests, no body fetch):
+
+```bash
+node skills/skill-portability/scripts/providers.mjs --check
+```
 
 ## Examples
 
@@ -225,26 +247,30 @@ verdicts.
 
 <example>
 <good>
-Ran `node scripts/providers.mjs --pretty` once at step 2 and passed the
-result to all four subagents. Subagents WebFetch their own provider docs in
-parallel.
+Ran `node scripts/providers.mjs --pretty` once at step 2. For each provider,
+Read its `localDocPath` snapshot and inlined the contents into the
+subagent prompt. Subagents evaluated against bundled docs — no runtime
+WebFetch.
 </good>
 
 <bad>
-Hardcoded provider doc URLs into the SKILL.md body. When Cursor moved their
-docs, the audit kept fetching a 404 page and reported "compatible" because
-the verdict was based on stale information.
+Instructed subagents to WebFetch the provider docUrls at audit time. Result:
+slow audits, stale-doc false negatives, runtime dependency on every
+provider's docs site staying up.
 </bad>
 
-The bad version violates the single-source-of-truth principle — provider
-details belong in `scripts/providers.mjs`, never inlined into the audit
-prompt.
+The bad version reintroduces the runtime URL fetch the snapshot pattern
+exists to avoid. Snapshots are committed; refresh on cadence with
+`pnpm skill-tools refresh-provider-docs`.
 </example>
 
 ## References
 
 - [`scripts/providers.mjs`](scripts/providers.mjs) — canonical provider list,
-  llms.txt URLs, format requirements. Run `--check` to verify URL freshness.
+  format requirements, `localDocPath` for each provider's bundled snapshot.
+  Run `--check` to verify upstream URLs still resolve.
+- [`references/providers/`](references/providers/) — per-provider doc
+  snapshots (auto-generated; refresh via `pnpm skill-tools refresh-provider-docs`).
 - [`references/provider-formats.md`](references/provider-formats.md) —
   per-provider deep dive: frontmatter shape, file location conventions,
   tool surface, common porting gotchas.

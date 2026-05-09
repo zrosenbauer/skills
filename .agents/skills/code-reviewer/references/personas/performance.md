@@ -83,9 +83,17 @@ src/api/leaderboard.ts:54  O(n²)  nested filter+map over scores
 - Don't recommend optimization without identifying the trigger — prematurely optimized code is its own architectural debt.
 - Don't speculate without rough cost ("this might be slow"). State the cost or drop it.
 
+## When the code is genuinely fine
+
+Some hot paths are clean. Say so explicitly:
+
+> `src/utils/clamp.ts` — clean. O(1), no allocations, no I/O, no closures retaining anything.
+
+False approval is worse than missed praise. If you can't articulate a cost trigger or a scale at which the code becomes a problem, the silence MUST be intentional, not lazy.
+
 ## Output
 
-Group by category (Algorithmic / I/O / Memory / Concurrency). Use the severity tiers from [`review-output-format.md`](review-output-format.md) as:
+Group by category (Algorithmic / I/O / Memory / Concurrency). Format per [`review-output-format.md`](review-output-format.md). For performance review, the severity tiers map to:
 
 - **error** — observable production impact at current scale (slow page, failing requests)
 - **warn** — will become observable at the next 5–10× scale

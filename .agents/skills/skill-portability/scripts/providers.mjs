@@ -22,7 +22,13 @@
  *     name:          human-readable
  *     fileFormat:    'SKILL.md' | '.cursor/rules/*.mdc' | 'AGENTS.md' | etc.
  *     fileLocation:  where the provider expects the file to live
- *     docUrls:       prioritized list — llms.txt / llms-full.txt first, HTML last
+ *     docUrls:       prioritized list — llms.txt / llms-full.txt first, HTML last.
+ *                    Used by the dev-time refresh script ONLY (skill-tools
+ *                    refresh-provider-docs); never fetched at agent runtime.
+ *     localDocPath:  relative path (from this file's parent skill dir) to the
+ *                    bundled snapshot. The skill-portability workflow loads
+ *                    THIS path — not docUrls. Snapshots are committed and
+ *                    refreshed on cadence; see CONTRIBUTING.md.
  *     requiredFrontmatter: fields the loader will reject without
  *     ignoredFrontmatter:  fields the loader silently ignores (cross-agent extras)
  *     forbiddenFrontmatter: fields that BREAK loading (provider-specific to others)
@@ -30,8 +36,10 @@
  *     notes:         caveats, gotchas
  *   }
  *
- * Update policy: hardcoded by hand. Run `--check` to find stale URLs.
- * When a provider moves docs, update `docUrls` here and ship a PR.
+ * Update policy: hardcoded by hand. Run `pnpm skill-tools refresh-provider-docs`
+ * to refresh snapshots from upstream. Run `--check` (this script) to verify
+ * docUrls still resolve. When a provider moves docs, update docUrls here, run
+ * the refresh script, commit both.
  */
 
 export const providers = [
@@ -42,10 +50,11 @@ export const providers = [
     fileLocation:
       '~/.claude/skills/<name>/SKILL.md (global) or .claude/skills/<name>/SKILL.md (project) or skills/<name>/SKILL.md (via npx skills add)',
     docUrls: [
-      'https://docs.claude.com/en/docs/claude-code/skills',
       'https://docs.claude.com/llms.txt',
+      'https://docs.claude.com/en/docs/claude-code/skills',
       'https://skills.sh',
     ],
+    localDocPath: 'references/providers/claude-code.md',
     requiredFrontmatter: ['name', 'description'],
     optionalFrontmatter: [
       'argument-hint',
@@ -88,6 +97,7 @@ export const providers = [
       'https://docs.cursor.com/llms.txt',
       'https://cursor.com/docs/context/rules-for-ai',
     ],
+    localDocPath: 'references/providers/cursor.md',
     requiredFrontmatter: ['description'],
     optionalFrontmatter: ['globs', 'alwaysApply'],
     ignoredFrontmatter: ['name', 'argument-hint', 'user-invocable', 'model-invocable'],
@@ -115,6 +125,7 @@ export const providers = [
       'https://github.com/openai/codex/blob/main/AGENTS.md',
       'https://agents.md',
     ],
+    localDocPath: 'references/providers/openai-codex-cli.md',
     requiredFrontmatter: [],
     optionalFrontmatter: [],
     ignoredFrontmatter: ['name', 'description', 'argument-hint', 'globs', 'alwaysApply'],
@@ -134,6 +145,7 @@ export const providers = [
       'https://skills.sh',
       'https://github.com/vercel-labs/skills',
     ],
+    localDocPath: 'references/providers/agents-skills-baseline.md',
     requiredFrontmatter: ['name', 'description'],
     optionalFrontmatter: ['license', 'metadata', 'allowed-tools'],
     ignoredFrontmatter: [

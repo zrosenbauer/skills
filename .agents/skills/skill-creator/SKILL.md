@@ -10,8 +10,6 @@ description: >-
   kebab-case naming, verbatim trigger phrases, selective XML for example
   boundaries, and a RED→GREEN→REFACTOR cycle. Skip when modifying source
   code, debugging an existing skill, or writing non-skill markdown.
-metadata:
-  internal: true # authoring tooling — not distributed as a user skill
 # --- Claude Code extensions (ignored by other agents) ---
 argument-hint: '[<skill-name>]'
 user-invocable: true

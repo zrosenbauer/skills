@@ -68,7 +68,7 @@ Not:
 
 Each finding's body should answer in 1–3 lines:
 
-1. **What** — quote the offending pattern; one-line
+1. **What** — name the offending pattern in plain language; one-line. Reference by `file:line`. Do not reproduce code or diff content.
 2. **Why it fails** — the failure mode in concrete terms
 3. **Fix** — the obvious mitigation, single-line; skip if the fix is the inverse of (2)
 
@@ -88,7 +88,7 @@ The summary at the top is one line, and it's about the worst category:
 - Don't write a "review report" with 5 paragraphs of intro / context / conclusion — the format above IS the report
 - Don't congratulate the author. The clean section is the praise mechanism.
 - Don't redo what a linter would catch (`oxlint`, `eslint`, `prettier`). Code reviews catch what linters can't.
-- Don't paraphrase the offending code — quote it directly. Line refs + the actual line is what makes findings actionable.
+- Don't paraphrase the failure mode — name the specific bug in concrete terms. The user already has the file open at the referenced `file:line`; reproducing source content adds no signal and risks leaking secrets that happen to live near the issue.
 
 ## Example
 
@@ -101,26 +101,26 @@ Critical: src/auth/session.ts:47 — unsigned cookie used as identity check (ses
 ## ERRORS
 
 ✗ src/auth/session.ts:47  CWE-384  unsigned cookie used as identity check
-  Cookie value `userId` is read directly from the request and used as auth identity.
+  Cookie value is read from the request and used as auth identity directly.
   Attacker can set their own cookie to any user's id.
   Fix: sign the cookie or replace with a server-issued opaque session token.
 
-✗ src/api/users.ts:118  CWE-89  raw SQL concat with req.query.id
-  `\`SELECT ... WHERE id = '${req.query.id}'\`` — bypassable with `1' OR 1=1--`.
-  Fix: use the ORM's parameterized form (`db.user.findUnique({ where: { id } })`).
+✗ src/api/users.ts:118  CWE-89  raw SQL string concatenation with request input
+  Query is built by interpolating `req.query.id` into the SQL — bypassable with classic boolean injection.
+  Fix: use the ORM's parameterized form (`findUnique({ where: { id } })`).
 
 ## WARNS
 
-⚠ src/auth/login.ts:122  password compared with `===`
-  Constant-time compare missing; timing differences leak prefix length.
-  Fix: `crypto.timingSafeEqual(Buffer.from(a), Buffer.from(b))`.
+⚠ src/auth/login.ts:122  non-constant-time password comparison
+  Equality operator used; timing differences leak prefix length.
+  Fix: use a constant-time comparison primitive (`crypto.timingSafeEqual`).
 
 ⚠ src/api/leaderboard.ts:54  O(n²) on scores.length
-  Nested filter+map. ~80ms at n=2000 on M1; visible at 5k entries.
-  Fix: bucket scores into a Map<userId, score> first, then map once.
+  Nested filter+map pattern. ~80ms at n=2000 on M1; visible at 5k entries.
+  Fix: bucket scores into a `Map<userId, score>` first, then map once.
 
-⚠ src/utils/cache.ts:8  cache without eviction
-  `const cache = new Map()` — never cleared. Memory grows unbounded.
+⚠ src/utils/cache.ts:8  module-scoped cache without eviction
+  Map allocated at module scope, never cleared. Memory grows unbounded.
   Fix: lru-cache or explicit ttl.
 
 ## INFOS

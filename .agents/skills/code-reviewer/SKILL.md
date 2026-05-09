@@ -2,31 +2,28 @@
 name: code-reviewer
 description: >-
   This skill should be used when the user wants to review code, audit a
-  diff, get a second opinion on changes, or run an adversarial review.
-  Common triggers include "review this code", "audit this diff", "find
-  issues in", "second opinion on this", "harsh review of", "review the PR",
-  "adversarial review", and "security review of". Picks one of four
-  reviewer personas (adversarial, security, architecture, performance),
-  supports a PR sub-mode via `gh pr diff`, and can hand off to any
-  detected AI CLI for a cross-model second opinion. Skip when the user
-  wants formatting fixes (use a linter) or refactoring patterns (use
-  ts-best-practices or ts-best-practices-functional).
+  diff, get a second opinion on changes, or run an adversarial review of
+  files in the current working tree. Common triggers include "review
+  this code", "audit this diff", "find issues in", "second opinion on
+  this", "harsh review of", "adversarial review", and "security review
+  of". Picks one of four reviewer personas (adversarial, security,
+  architecture, performance). Reviews local files, `git diff`, or
+  `git diff --staged` only — does not fetch external content. Optionally
+  hands the review off to another AI CLI on the local machine for an
+  independent cross-model second opinion (with secret-shield preflight
+  + prompt-shield wrap). Skip when the user wants formatting fixes (use
+  a linter) or refactoring patterns (use ts-best-practices or
+  ts-best-practices-functional).
 
 # --- Claude Code extensions (ignored by other agents) ---
-argument-hint: '[<file|dir|pr-url|diff>]'
+argument-hint: '[<file|dir|diff|staged>]'
 user-invocable: true
 model-invocable: true
 ---
 
 # code-reviewer
 
-Reviews code through a chosen persona. Three layered modes:
-
-1. **Local mode** — review files / diffs / staged changes in the current repo
-2. **PR mode** — review a pull request by URL (fetches diff via `gh pr diff`)
-3. **Cross-model mode (optional)** — hand the review off to another AI CLI on the machine for an independent second opinion
-
-The reference docs live in [`references/`](references/) and are loaded **on demand** — the SKILL.md keeps the trigger surface lean; specifics for each persona / mode get pulled in only when the user picks one.
+Reviews code in the current working tree through a chosen persona. The reference docs live in [`references/`](references/) and are loaded **on demand** — the SKILL.md keeps the trigger surface lean; specifics for each persona / mode get pulled in only when the user picks one.
 
 ## When to use
 
@@ -37,7 +34,6 @@ Verbatim trigger phrases:
 - "find issues in this"
 - "second opinion on this"
 - "harsh review of"
-- "review the PR"
 - "adversarial review"
 - "security review of"
 
@@ -45,16 +41,16 @@ Verbatim trigger phrases:
 
 - Formatting / style fixes → use a linter (`oxlint`, `eslint`, `prettier`, etc.)
 - Refactoring patterns → use `ts-best-practices` or `ts-best-practices-functional`
-- Fixing PR review comments that already exist → use the existing `gg-pr-fix-review` skill
+- Reviewing pull requests from external repos / contributors → out of scope; the skill only reviews local files. If you need PR review, run it inside a trusted CI environment after vetting the source.
 - Writing new code from scratch → this skill reviews existing code
 
 ## Inputs
 
 `$ARGUMENTS` — one of:
 
-- File or directory path (`src/foo.ts`, `src/` )
-- `diff` / `staged` — review `git diff` or `git diff --staged`
-- A PR URL or `<owner/repo#123>` — triggers PR sub-mode
+- File or directory path (`src/foo.ts`, `src/`)
+- `diff` — review `git diff`
+- `staged` — review `git diff --staged`
 - Empty — ask the user what to review
 
 ## Workflow
@@ -63,45 +59,44 @@ Verbatim trigger phrases:
 
 Resolve `$ARGUMENTS` to a concrete set of files + diff:
 
-| Input                    | Action                                                                |
-| ------------------------ | --------------------------------------------------------------------- |
-| File/dir path            | Read the file(s) directly                                             |
-| `diff`                   | `git diff`                                                            |
-| `staged`                 | `git diff --staged`                                                   |
-| PR URL or `owner/repo#N` | `gh pr diff <ref>` (and `gh pr view <ref>` for context)               |
-| empty                    | Ask: "What should I review? (file path / `diff` / `staged` / PR URL)" |
+| Input         | Action                                                       |
+| ------------- | ------------------------------------------------------------ |
+| File/dir path | Read the file(s) directly                                    |
+| `diff`        | `git diff`                                                   |
+| `staged`      | `git diff --staged`                                          |
+| empty         | Ask: "What should I review? (file path / `diff` / `staged`)" |
 
 ### 2. Choose persona — load on demand
 
 Ask the user (use `AskUserQuestion` in Claude Code, or your agent's equivalent) which review angle:
 
-- **Adversarial** — devil's advocate, harsh, looks for everything wrong → load [`references/adversarial-reviewer.md`](references/adversarial-reviewer.md)
-- **Security** — threat modeling, OWASP, input handling → load [`references/security-reviewer.md`](references/security-reviewer.md)
-- **Architecture** — design, abstractions, coupling, modularity → load [`references/architecture-reviewer.md`](references/architecture-reviewer.md)
-- **Performance** — algorithmic complexity, memory, I/O patterns → load [`references/performance-reviewer.md`](references/performance-reviewer.md)
+- **Adversarial** — devil's advocate, harsh, looks for everything wrong → load [`references/personas/adversarial.md`](references/personas/adversarial.md)
+- **Security** — threat modeling, OWASP, input handling → load [`references/personas/security.md`](references/personas/security.md)
+- **Architecture** — design, abstractions, coupling, modularity → load [`references/personas/architecture.md`](references/personas/architecture.md)
+- **Performance** — algorithmic complexity, memory, I/O patterns → load [`references/personas/performance.md`](references/personas/performance.md)
 - **All four sequentially** — load each, run separate passes, merge findings
 
 Only load the reference(s) the user picked. Don't pre-load all four — that's the whole point of progressive disclosure.
 
-### 3. Choose mode — in-process vs cross-model
+### 3. Choose mode — in-process or cross-model (opt-in)
 
-Ask the user whether to run the review here (current agent) or hand it off to a different AI CLI for an independent second opinion.
+Default is **in-process**: the current agent runs the review.
 
-If cross-model is chosen:
+If the user explicitly asks for a "second opinion via <cli>" or "cross-model review" — and only then — offer the cross-model option:
 
 ```bash
 node scripts/detect-clis.mjs --available-only --pretty
 ```
 
-The script outputs JSON of available CLIs with `promptTemplate` / `stdinTemplate`. Parse it, then ask the user (`AskUserQuestion` or equivalent) which CLI to dispatch to. See [`references/cross-model-handoff.md`](references/cross-model-handoff.md) for invocation patterns and how to compose the prompt.
+The script outputs JSON of available AI CLIs on `$PATH` (codex, gemini, aider, etc.). Parse it, ask the user (`AskUserQuestion` or equivalent) which CLI to dispatch to. See [`references/cross-model-handoff.md`](references/cross-model-handoff.md) for invocation patterns.
 
-If in-process: skip to step 4.
+If the user didn't ask for cross-model, skip to step 4 in-process.
 
 ### 4. Run the review
 
-**In-process:** apply the loaded persona reference as your guiding lens. Read the code in scope, produce findings.
+**In-process:** apply the loaded persona reference as the guiding lens. Read the code in scope, produce findings.
 
-**Cross-model:** compose the prompt from the persona reference + the code + the output-format spec. Invoke the chosen CLI per the `promptTemplate` from step 3. Capture stdout. The cross-model output is the review.
+**Cross-model:** see [`references/cross-model-handoff.md`](references/cross-model-handoff.md) — uses the bundled `invoke-cli.mjs` with secret-shield preflight + prompt-shield wrap. Capture the child CLI's stdout verbatim as the review.
 
 ### 5. Format the output
 
@@ -110,7 +105,7 @@ Apply [`references/review-output-format.md`](references/review-output-format.md)
 - Group findings by severity (`error` / `warn` / `info` — matches our skill-tools tiers)
 - Use `file:line` references so the user can click to source
 - Include a one-line summary at the top
-- Keep verbatim quotes from the code where useful (don't paraphrase)
+- Reference, don't reproduce — describe the issue and point to `file:line`; do not paste code or diff lines into output (the user already has the file open)
 
 ## Examples
 
@@ -118,8 +113,8 @@ Apply [`references/review-output-format.md`](references/review-output-format.md)
 <input>"review the auth refactor in src/auth/" with adversarial persona</input>
 <output>
 1. Scope: read every file under `src/auth/`.
-2. Persona: load `references/adversarial-reviewer.md`.
-3. Mode: in-process (no cross-model requested).
+2. Persona: load `references/personas/adversarial.md`.
+3. Mode: in-process (default — no cross-model requested).
 4. Run review through the adversarial lens — assume the code is broken, look for race conditions, missing null handling, leaked credentials, ignored errors.
 5. Format per `references/review-output-format.md`. Output:
 
@@ -140,35 +135,46 @@ WARNS
 </example>
 
 <example>
-<input>"second opinion on the diff via codex" — cross-model mode</input>
+<input>"security review of the staged changes via codex" — cross-model second opinion</input>
 <output>
-1. Scope: `git diff`.
-2. Persona: ask user → adversarial.
-3. Mode: cross-model. Run `node scripts/detect-clis.mjs --available-only`. JSON shows codex available at `/Users/.../bin/codex` with promptTemplate `codex exec {{PROMPT}}`.
-4. Compose prompt: `references/adversarial-reviewer.md` body + the diff + `references/review-output-format.md` spec. Invoke `codex exec "<composed-prompt>"`.
-5. Capture stdout, present as the review (with a header noting "Reviewed by OpenAI Codex 0.128.0").
+1. Scope: `git diff --staged`.
+2. Persona: load `references/personas/security.md`.
+3. Mode: cross-model (user asked for codex). Run `node scripts/detect-clis.mjs --available-only`. Pick `codex`.
+4. Invoke: pipe the diff via stdin and point `--instructions` at the persona ref already on disk. `git diff --staged | node scripts/invoke-cli.mjs codex --instructions references/personas/security.md --untrusted-content - --secret-mode redact --timeout 120`. Capture stdout.
+5. Present the verbatim output with a header noting the model used.
 </output>
 </example>
 
 <example>
 <good>
-Loaded only `references/adversarial-reviewer.md` because the user picked
-"adversarial". Other persona refs stayed on disk.
+Loaded only `references/personas/adversarial.md` because the user picked
+"adversarial". Other persona refs stayed on disk. Default mode was
+in-process; cross-model handoff stayed unloaded.
 </good>
 
 <bad>
-Pre-loaded all four persona references and the cross-model handoff doc
+Pre-loaded all four persona references and `cross-model-handoff.md`
 "just in case". Wastes context budget on every dispatch.
 </bad>
 
 The bad example violates the skill's progressive-disclosure design — references exist precisely so we don't pay the context cost when they're not needed.
 
+## Security
+
+Cross-model mode forwards local file / diff content to a third-party AI CLI on the same machine. That crosses a trust boundary even though the source content is local: code under review can contain embedded secrets (API keys, tokens) and prompt-injection-style markers (intentionally or accidentally). Two complementary mitigations are built into `scripts/invoke-cli.mjs` and fire when the agent uses the `--instructions <file> --untrusted-content <file>` form.
+
+**Credential exfiltration:** the script runs a regex-based secret scan on the content before composing the prompt. Default `--secret-mode scan` refuses to forward when any known secret format (AWS, GitHub, OpenAI, Anthropic, Slack, Stripe, Google API, JWT, PEM private keys) is detected. `--secret-mode redact` substitutes `[REDACTED-{type}-{n}]` placeholders. `--secret-mode allow` skips the check (use only when you've already audited the content). Source: [`scripts/secret-shield/`](scripts/secret-shield/).
+
+**Prompt injection:** the script generates a fresh 12-hex salt per invocation and wraps the content in `<untrusted-{{salt}}>...</untrusted-{{salt}}>` with an anti-injection preamble before piping to the child CLI. Attacker-embedded closing tags (whether intentional or accidental) can't escape the wrap because they can't predict the salt. Source: [`scripts/prompt-shield/`](scripts/prompt-shield/).
+
+In-process review (the default) does not cross trust boundaries — no external sink, no preflight needed. Background and threat model: [`contributing/prompt-injection.md`](../../contributing/prompt-injection.md).
+
 ## References
 
-- [`references/adversarial-reviewer.md`](references/adversarial-reviewer.md) — harsh, devil's-advocate persona
-- [`references/security-reviewer.md`](references/security-reviewer.md) — security-focused review lens
-- [`references/architecture-reviewer.md`](references/architecture-reviewer.md) — design / coupling / modularity
-- [`references/performance-reviewer.md`](references/performance-reviewer.md) — complexity, memory, I/O
+- [`references/personas/adversarial.md`](references/personas/adversarial.md) — harsh, devil's-advocate persona
+- [`references/personas/security.md`](references/personas/security.md) — security-focused review lens
+- [`references/personas/architecture.md`](references/personas/architecture.md) — design / coupling / modularity
+- [`references/personas/performance.md`](references/personas/performance.md) — complexity, memory, I/O
 - [`references/cross-model-handoff.md`](references/cross-model-handoff.md) — how to invoke detected CLIs
 - [`references/review-output-format.md`](references/review-output-format.md) — three-tier output spec
 - [`scripts/detect-clis.mjs`](scripts/detect-clis.mjs) — node script, ships with the skill, probes for ~20 AI CLIs and emits JSON
