@@ -43,7 +43,7 @@ pnpm install
 
 `skills/` is the **authoring source** — what you edit and publish. `.agents/skills/` is the **install destination** managed by `npx skills add` and tracked in `skills-lock.json`. The same skill can appear in both paths (when you dogfood your own skill by installing it locally) — these are NOT duplicates and `.agents/skills/` should never be hand-edited or `rm`'d. Use the skills CLI to refresh installed copies.
 
-For a **local-only skill** (not published), keep it under `skills/<name>/` with `metadata: { internal: true }` in the frontmatter — the skills CLI hides it and the eval-required lint exempts it.
+All skills under `skills/` are publicly distributed by design — every skill ships through `npx skills add` and gets audited by skills.sh. There are no local-only / internal skills in this repo.
 
 ### Sharing scripts between skills
 
@@ -69,10 +69,10 @@ If you'd rather hand-author, the minimum setup is:
 ```bash
 mkdir -p skills/my-skill
 $EDITOR skills/my-skill/SKILL.md
-# For a local-only skill, add `metadata: { internal: true }` to the frontmatter.
+$EDITOR skills/my-skill/evals.json   # ≥3 pressure scenarios — required by lint
 ```
 
-Either way, hand-authored skills must still pass `pnpm skill-tools lint --severity error`.
+Hand-authored skills must still pass `pnpm skill-tools lint --severity error`.
 
 ### `SKILL.md` format
 
@@ -96,9 +96,9 @@ Instructions for the agent when this skill is invoked.
 
 `name` and `description` are the universal core (required by the [`skills` CLI](https://www.npmjs.com/package/skills)). The other fields are Claude Code extensions — other agents ignore them. See [skills.sh](https://skills.sh) for the full spec.
 
-### Evals are required for public skills
+### Evals are required for every skill
 
-Every skill under `skills/` must ship an `evals.json` with at least 3 pressure scenarios and deterministic assertions. The lint blocks publishing otherwise. Internal skills (`metadata.internal: true`) are exempt.
+Every skill under `skills/` must ship an `evals.json` with at least 3 pressure scenarios and deterministic assertions. The lint blocks publishing otherwise.
 
 References:
 

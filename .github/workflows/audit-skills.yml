@@ -61,19 +61,18 @@ jobs:
       - name: Fail on High / Critical findings
         if: steps.scan.outcome == 'success'
         # Findings live at .skills.issues[]; severity is on .extra_data.severity
-        # and is lowercase ("high" / "critical"). The W007 finding on
-        # code-reviewer is documented + mitigated by secret-shield, so we
-        # acknowledge (ignore) it here and gate on the rest.
+        # and is lowercase ("high" / "critical"). No exemptions — every public
+        # skill should target zero high/critical findings. Add per-(skill, code)
+        # acks here only if an inherent-to-the-feature finding is impossible
+        # to remove without killing the skill.
         run: |
-          NEW_HIGH=$(jq '[.skills.issues[]
-            | select(.extra_data.severity == "high" or .extra_data.severity == "critical")
-            | select(.code != "W007")] | length' audit.json)
-          echo "Unacknowledged high/critical findings: $NEW_HIGH"
-          if [ "$NEW_HIGH" -gt 0 ]; then
-            echo "::error::Unacknowledged high/critical findings present"
+          HIGH=$(jq '[.skills.issues[]
+            | select(.extra_data.severity == "high" or .extra_data.severity == "critical")] | length' audit.json)
+          echo "High/critical findings: $HIGH"
+          if [ "$HIGH" -gt 0 ]; then
+            echo "::error::High/critical findings present"
             jq '.skills.issues[]
               | select(.extra_data.severity == "high" or .extra_data.severity == "critical")
-              | select(.code != "W007")
               | { code, severity: .extra_data.severity, message }' audit.json
             exit 1
           fi
