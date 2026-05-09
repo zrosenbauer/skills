@@ -86,7 +86,7 @@ Apply [`references/review-output-format.md`](references/review-output-format.md)
 - Group findings by severity (`error` / `warn` / `info` — matches our skill-tools tiers)
 - Use `file:line` references so the user can click to source
 - Include a one-line summary at the top
-- Quote relevant lines for context
+- Reference, don't reproduce — describe the issue and point to `file:line`; do not paste code or diff lines into output (the user already has the file open)
 
 ## Examples
 
