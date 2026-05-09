@@ -31,6 +31,7 @@
     ".turbo",
     ".kidd",
     ".claude",
+    ".agents/skills",
     "**/.workspace",
     "**/*.d.ts"
   ]

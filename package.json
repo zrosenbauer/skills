@@ -16,13 +16,16 @@
     "format": "oxfmt",
     "format:fix": "oxfmt --write",
     "test": "turbo run test",
-    "test:scripts": "node --test 'skills/*/scripts/*.test.mjs' '.agents/skills/*/scripts/*.test.mjs'",
+    "test:scripts": "node --test 'skills/*/scripts/*.test.mjs' '.agents/skills/*/scripts/*.test.mjs' 'skill-scripts/*/*.test.mjs'",
+    "audit:skills": "uvx snyk-agent-scan@latest --skills ./skills",
+    "prepare": "lefthook install",
     "typecheck": "turbo run typecheck",
     "check": "pnpm lint && pnpm format && pnpm typecheck && pnpm test && pnpm test:scripts",
     "clean": "turbo run clean && rm -rf node_modules .turbo",
     "skill-tools": "node packages/skill-tools/dist/index.mjs"
   },
   "devDependencies": {
+    "lefthook": "^2.1.6",
     "oxfmt": "^0.48.0",
     "oxlint": "^1.63.0",
     "turbo": "^2.8.20"
@@ -31,5 +34,10 @@
     "node": ">=20",
     "pnpm": ">=10"
   },
-  "packageManager": "pnpm@10.33.0"
+  "packageManager": "pnpm@10.33.0",
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "lefthook"
+    ]
+  }
 }

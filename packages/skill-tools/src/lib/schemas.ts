@@ -52,9 +52,7 @@ export const assertionSchema = z.discriminatedUnion('type', [
         (p) =>
           !path.posix.isAbsolute(p) &&
           !path.win32.isAbsolute(p) &&
-          !p
-            .split(/[\\/]/)
-            .some((seg) => seg === '..'),
+          !p.split(/[\\/]/).some((seg) => seg === '..'),
         {
           message:
             'file_exists path must be a relative path inside outputs/ — no `..` segments, no leading `/`',
@@ -116,6 +114,25 @@ export const gradingFileSchema = z.object({
   graded_at: z.string(),
 })
 export type GradingFile = z.infer<typeof gradingFileSchema>
+
+/**
+ * Schema for `<skill>/scripts.json` — declares which canonical scripts under
+ * `skill-scripts/<name>/` should be vendored into `<skill>/scripts/<name>/`.
+ *
+ * `pnpm skill-tools sync-scripts` reads this manifest and copies the source
+ * files (excluding `*.test.mjs`) from each named directory into the skill.
+ * Drift is enforced via `--check`.
+ */
+export const scriptsManifestSchema = z.object({
+  scripts: z
+    .array(
+      z.string().regex(/^[a-z][a-z0-9-]+[a-z0-9]$/, {
+        message: 'script name must be kebab-case',
+      })
+    )
+    .min(1, { message: 'scripts.json must list at least one script' }),
+})
+export type ScriptsManifest = z.infer<typeof scriptsManifestSchema>
 
 /**
  * Per-run timing recorded by the eval runner.

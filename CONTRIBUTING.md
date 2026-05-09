@@ -17,30 +17,43 @@ pnpm install
 
 ```
 .
-├── skills/              # public skills — published via `npx skills add`
+├── skills/              # AUTHORING SOURCE — skills authored here, published via `npx skills add`
 │   └── <name>/
 │       ├── SKILL.md     # the skill itself
 │       ├── evals.json   # ≥3 pressure scenarios + assertions (committed)
+│       ├── scripts.json # optional — declares which shared scripts to vendor in
+│       ├── scripts/     # skill-local scripts + vendored shared script dirs
 │       ├── LICENSE
 │       ├── README.md
 │       └── .workspace/  # gitignored — transcripts, grading, benchmarks (per skill)
-├── .agents/skills/      # optional local-only skills (currently empty)
+├── .agents/skills/      # INSTALL DESTINATION managed by `npx skills add` — DO NOT hand-edit
+├── skill-scripts/       # canonical source for shared scripts (e.g. prompt-shield)
+│   └── <name>/          # vendored into `<skill>/scripts/<name>/` via `pnpm skill-tools sync-scripts`
 ├── packages/
 │   └── skill-tools/     # CLI for linting + evaluating skills (kidd + Ink TUI)
+├── contributing/        # supplementary contributor docs (e.g. prompt-injection.md)
+├── lefthook.yml         # pre-commit hooks (sync, format, lint, drift check)
 ├── package.json         # root, private, workspaces via pnpm-workspace.yaml
 ├── pnpm-workspace.yaml
 ├── turbo.json
 └── AGENTS.md            # agent guidance (CLAUDE.md is a symlink to this)
 ```
 
-### Public vs. local-only skills
+### Authoring vs. install destinations
 
-Both use the same `SKILL.md` format — the location decides distribution.
+`skills/` is the **authoring source** — what you edit and publish. `.agents/skills/` is the **install destination** managed by `npx skills add` and tracked in `skills-lock.json`. The same skill can appear in both paths (when you dogfood your own skill by installing it locally) — these are NOT duplicates and `.agents/skills/` should never be hand-edited or `rm`'d. Use the skills CLI to refresh installed copies.
 
-| Location | Visibility | Distribution |
-| --- | --- | --- |
-| `skills/<name>/` | Public | Listed and installed by `npx skills add zrosenbauer/skills` |
-| `.agents/skills/<name>/` | Local-only | Hidden from the CLI when marked `metadata.internal: true`; load via your agent's load path |
+For a **local-only skill** (not published), keep it under `skills/<name>/` with `metadata: { internal: true }` in the frontmatter — the skills CLI hides it and the eval-required lint exempts it.
+
+### Sharing scripts between skills
+
+When more than one skill needs the same helper (e.g. `prompt-shield` for indirect-prompt-injection mitigation), the canonical source goes in `skill-scripts/<name>/`. Each consuming skill declares it in `scripts.json`:
+
+```json
+{ "scripts": ["prompt-shield"] }
+```
+
+Then `pnpm skill-tools sync-scripts` vendors a byte-identical copy into the skill's `scripts/<name>/` directory. Vendored copies are committed so skills stay self-contained when shipped via `npx skills add`. Do not hand-edit vendored copies — Lefthook's pre-commit drift check (`pnpm skill-tools sync-scripts --check`) will fail. See [`contributing/prompt-injection.md`](./contributing/prompt-injection.md) for the prompt-shield example.
 
 ## Authoring a skill
 
@@ -54,14 +67,9 @@ The supported path is `/skill-creator` — it walks the RED → GREEN → REFACT
 If you'd rather hand-author, the minimum setup is:
 
 ```bash
-# Public skill
 mkdir -p skills/my-skill
 $EDITOR skills/my-skill/SKILL.md
-
-# Local-only skill (hidden from the CLI)
-mkdir -p .agents/skills/my-skill
-$EDITOR .agents/skills/my-skill/SKILL.md
-# Add `metadata: { internal: true }` to the frontmatter.
+# For a local-only skill, add `metadata: { internal: true }` to the frontmatter.
 ```
 
 Either way, hand-authored skills must still pass `pnpm skill-tools lint --severity error`.
@@ -103,23 +111,38 @@ The runner skill `/skill-eval` re-runs baselines (e.g. after a Claude version up
 
 All `pnpm <task>` scripts are thin wrappers around `turbo run <task>`.
 
-| Command | Description |
-| --- | --- |
-| `pnpm install` | Install workspace dependencies |
-| `pnpm build` | Run `build` across workspace packages |
-| `pnpm lint` | Run `lint` across workspace packages |
+| Command          | Description                               |
+| ---------------- | ----------------------------------------- |
+| `pnpm install`   | Install workspace dependencies            |
+| `pnpm build`     | Run `build` across workspace packages     |
+| `pnpm lint`      | Run `lint` across workspace packages      |
 | `pnpm typecheck` | Run `typecheck` across workspace packages |
-| `pnpm test` | Run `test` across workspace packages |
-| `pnpm clean` | Clean build output and `node_modules` |
+| `pnpm test`      | Run `test` across workspace packages      |
+| `pnpm clean`     | Clean build output and `node_modules`     |
 
 Skill-specific tooling:
 
 ```bash
-pnpm skill-tools lint              # lint every skill (three-tier severity)
-pnpm skill-tools lint <name>       # lint one skill
-pnpm skill-tools view              # TUI: browse skills, iterations, transcripts
-pnpm skill-tools benchmark <name>  # aggregate iteration grading to benchmark.md
+pnpm skill-tools lint                      # lint every skill (three-tier severity)
+pnpm skill-tools lint <name>               # lint one skill
+pnpm skill-tools view                      # TUI: browse skills, iterations, transcripts
+pnpm skill-tools benchmark <name>          # aggregate iteration grading to benchmark.md
+pnpm skill-tools sync-scripts              # vendor canonical scripts into each consuming skill
+pnpm skill-tools sync-scripts --check      # fail if any vendored copy drifts from source
+pnpm audit:skills                          # run snyk-agent-scan on public skills (needs SNYK_TOKEN)
 ```
+
+### Pre-commit hooks
+
+[Lefthook](https://lefthook.dev) is wired up via the `prepare` script — `pnpm install` runs `lefthook install` automatically. The `pre-commit` hook (defined in `lefthook.yml`):
+
+1. Runs `sync-scripts` if anything under `skill-scripts/**` is staged, then re-stages the vendored copies.
+2. Auto-formats staged files with `oxfmt` and re-stages.
+3. Lints staged JS/TS with `oxlint`.
+4. Runs `skill-tools lint --severity error` if any skill or skill-script source is staged.
+5. Always runs `sync-scripts --check` to catch hand-edits to vendored copies.
+
+Skip ad-hoc with `LEFTHOOK=0 git commit ...`. Avoid `--no-verify` outside of emergencies.
 
 ## Adding a shared package
 

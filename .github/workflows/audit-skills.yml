@@ -1,0 +1,62 @@
+# Run snyk-agent-scan against the public skills on every PR + main push.
+#
+# Auth: prefers the Snyk GitHub Cloud App (no token needed if installed at the
+# org/repo level). Falls back to a SNYK_TOKEN repo secret if present. If neither
+# is configured the scan step will print Snyk's "set SNYK_TOKEN" message and
+# exit non-zero — the workflow continues so the artifact (if any) still uploads.
+#
+# To wire the GitHub App: install https://github.com/apps/snyk-security on this
+# repo via Snyk's UI. To wire the token instead: Settings → Secrets → Actions →
+# new secret named SNYK_TOKEN (value from app.snyk.io/account).
+
+name: audit-skills
+
+on:
+  pull_request:
+    paths:
+      - 'skills/**'
+      - 'skill-scripts/**'
+      - '.github/workflows/audit-skills.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'skills/**'
+      - 'skill-scripts/**'
+  workflow_dispatch:
+
+jobs:
+  agent-scan:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up uv (for uvx snyk-agent-scan)
+        uses: astral-sh/setup-uv@v3
+
+      - name: Run snyk-agent-scan on public skills
+        id: scan
+        continue-on-error: true
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+        run: |
+          uvx snyk-agent-scan@latest --skills ./skills --json > audit.json
+          echo "Exit: $?"
+          cat audit.json
+
+      - name: Upload audit report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: snyk-agent-scan-report
+          path: audit.json
+          if-no-files-found: ignore
+
+      - name: Fail on High / Critical findings
+        if: steps.scan.outcome == 'success'
+        run: |
+          if jq -e '[.[] | select(.severity == "HIGH" or .severity == "CRITICAL")] | length > 0' audit.json > /dev/null; then
+            echo "::error::High or Critical findings present"
+            exit 1
+          fi

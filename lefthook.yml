@@ -1,0 +1,41 @@
+# Lefthook config — pre-commit checks for the skills monorepo.
+# Docs: https://lefthook.dev/configuration/
+#
+# Hook install:
+#   pnpm install                # auto-runs `lefthook install` via the prepare script
+#   pnpm exec lefthook install  # manual install if needed
+#
+# Skip a hook ad-hoc:
+#   LEFTHOOK=0 git commit ...   # skips all hooks
+#   git commit --no-verify      # built-in git skip (avoid in CI/automation)
+
+pre-commit:
+  jobs:
+    # 1. Vendor canonical scripts when their source changes. The synced
+    #    files (under skills/*/scripts/<name>/) get auto-staged.
+    - name: sync-skill-scripts
+      glob: "skill-scripts/**"
+      run: pnpm skill-tools sync-scripts
+      stage_fixed: true
+
+    # 2. Auto-format staged files. Re-stage anything reformatted.
+    - name: format
+      glob: "*.{js,mjs,cjs,ts,tsx,jsx,json,md}"
+      run: pnpm exec oxfmt {staged_files}
+      stage_fixed: true
+
+    # 3. Lint staged JS/TS. Fail commit on errors.
+    - name: lint
+      glob: "*.{js,mjs,cjs,ts,tsx,jsx}"
+      run: pnpm exec oxlint {staged_files}
+
+    # 4. Skill-specific lint (three-tier rules) when any skill or
+    #    skill-script source changes.
+    - name: skills-lint
+      glob: "{skills,.agents/skills,skill-scripts}/**"
+      run: pnpm skill-tools lint --severity error
+
+    # 5. Drift check — vendored copies must match source. Catches
+    #    hand-edited vendored copies that didn't trigger sync above.
+    - name: sync-check
+      run: pnpm skill-tools sync-scripts --check

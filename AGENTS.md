@@ -10,30 +10,43 @@ A personal monorepo for [agent skills](https://skills.sh) authored by Zac Rosenb
 
 ```
 .
-├── skills/              # PUBLIC skills — published via `npx skills add`
+├── skills/              # AUTHORING SOURCE — skills authored here, published via `npx skills add`
 │   └── <name>/
 │       ├── SKILL.md     # the skill
 │       ├── evals.json   # ≥3 pressure scenarios + assertions (committed)
 │       ├── LICENSE
 │       ├── README.md
 │       └── .workspace/  # GITIGNORED — transcripts, grading, benchmarks (per skill)
-├── .agents/skills/      # OPTIONAL local-only skills — not published (currently empty)
+├── .agents/skills/      # INSTALL DESTINATION — where `npx skills add` puts installed skills
+├── skills-lock.json     # tracks installed skills (source, sourceType, skillPath, hash)
+├── skill-scripts/       # canonical source for shared scripts (e.g. prompt-shield)
+│   └── <name>/          # vendored into `<skill>/scripts/<name>/` via `skill-tools sync-scripts`
 ├── packages/
 │   └── skill-tools/     # CLI for linting + evaluating skills (kidd + Ink TUI)
+├── contributing/        # supplementary contributor docs (e.g. prompt-injection.md)
+├── lefthook.yml         # pre-commit hooks (sync, format, lint, drift check)
 ├── package.json         # root, private, workspaces via pnpm-workspace.yaml
 ├── pnpm-workspace.yaml  # workspace globs
 ├── turbo.json           # turbo task pipeline
 └── AGENTS.md            # ← you are here (CLAUDE.md is a symlink to this file)
 ```
 
-**Public vs. private skills:** both use the same `SKILL.md` format; the location decides distribution.
+**Two locations, two roles:**
 
-- `skills/<name>/` is published. Anyone can install with `npx skills add zrosenbauer/skills`. Claude Code in this project also loads from here directly — no symlink needed.
-- `.agents/skills/<name>/` is reserved for future local-only skills. Currently empty. If used, mark with `metadata.internal: true` so the skills CLI hides it and lint exempts it from the eval-required rule.
+- `skills/<name>/` is the **authoring source**. Skills authored here are published via `npx skills add zrosenbauer/skills`. Claude Code in this project also loads from here directly — no symlink needed.
+- `.agents/skills/<name>/` is the **install destination** managed by the skills CLI. When you run `npx skills add`, installed skills land here and `skills-lock.json` records the source/hash. The same skill can appear in both paths (you can dogfood your own skills by installing them locally) — these are NOT duplicates and `.agents/skills/` should not be hand-edited or `rm`'d. Use the skills CLI to install/uninstall.
+
+If you ever need a **local-only authoring skill** (not published), keep it under `skills/` with `metadata.internal: true` so the skills CLI hides it and lint exempts it from the eval-required rule.
+
+### Sharing scripts between skills
+
+Helpers needed by more than one skill (e.g. `prompt-shield` for indirect-prompt-injection mitigation) live in `skill-scripts/<name>/` as the canonical source. Each consuming skill declares it in `<skill>/scripts.json` (`{ "scripts": ["prompt-shield"] }`) and `pnpm skill-tools sync-scripts` vendors a byte-identical copy into `<skill>/scripts/<name>/`. Vendored copies are committed so skills stay self-contained when shipped.
+
+**Never edit a vendored copy.** Edit `skill-scripts/<name>/` and let the sync run (Lefthook does this automatically on pre-commit). The drift check (`pnpm skill-tools sync-scripts --check`, also pre-commit) fails if any vendored copy diverges from source. See [`contributing/prompt-injection.md`](contributing/prompt-injection.md) for the threat model and the prompt-shield consumption examples.
 
 ## Skill format
 
-Each skill is a directory under `skills/` (or `.agents/skills/` for local-only skills) with at minimum:
+Each skill is a directory under `skills/` with at minimum:
 
 ```markdown
 ---
@@ -68,15 +81,19 @@ Optional companions: `LICENSE`, `README.md`, `references/<topic>.md`, `templates
 Common commands:
 
 ```bash
-pnpm install                       # install all workspace deps
-pnpm build                         # turbo run build (compiles skill-tools via kidd)
-pnpm lint                          # turbo run lint
-pnpm typecheck                     # turbo run typecheck
-pnpm test                          # turbo run test
-pnpm skill-tools lint              # lint every skill against the three-tier rule set
-pnpm skill-tools lint <name>       # lint one skill
-pnpm skill-tools view              # TUI: browse skills / iterations / transcripts
-pnpm skill-tools benchmark <name>  # aggregate iteration grading into benchmark.md
+pnpm install                           # install all workspace deps + lefthook hooks (via prepare)
+pnpm build                             # turbo run build (compiles skill-tools via kidd)
+pnpm lint                              # turbo run lint
+pnpm typecheck                         # turbo run typecheck
+pnpm test                              # turbo run test
+pnpm test:scripts                      # node --test across skills/*/scripts and skill-scripts/*
+pnpm skill-tools lint                  # lint every skill against the three-tier rule set
+pnpm skill-tools lint <name>           # lint one skill
+pnpm skill-tools view                  # TUI: browse skills / iterations / transcripts
+pnpm skill-tools benchmark <name>      # aggregate iteration grading into benchmark.md
+pnpm skill-tools sync-scripts          # vendor canonical scripts into each consuming skill
+pnpm skill-tools sync-scripts --check  # fail if any vendored copy drifts from source
+pnpm audit:skills                      # snyk-agent-scan on public skills (needs SNYK_TOKEN)
 ```
 
 Authoring and evaluating skills:
@@ -88,8 +105,8 @@ Authoring and evaluating skills:
 
 - **Never edit `CLAUDE.md` directly** — it's a symlink to `AGENTS.md`. Edit `AGENTS.md`.
 - **New skills go through `/skill-creator`.** It enforces naming, description quality, the RED→GREEN cycle, and writes `evals.json` for you. Hand-authoring skills is allowed but they must still pass `pnpm skill-tools lint --severity error`.
-- All skills (public and authoring/eval tooling like `skill-creator`, `skill-eval`) live in `skills/<kebab-case>/`.
-- Local-only skills can optionally live in `.agents/skills/<kebab-case>/`. Mark them with `metadata.internal: true` to hide from the skills CLI and lint.
+- All skills (public and authoring/eval tooling like `skill-creator`, `skill-eval`) live in `skills/<kebab-case>/`. Internal-only authoring tooling is marked with `metadata.internal: true` to hide from the skills CLI and lint.
+- Never hand-edit or `rm` anything under `.agents/skills/` — that's the install destination managed by the skills CLI (tracked by `skills-lock.json`).
 - Skill workspaces (nested at `<skill>/.workspace/`) are gitignored — only `evals.json` ships.
 - Shared utilities go in `packages/<name>/` with their own `package.json` and follow the workspace name convention `@zrosenbauer/<name>`.
 - Don't add a `package.json` to a skill directory unless it actually needs JS deps — most skills are pure markdown.

@@ -163,6 +163,20 @@ Pre-loaded all four persona references and the cross-model handoff doc
 
 The bad example violates the skill's progressive-disclosure design — references exist precisely so we don't pay the context cost when they're not needed.
 
+## Security
+
+PR-mode and cross-model mode both cross trust boundaries:
+
+- **PR-mode** (`gh pr diff`) ingests attacker-controllable content. Anyone with PR access can put hidden instructions in a diff (indirect prompt injection).
+- **Cross-model mode** forwards that content to a third-party AI CLI on the local machine. The receiving model sees the diff too.
+
+Mitigation built into the bundled scripts:
+
+- `scripts/invoke-cli.mjs` exposes `--instructions <file> --untrusted-content <file>`. The script generates a fresh 12-hex salt per invocation and wraps the untrusted content in `<untrusted-{{salt}}>...</untrusted-{{salt}}>` with an anti-injection preamble before piping to the child CLI. Attacker-embedded closing tags can't escape the wrap because they can't predict the salt.
+- The cross-model handoff reference instructs the agent to use the two-file form whenever the payload contains third-party content. See [`references/cross-model-handoff.md`](references/cross-model-handoff.md) Step 3.
+
+Background and threat model: [`contributing/prompt-injection.md`](../../contributing/prompt-injection.md). The user is still responsible for trusting the source repository before invoking PR-mode review — wrapping mitigates content coercion, not the decision to review hostile code in the first place.
+
 ## References
 
 - [`references/adversarial-reviewer.md`](references/adversarial-reviewer.md) — harsh, devil's-advocate persona
