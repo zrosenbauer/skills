@@ -182,9 +182,9 @@ function composePrompt(f) {
           process.exit(1)
         }
         if (f.secretMode === 'redact') {
-          const result = redactSecrets({ content: untrusted })
-          untrusted = result.content
-          secretsRedacted = result.findings.length
+          const redacted = redactSecrets({ content: untrusted })
+          untrusted = redacted.content
+          secretsRedacted = redacted.findings.length
         }
       }
     }

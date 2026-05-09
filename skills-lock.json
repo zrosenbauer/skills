@@ -5,7 +5,7 @@
       "source": "zrosenbauer/skills",
       "sourceType": "github",
       "skillPath": "skills/code-reviewer/SKILL.md",
-      "computedHash": "6d79e1ccff5c36ba4c06ba376e4acae0394862037fefc24f9f14c66baa1a4f97"
+      "computedHash": "602248ad9242d4952b4336ad269324e1c4d7feb05dc13bee3076ace9ada9bd01"
     },
     "skill-creator": {
       "source": "zrosenbauer/skills",
@@ -23,7 +23,7 @@
       "source": "zrosenbauer/skills",
       "sourceType": "github",
       "skillPath": "skills/skill-portability/SKILL.md",
-      "computedHash": "8bf6b8e723602afe1a15fbdf9f395c555e6308e27cf42ec0f8ee1252b06ccad6"
+      "computedHash": "b9682f5fdba67bd933b689d875d0e0c70b6b6d3ec6dfdbfbc275672ecb4bd48e"
     },
     "ts-best-practices": {
       "source": "zrosenbauer/skills",

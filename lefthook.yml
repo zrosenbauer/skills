@@ -25,8 +25,17 @@ pre-commit:
       stage_fixed: true
 
     # 3. Lint staged JS/TS. Fail commit on errors.
+    #    Excludes mirror .oxlintrc.json `ignorePatterns` so oxlint isn't
+    #    invoked with a list of paths it will all filter out (which exits
+    #    non-zero with "No files found to lint").
     - name: lint
       glob: '*.{js,mjs,cjs,ts,tsx,jsx}'
+      exclude:
+        - '.agents/skills/**'
+        - '**/.workspace/**'
+        - '**/dist/**'
+        - '**/build/**'
+        - '**/node_modules/**'
       run: pnpm exec oxlint {staged_files}
 
     # 4. Skill-specific lint (three-tier rules) when any skill or
