@@ -38,12 +38,19 @@ jobs:
       - name: Run snyk-agent-scan on public skills
         id: scan
         continue-on-error: true
-        env:
-          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+        # env:
+        #   # Uncomment to auth via Snyk CLI token (repo secret).
+        #   # Without this, the scanner relies on whatever auth surface is
+        #   # available on the runner (currently nothing without the token).
+        #   SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
         run: |
+          set +e
           uvx snyk-agent-scan@latest --skills ./skills --json > audit.json
-          echo "Exit: $?"
-          cat audit.json
+          rc=$?
+          echo "snyk-agent-scan exit: $rc"
+          echo "--- audit.json ---"
+          cat audit.json 2>/dev/null || echo "(no output)"
+          exit $rc
 
       - name: Upload audit report
         if: always()
