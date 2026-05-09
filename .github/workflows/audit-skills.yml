@@ -22,6 +22,7 @@ on:
     paths:
       - 'skills/**'
       - 'skill-scripts/**'
+      - '.github/workflows/audit-skills.yml'
   workflow_dispatch:
 
 jobs:
@@ -38,11 +39,8 @@ jobs:
       - name: Run snyk-agent-scan on public skills
         id: scan
         continue-on-error: true
-        # env:
-        #   # Uncomment to auth via Snyk CLI token (repo secret).
-        #   # Without this, the scanner relies on whatever auth surface is
-        #   # available on the runner (currently nothing without the token).
-        #   SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
         run: |
           set +e
           uvx snyk-agent-scan@latest --skills ./skills --json > audit.json
