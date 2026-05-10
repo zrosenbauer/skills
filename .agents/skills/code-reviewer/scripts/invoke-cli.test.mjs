@@ -5,9 +5,12 @@ import { tmpdir } from 'node:os'
 import path from 'node:path'
 import { test } from 'node:test'
 
-import { buildInvocation, findEntry } from './cli-registry.mjs'
+import { buildInvocation } from './invocation.mjs'
+import { findEntry } from './registry.mjs'
 
 const SCRIPT = path.join(import.meta.dirname, 'invoke-cli.mjs')
+
+const FAKE_PATH = '/opt/test/bin/fake'
 
 // Synthesized at runtime so this source file does not contain the literal
 // AWS access-key pattern (which would self-flag the repo's secret scanners).
@@ -79,41 +82,24 @@ test('--timeout accepts a positive number', () => {
   assert.equal(r.status, 0)
 })
 
-// Unit tests for buildInvocation — exported for direct testing
+// Smoke-level checks for buildInvocation against the registry — full unit
+// coverage lives in invocation.test.mjs.
 test('buildInvocation: stdin mode for entry with stdinTemplate', () => {
   const entry = findEntry('codex')
-  const plan = buildInvocation(entry, 'hello world')
+  const plan = buildInvocation({ entry, prompt: 'hello world', absolutePath: FAKE_PATH })
   assert.equal(plan.mode, 'stdin')
-  assert.equal(plan.command, 'codex')
+  assert.equal(plan.command, FAKE_PATH)
   assert.deepEqual(plan.args, ['exec', '-'])
   assert.equal(plan.stdin, 'hello world')
 })
 
 test('buildInvocation: argv mode when no stdinTemplate', () => {
   const entry = findEntry('aider')
-  const plan = buildInvocation(entry, 'review this')
+  const plan = buildInvocation({ entry, prompt: 'review this', absolutePath: FAKE_PATH })
   assert.equal(plan.mode, 'argv')
-  assert.equal(plan.command, 'aider')
+  assert.equal(plan.command, FAKE_PATH)
   assert.ok(plan.args.includes('review this'))
   assert.equal(plan.stdin, null)
-})
-
-test('buildInvocation: substitutes {{PROMPT}} verbatim including special chars', () => {
-  const entry = findEntry('aider')
-  const tricky = 'review this `code` with $VARS and "quotes"'
-  const plan = buildInvocation(entry, tricky)
-  assert.ok(plan.args.includes(tricky), 'special chars must be passed verbatim through argv')
-})
-
-test('buildInvocation: throws if promptTemplate lacks {{PROMPT}}', () => {
-  const broken = {
-    id: 'broken',
-    name: 'Broken',
-    binary: 'broken',
-    promptTemplate: 'broken --no-placeholder',
-    stdinTemplate: null,
-  }
-  assert.throws(() => buildInvocation(broken, 'p'), /PROMPT/)
 })
 
 test('--instructions + --untrusted-content composes a wrapped prompt', () => {
@@ -133,7 +119,7 @@ test('--instructions + --untrusted-content composes a wrapped prompt', () => {
     assert.equal(r.status, 0)
     const plan = JSON.parse(r.stdout)
     assert.equal(plan.wrapped, true)
-    assert.match(plan.wrappedSalt, /^[0-9a-f]{12}$/)
+    assert.match(plan.wrappedSalt, /^[0-9a-f]{16}$/)
     assert.ok(plan.stdinBytes > 0)
   } finally {
     tmp.cleanup()
@@ -301,7 +287,7 @@ test("--untrusted-content '-' reads from stdin (with --instructions file)", () =
     assert.equal(r.status, 0)
     const plan = JSON.parse(r.stdout)
     assert.equal(plan.wrapped, true)
-    assert.match(plan.wrappedSalt, /^[0-9a-f]{12}$/)
+    assert.match(plan.wrappedSalt, /^[0-9a-f]{16}$/)
     assert.ok(plan.stdinBytes > 0)
   } finally {
     tmp.cleanup()

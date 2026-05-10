@@ -2,7 +2,7 @@
 
 > Review code in the current working tree through a chosen reviewer persona — adversarial, security, architecture, or performance. Optionally hand the review off to another AI CLI on the local machine for an independent cross-model second opinion.
 
-Reviews local files, `git diff`, or `git diff --staged` only — never fetches external content. Default mode is in-process; cross-model handoff is opt-in.
+Reviews local files, `git diff`, or `git diff --staged` only — never fetches external content. **Cross-model handoff is the recommended default** when another AI CLI is available on the machine — a different model finds issues the current one rationalizes past. In-process review is a fallback for when no second CLI is present.
 
 ## Install
 
@@ -12,9 +12,10 @@ npx skills add zrosenbauer/skills --skill code-reviewer
 
 ## What it does
 
-- Asks the user which review angle (adversarial / security / architecture / performance), loads only that reference (progressive disclosure)
+- Asks the user which review angle (adversarial / security / architecture / performance / all), multi-select, loads only the picked references (progressive disclosure)
 - Reads the in-scope files / diff from the local working tree
-- If the user asks for a "second opinion via <cli>", probes `$PATH` for ~20 known AI CLIs and offers a cross-model handoff (Codex, Gemini, Aider, Cursor agent, Crush, Mods, Ollama, Goose, Continue, Windsurf, Droid, Tabnine, Amp, Qwen Code, iFlow, Kimi, aichat, gh copilot, etc.)
+- Probes `$PATH` for ~20 known AI CLIs (Codex, Gemini, Aider, Cursor agent, Crush, Mods, Ollama, Goose, Continue, Windsurf, Droid, Tabnine, Amp, Qwen Code, iFlow, Kimi, aichat, gh copilot, etc.) and **recommends cross-model handoff** when one is available — a different model on the same machine catches what the current one misses
+- Falls back to multi-bg-agent / agent-team for multi-persona parallel review when cross-model isn't viable; falls back to in-process only as a last resort
 - Outputs findings in three-tier severity (error / warn / info) matching the repo's `skill-tools` lint format
 
 ## Personas
@@ -36,9 +37,9 @@ npx skills add zrosenbauer/skills --skill code-reviewer
 - "adversarial review"
 - "security review of"
 
-## Cross-model handoff (opt-in)
+## Cross-model handoff (recommended default)
 
-When the user explicitly asks for a second opinion via another CLI, the skill probes for available AI CLIs:
+The skill probes for available AI CLIs at the start of every review. If at least one non-current-agent CLI is on `$PATH`, cross-model is the recommended mode — code review is an independence problem, and a second model surfaces issues the first one rationalizes past.
 
 ```bash
 node scripts/detect-clis.mjs --available-only --pretty

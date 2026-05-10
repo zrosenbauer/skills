@@ -1,9 +1,11 @@
 /**
- * Shared registry of known AI coding CLIs. Single source of truth for both
- * `detect-clis.mjs` (probes $PATH) and `invoke-cli.mjs` (executes a CLI with
- * a prompt from stdin).
+ * Pure data + lookup. No I/O. No process spawning. Importable from anywhere
+ * (build tooling, tests, generated docs) without a node:fs / node:child_process
+ * footprint.
  *
- * Add a new entry here to grow coverage; nothing else needs to change.
+ * Add a new entry here to grow coverage; the probe (./probe.mjs) and the
+ * invocation builder (./invocation.mjs) are structurally generic and pick the
+ * new entry up automatically.
  *
  * @typedef {object} CliEntry
  * @property {string} id          Stable identifier, kebab-case (matches skills.sh agent id when possible)
@@ -15,11 +17,10 @@
  * @property {string=} notes
  * @property {boolean=} subcommand        true if `binary` is a parent + subcommand (e.g., `gh copilot`)
  * @property {string=} subcommandCheck    For subcommands, the full check command (e.g., `gh extension list`)
+ * @property {string=} subcommandMatch    Substring expected in subcommandCheck output; defaults to entry.id
+ * @property {string[]=} requiredEnv      Env vars the child must inherit (e.g. API keys). Empty = none.
+ *                                        Omitted = TODO; treat as fail-closed (no inheritance).
  */
-
-import { execFileSync } from 'node:child_process'
-import { statSync } from 'node:fs'
-import path from 'node:path'
 
 /** @type {CliEntry[]} */
 export const REGISTRY = [
@@ -29,6 +30,7 @@ export const REGISTRY = [
     binary: 'claude',
     promptTemplate: 'claude -p {{PROMPT}}',
     stdinTemplate: 'claude -p',
+    requiredEnv: ['ANTHROPIC_API_KEY'],
     notes: 'Anthropic Claude Code CLI; -p runs one-shot non-interactive',
   },
   {
@@ -37,6 +39,7 @@ export const REGISTRY = [
     binary: 'codex',
     promptTemplate: 'codex exec {{PROMPT}}',
     stdinTemplate: 'codex exec -',
+    requiredEnv: ['OPENAI_API_KEY'],
     notes: 'OpenAI Codex CLI; `codex exec` runs non-interactive',
   },
   {
@@ -45,6 +48,7 @@ export const REGISTRY = [
     binary: 'gemini',
     promptTemplate: 'gemini -p {{PROMPT}}',
     stdinTemplate: 'gemini -p',
+    requiredEnv: ['GEMINI_API_KEY', 'GOOGLE_API_KEY'],
     notes: 'Google Gemini CLI; -p runs one-shot',
   },
   {
@@ -53,6 +57,8 @@ export const REGISTRY = [
     binary: 'opencode',
     promptTemplate: 'opencode run {{PROMPT}}',
     stdinTemplate: null,
+    // TODO: confirm which provider env(s) opencode actually reads.
+    requiredEnv: [],
     notes: 'OpenCode CLI; `opencode run` for non-interactive prompts',
   },
   {
@@ -61,6 +67,8 @@ export const REGISTRY = [
     binary: 'cursor-agent',
     promptTemplate: 'cursor-agent -p {{PROMPT}}',
     stdinTemplate: null,
+    // TODO: confirm Cursor agent env contract.
+    requiredEnv: [],
     notes: 'Cursor CLI agent (separate from the IDE)',
   },
   {
@@ -69,9 +77,11 @@ export const REGISTRY = [
     binary: 'gh',
     subcommand: true,
     subcommandCheck: 'gh extension list',
+    subcommandMatch: 'copilot',
     promptTemplate: 'gh copilot explain {{PROMPT}}',
     stdinTemplate: null,
     versionFlag: '--version',
+    requiredEnv: ['GITHUB_TOKEN', 'GH_TOKEN'],
     notes: 'gh copilot extension; check with `gh extension list | grep copilot`',
   },
   {
@@ -80,6 +90,8 @@ export const REGISTRY = [
     binary: 'aider',
     promptTemplate: 'aider --message {{PROMPT}}',
     stdinTemplate: null,
+    // Aider supports many providers; common ones listed.
+    requiredEnv: ['OPENAI_API_KEY', 'ANTHROPIC_API_KEY'],
     notes: 'AI pair-programming CLI; --message for one-shot',
   },
   {
@@ -88,6 +100,8 @@ export const REGISTRY = [
     binary: 'crush',
     promptTemplate: 'crush -p {{PROMPT}}',
     stdinTemplate: 'crush -p',
+    // TODO: confirm Crush env contract.
+    requiredEnv: [],
     notes: 'Charm Crush — terminal AI assistant',
   },
   {
@@ -96,6 +110,8 @@ export const REGISTRY = [
     binary: 'mods',
     promptTemplate: 'mods {{PROMPT}}',
     stdinTemplate: 'mods',
+    // Mods supports many providers; common ones listed.
+    requiredEnv: ['OPENAI_API_KEY', 'ANTHROPIC_API_KEY'],
     notes: 'Charm Mods — pipes prompts to LLMs',
   },
   {
@@ -104,6 +120,8 @@ export const REGISTRY = [
     binary: 'ollama',
     promptTemplate: 'ollama run llama3 {{PROMPT}}',
     stdinTemplate: 'ollama run llama3',
+    // Local model runner — no API keys required.
+    requiredEnv: [],
     notes: 'Local model runner; substitute the model name as needed',
   },
   {
@@ -112,6 +130,8 @@ export const REGISTRY = [
     binary: 'goose',
     promptTemplate: 'goose run -t {{PROMPT}}',
     stdinTemplate: null,
+    // TODO: confirm Goose env contract.
+    requiredEnv: [],
     notes: 'Block Goose — agentic CLI',
   },
   {
@@ -120,6 +140,8 @@ export const REGISTRY = [
     binary: 'continue',
     promptTemplate: 'continue chat {{PROMPT}}',
     stdinTemplate: null,
+    // TODO: confirm Continue env contract.
+    requiredEnv: [],
     notes: 'Continue CLI / dev agent',
   },
   {
@@ -128,6 +150,8 @@ export const REGISTRY = [
     binary: 'windsurf',
     promptTemplate: 'windsurf -p {{PROMPT}}',
     stdinTemplate: null,
+    // TODO: confirm Windsurf env contract.
+    requiredEnv: [],
     notes: 'Codeium Windsurf CLI',
   },
   {
@@ -136,6 +160,8 @@ export const REGISTRY = [
     binary: 'droid',
     promptTemplate: 'droid run {{PROMPT}}',
     stdinTemplate: null,
+    // TODO: confirm Droid env contract.
+    requiredEnv: [],
     notes: 'Factory Droid CLI',
   },
   {
@@ -144,6 +170,8 @@ export const REGISTRY = [
     binary: 'tabnine',
     promptTemplate: 'tabnine ask {{PROMPT}}',
     stdinTemplate: null,
+    // TODO: confirm Tabnine env contract.
+    requiredEnv: [],
   },
   {
     id: 'amp',
@@ -151,6 +179,8 @@ export const REGISTRY = [
     binary: 'amp',
     promptTemplate: 'amp run {{PROMPT}}',
     stdinTemplate: null,
+    // TODO: confirm Amp env contract.
+    requiredEnv: [],
     notes: 'Sourcegraph Amp CLI',
   },
   {
@@ -159,6 +189,8 @@ export const REGISTRY = [
     binary: 'qwen-code',
     promptTemplate: 'qwen-code -p {{PROMPT}}',
     stdinTemplate: null,
+    // TODO: confirm Qwen Code env contract.
+    requiredEnv: [],
   },
   {
     id: 'iflow-cli',
@@ -166,6 +198,8 @@ export const REGISTRY = [
     binary: 'iflow',
     promptTemplate: 'iflow -p {{PROMPT}}',
     stdinTemplate: null,
+    // TODO: confirm iFlow env contract.
+    requiredEnv: [],
   },
   {
     id: 'kimi-cli',
@@ -173,6 +207,8 @@ export const REGISTRY = [
     binary: 'kimi',
     promptTemplate: 'kimi -p {{PROMPT}}',
     stdinTemplate: null,
+    // TODO: confirm Kimi env contract.
+    requiredEnv: [],
   },
   {
     id: 'aichat',
@@ -180,124 +216,18 @@ export const REGISTRY = [
     binary: 'aichat',
     promptTemplate: 'aichat {{PROMPT}}',
     stdinTemplate: 'aichat',
+    // Polyglot — common provider keys listed.
+    requiredEnv: ['OPENAI_API_KEY', 'ANTHROPIC_API_KEY'],
     notes: 'Polyglot CLI — supports many providers; useful as a fallback',
   },
 ]
 
 /**
- * Candidate file extensions to probe for a binary on $PATH. POSIX hosts only
- * try the bare name; Windows additionally tries the executable extensions
- * registered in `PATHEXT` (npm-installed CLIs typically ship as `<name>.cmd`
- * shims, not extensionless `<name>`).
- *
- * @returns {string[]}
- * @private
- */
-function pathExtCandidates() {
-  if (process.platform !== 'win32') return ['']
-  // Windows PATHEXT default is `.COM;.EXE;.BAT;.CMD;.VBS;.VBE;.JS;.JSE;.WSF;.WSH;.MSC`.
-  // Only the executable shapes are interesting for CLI probing.
-  const raw = process.env.PATHEXT ?? '.COM;.EXE;.BAT;.CMD'
-  const exts = raw
-    .split(';')
-    .map((e) => e.trim())
-    .filter(Boolean)
-    .map((e) => (e.startsWith('.') ? e : `.${e}`))
-  // Try the bare name first (lets a non-shimmed binary win), then the registered
-  // extensions in PATHEXT order.
-  return ['', ...exts]
-}
-
-/**
- * Walk $PATH for a binary. Returns absolute path on success, null on miss.
- * Pure — never throws.
- *
- * @param {string} binary
- * @returns {{ available: true, path: string } | { available: false, path: null }}
- */
-export function locateBinary(binary) {
-  const dirs = (process.env.PATH ?? '').split(path.delimiter)
-  const extCandidates = pathExtCandidates()
-  for (const dir of dirs) {
-    if (!dir) continue
-    for (const ext of extCandidates) {
-      const candidate = path.join(dir, binary + ext)
-      let stat
-      try {
-        // Follow symlinks (e.g. /usr/local/bin/claude → real binary).
-        stat = statSync(candidate)
-      } catch {
-        // ENOENT, EACCES on parent dir, dangling symlink, etc.
-        continue
-      }
-      if (!stat.isFile()) continue
-      // POSIX: any execute bit (owner / group / other). On Windows, executability
-      // is determined by file extension (PATHEXT), not mode bits, so fall back to
-      // the existence-style check there to avoid false negatives.
-      if (process.platform !== 'win32' && (stat.mode & 0o111) === 0) continue
-      return { available: true, path: candidate }
-    }
-  }
-  return { available: false, path: null }
-}
-
-/**
- * Best-effort version probe. Returns the version string or null. Never throws.
- *
- * @param {CliEntry} entry
- */
-export function readVersion(entry) {
-  const flag = entry.versionFlag ?? '--version'
-  try {
-    const out = execFileSync(entry.binary, [flag], {
-      encoding: 'utf8',
-      stdio: ['ignore', 'pipe', 'ignore'],
-      timeout: 3000,
-    })
-    const semver = out.match(/\d+\.\d+(?:\.\d+)?/)
-    return semver ? semver[0] : out.trim().split('\n')[0].slice(0, 64)
-  } catch {
-    return null
-  }
-}
-
-/**
  * Look up a CliEntry by id. Returns null if not found.
  *
  * @param {string} id
+ * @returns {CliEntry | null}
  */
 export function findEntry(id) {
   return REGISTRY.find((e) => e.id === id) ?? null
-}
-
-/**
- * Build the spawn plan for invoking a registry entry with a given prompt.
- * Prefers stdin (`stdinTemplate`) when defined; falls back to argv
- * (`promptTemplate` with `{{PROMPT}}` substitution).
- *
- * Pure — no spawning, no I/O. Exported for testing and reuse.
- *
- * @param {CliEntry} entry
- * @param {string} prompt
- * @returns {{ mode: 'stdin' | 'argv', command: string, args: string[], stdin: string | null }}
- */
-export function buildInvocation(entry, prompt) {
-  if (entry.stdinTemplate) {
-    const tokens = tokenize(entry.stdinTemplate)
-    const [command, ...args] = tokens
-    return { mode: 'stdin', command, args, stdin: prompt }
-  }
-
-  const tokens = tokenize(entry.promptTemplate)
-  if (!tokens.includes('{{PROMPT}}')) {
-    throw new Error(`promptTemplate missing {{PROMPT}}: ${entry.promptTemplate}`)
-  }
-  const [command, ...rest] = tokens
-  const args = rest.map((t) => (t === '{{PROMPT}}' ? prompt : t))
-  return { mode: 'argv', command, args, stdin: null }
-}
-
-/** @param {string} template */
-function tokenize(template) {
-  return template.trim().split(/\s+/)
 }

@@ -1,4 +1,6 @@
 #!/usr/bin/env node
+// Imports from ./prompt-shield/ and ./secret-shield/ are vendored copies synced
+// from skill-scripts/. Run `pnpm skill-tools sync-scripts` if these are missing.
 /**
  * invoke-cli — invoke a registered AI CLI with a prompt.
  *
@@ -57,8 +59,10 @@
 import { spawnSync } from 'node:child_process'
 import { existsSync, readFileSync } from 'node:fs'
 
-import { buildInvocation, findEntry, locateBinary } from './cli-registry.mjs'
+import { buildInvocation } from './invocation.mjs'
+import { locateBinary } from './probe.mjs'
 import { composeWrappedPrompt } from './prompt-shield/compose.mjs'
+import { findEntry } from './registry.mjs'
 import { redactSecrets, scanForSecrets } from './secret-shield/scan.mjs'
 
 const argv = process.argv.slice(2)
@@ -90,7 +94,20 @@ if (!prompt.trim()) {
   process.exit(1)
 }
 
-const plan = buildInvocation(entry, prompt)
+// Resolve binary up front — both the existence check and the spawn target
+// must agree on the same absolute path. Skipped in dry-run because the dry-run
+// plan is deterministic and meant to work without the binary installed.
+let absolutePath = entry.binary
+if (!flags.dryRun) {
+  const located = locateBinary(entry.binary)
+  if (!located.available) {
+    process.stderr.write(`${entry.binary} not found on $PATH\n`)
+    process.exit(4)
+  }
+  absolutePath = located.path
+}
+
+const plan = buildInvocation({ entry, prompt, absolutePath })
 
 if (flags.dryRun) {
   process.stdout.write(
@@ -113,10 +130,14 @@ if (flags.dryRun) {
   process.exit(0)
 }
 
-const located = locateBinary(entry.binary)
-if (!located.available) {
-  process.stderr.write(`${entry.binary} not found on $PATH\n`)
-  process.exit(4)
+// argv-mode CLIs receive the prompt on the command line, where it shows up in
+// `ps -ef`. If the prompt was composed with --untrusted-content we warn —
+// untrusted content + process-list visibility is the worst combo.
+if (!plan.usedStdin && composition.wrapped) {
+  process.stderr.write(
+    `[invoke-cli] WARN: ${entry.id} does not accept stdin; prompt (incl. untrusted content) ` +
+      'will be visible in process list. Consider a stdin-capable CLI for sensitive content.\n'
+  )
 }
 
 const result = spawnSync(plan.command, plan.args, {
@@ -125,6 +146,9 @@ const result = spawnSync(plan.command, plan.args, {
   timeout: flags.timeout * 1000,
   stdio: ['pipe', 'pipe', 'pipe'],
   maxBuffer: 50 * 1024 * 1024,
+  // Fail-closed env allowlist: PATH/HOME/etc + per-entry requiredEnv keys.
+  // No requiredEnv on the entry => nothing extra forwarded (treated as TODO).
+  env: buildChildEnv(entry, process.env),
 })
 
 if (result.error?.code === 'ETIMEDOUT') {
@@ -309,10 +333,41 @@ function parseFlags(rest) {
   return { timeout, dryRun, instructions, untrustedContent, secretMode }
 }
 
+/**
+ * Build the env passed to the child CLI. Fail-closed allowlist: only the
+ * minimum locale/path scaffolding plus the entry's declared requiredEnv keys.
+ * If requiredEnv is missing on the entry, nothing extra is forwarded — the
+ * registry is the source of truth and missing means TODO, not "inherit all".
+ *
+ * @param {import('./registry.mjs').CliEntry} entry
+ * @param {NodeJS.ProcessEnv} parentEnv
+ * @returns {NodeJS.ProcessEnv}
+ */
+function buildChildEnv(entry, parentEnv) {
+  const baseKeys = ['PATH', 'HOME', 'USER', 'LANG', 'TMPDIR', 'TMP', 'TEMP', 'TERM', 'SHELL']
+  /** @type {NodeJS.ProcessEnv} */
+  const env = {}
+  for (const k of baseKeys) {
+    if (parentEnv[k] !== undefined) env[k] = parentEnv[k]
+  }
+  // LC_* locale family (LC_ALL, LC_CTYPE, etc.) — pass any that are set.
+  for (const k of Object.keys(parentEnv)) {
+    if (k.startsWith('LC_') && parentEnv[k] !== undefined) env[k] = parentEnv[k]
+  }
+  for (const k of entry.requiredEnv ?? []) {
+    if (parentEnv[k] !== undefined) env[k] = parentEnv[k]
+  }
+  return env
+}
+
 function readStdin() {
+  // If stdin is a TTY no producer is piping data — reading fd 0 would either
+  // hang (if we asked for raw mode) or yield nothing useful. Skip the read so
+  // genuine I/O failures below surface as errors instead of empty strings.
+  if (process.stdin.isTTY) return ''
   try {
     return readFileSync(0, 'utf8')
-  } catch {
-    return ''
+  } catch (err) {
+    throw new Error(`invoke-cli: failed to read stdin: ${err.message}`)
   }
 }

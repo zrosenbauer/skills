@@ -24,12 +24,14 @@
  * Exit code: 0 always (probing is best-effort; empty result means "no CLIs found").
  */
 
-import { execFileSync } from 'node:child_process'
-
-import { REGISTRY, locateBinary, readVersion } from './cli-registry.mjs'
+import { locateBinary, probeSubcommand, readVersion } from './probe.mjs'
+import { REGISTRY } from './registry.mjs'
 
 const flags = parseFlags(process.argv.slice(2))
-const results = REGISTRY.map(probe).filter((entry) => !flags.availableOnly || entry.available)
+// Probes spawn version checks per entry; running them in parallel collapses
+// the wall-clock cost from O(N * spawn_latency) to roughly one spawn latency.
+const probed = await Promise.all(REGISTRY.map(probe))
+const results = probed.filter((entry) => !flags.availableOnly || entry.available)
 
 if (flags.namesOnly) {
   for (const r of results) process.stdout.write(`${r.name}\n`)
@@ -39,44 +41,26 @@ if (flags.namesOnly) {
 
 /**
  * Probe a single registry entry — never throws.
- * @param {import('./cli-registry.mjs').CliEntry} entry
+ * @param {import('./registry.mjs').CliEntry} entry
  */
-function probe(entry) {
-  const found = entry.subcommand ? probeSubcommand(entry) : locateBinary(entry.binary)
+async function probe(entry) {
+  const located = locateBinary(entry.binary)
+  let found = located
+  if (located.available && entry.subcommand) {
+    found = await probeSubcommand(entry, located.path)
+  }
   return {
     id: entry.id,
     name: entry.name,
     binary: entry.binary,
     available: found.available,
     path: found.path,
-    version: found.available ? readVersion(entry) : null,
+    // Version probe runs against the absolute path to defeat $PATH hijack.
+    version: found.available ? await readVersion(entry, found.path) : null,
     promptTemplate: entry.promptTemplate,
     stdinTemplate: entry.stdinTemplate ?? null,
     notes: entry.notes ?? null,
   }
-}
-
-/**
- * Subcommand probe: parent must exist AND the subcommand check must succeed.
- * Currently used for `gh copilot` (gh extension list).
- *
- * @param {import('./cli-registry.mjs').CliEntry} entry
- */
-function probeSubcommand(entry) {
-  const parent = locateBinary(entry.binary)
-  if (!parent.available || !entry.subcommandCheck) return parent
-  try {
-    const [cmd, ...rest] = entry.subcommandCheck.split(' ')
-    const out = execFileSync(cmd, rest, {
-      encoding: 'utf8',
-      stdio: ['ignore', 'pipe', 'ignore'],
-      timeout: 3000,
-    })
-    if (out.toLowerCase().includes('copilot')) return parent
-  } catch {
-    /* best-effort */
-  }
-  return { available: false, path: null }
 }
 
 /** @param {string[]} argv */
