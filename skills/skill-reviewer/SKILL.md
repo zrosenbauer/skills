@@ -22,8 +22,6 @@ model-invocable: true
 
 Reviews an existing skill in this repo against authoring conventions. Produces a severity-tiered report (error / warn / info) plus a Clean section, classifies the skill type, audits `evals.json` assertion shapes, and offers a behavioral handoff via `skill-eval`.
 
-This is a **discipline skill** — `pnpm skill-tools lint` already covers mechanical rules, so the gap this skill closes is the lazy-reviewer failure mode: relying on lint output, skipping the deep references in `skill-creator/references/`, using ad-hoc prose verdicts ("looks solid"), and recommending `skill-eval` without checking whether it's actually invocable.
-
 ## When to use
 
 Verbatim trigger phrases:

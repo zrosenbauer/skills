@@ -23,7 +23,7 @@ test('generates a fresh random salt each call', () => {
   const a = composeWrappedPrompt({ instructions: 'i', untrusted: 'u' })
   const b = composeWrappedPrompt({ instructions: 'i', untrusted: 'u' })
   assert.notEqual(a.salt, b.salt, 'salts must differ between calls')
-  assert.match(a.salt, /^[0-9a-f]{12}$/, 'salt should be 12-char lowercase hex')
+  assert.match(a.salt, /^[0-9a-f]{16}$/, 'salt should be 16-char lowercase hex')
 })
 
 test('forged closing tags in content cannot escape the wrap', () => {

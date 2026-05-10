@@ -15,18 +15,26 @@
 // Exit codes: 0 = all required deps present, 1 = required missing, 2 = bad invocation.
 
 import { spawnSync } from 'node:child_process'
-import { existsSync, readFileSync } from 'node:fs'
-import { createRequire } from 'node:module'
+import { existsSync, openSync, readSync, closeSync, statSync } from 'node:fs'
 import { homedir } from 'node:os'
-import { resolve, join } from 'node:path'
+import { join } from 'node:path'
 import { stdin, stdout } from 'node:process'
 import { createInterface } from 'node:readline/promises'
+
+import { resolveFromCwd } from './_resolve-from-cwd.mjs'
+
+// SECURITY NOTE: convert.mjs renders SVG via librsvg (through sharp).
+// librsvg has had recurring file:// / http(s) / XXE issues. convert.mjs
+// pre-strips external href schemes, but that is not a full sanitizer —
+// do not point convert.mjs at fully untrusted SVG input.
 
 const args = new Set(process.argv.slice(2))
 const wantInstall = args.has('--install')
 const skipConfirm = args.has('--yes') || args.has('-y')
 
-const req = createRequire(resolve(process.cwd(), '_'))
+// Cap config-file reads at 256 KB. MCP configs are tiny; anything larger
+// is almost certainly not a real config and not worth full-scanning.
+const MAX_CONFIG_BYTES = 256 * 1024
 
 const checks = []
 
@@ -47,7 +55,7 @@ checks.push({
 
 let sharpOk = false
 try {
-  req.resolve('sharp')
+  resolveFromCwd('sharp')
   sharpOk = true
 } catch {
   /* not resolvable */
@@ -170,27 +178,70 @@ function tagFor(c) {
   return c.required ? '  REQUIRED' : '  optional'
 }
 
+/**
+ * Heuristic check for chrome-devtools MCP configuration across known agent
+ * harnesses. Best-effort by design — we walk a small per-provider table
+ * and stop on the first hit.
+ *
+ * Path notes (current as of authoring; verify if stale):
+ *   - Claude Code: ~/.claude.json, ~/.claude/config.json — confirmed.
+ *   - Cursor: ~/.cursor/mcp.json — best-guess from Cursor's MCP docs.
+ *     ~/.cursor/config.json included as a fallback. UNVERIFIED.
+ *   - Codex (OpenAI CLI): ~/.codex/config.json — best-guess. UNVERIFIED.
+ *   - Project-local: .mcp.json (generic), .claude/mcp.json, .cursor/mcp.json.
+ *
+ * If a path is wrong we silently skip — false-negative is preferred over
+ * false-positive for an optional, informational check.
+ */
 function detectChromeDevtoolsMcp() {
+  const home = homedir()
+  const cwd = process.cwd()
   const candidates = [
-    join(homedir(), '.claude.json'),
-    join(homedir(), '.claude', 'config.json'),
-    join(process.cwd(), '.mcp.json'),
-    join(process.cwd(), '.claude', 'mcp.json'),
+    // Claude Code
+    join(home, '.claude.json'),
+    join(home, '.claude', 'config.json'),
+    // Cursor (UNVERIFIED — best-guess)
+    join(home, '.cursor', 'mcp.json'),
+    join(home, '.cursor', 'config.json'),
+    // Codex (UNVERIFIED — best-guess)
+    join(home, '.codex', 'config.json'),
+    // Project-local (any agent)
+    join(cwd, '.mcp.json'),
+    join(cwd, '.claude', 'mcp.json'),
+    join(cwd, '.cursor', 'mcp.json'),
   ]
   for (const path of candidates) {
     if (!existsSync(path)) continue
     try {
-      const text = readFileSync(path, 'utf8')
-      if (/chrome.devtools/i.test(text)) {
-        return { found: true, detail: `referenced in ${path.replace(homedir(), '~')}` }
+      const text = readCappedUtf8(path, MAX_CONFIG_BYTES)
+      // Match the literal MCP server key as a JSON property — avoids false
+      // positives from log lines, comments, or stale plugin references.
+      if (/"chrome-devtools"\s*:/.test(text)) {
+        return { found: true, detail: `referenced in ${path.replace(home, '~')}` }
       }
     } catch {
-      /* ignore */
+      /* ignore — unreadable / oversized / other */
     }
   }
   return {
     found: false,
     detail:
       'not detected in known config files (this is informational — the skill works without it)',
+  }
+}
+
+// Read up to maxBytes of a file as UTF-8. Files larger than maxBytes are
+// truncated (we read only the first maxBytes); we do not error out, since
+// MCP server keys live near the top of typical config files.
+function readCappedUtf8(path, maxBytes) {
+  const fd = openSync(path, 'r')
+  try {
+    const size = statSync(path).size
+    const len = Math.min(size, maxBytes)
+    const buf = Buffer.alloc(len)
+    readSync(fd, buf, 0, len, 0)
+    return buf.toString('utf8')
+  } finally {
+    closeSync(fd)
   }
 }

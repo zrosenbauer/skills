@@ -20,8 +20,6 @@ model-invocable: false # manual-only authoring workflow; the human drives the lo
 
 Build, validate, and iterate agent skills in this monorepo. Bakes in the conventions every skill here follows: kebab-case naming, "Use when" trigger phrases, selective XML for example boundaries, and a RED→GREEN→REFACTOR evaluation cycle (see [`references/tdd-for-skills.md`](references/tdd-for-skills.md)).
 
-Why `model-invocable: false`: this is an interactive authoring workflow that requires human judgment at multiple steps (scenario design, name choice, RED-baseline interpretation). Auto-routing the dispatcher into a multi-turn authoring loop is the wrong default — the human invokes it explicitly via `/skill-creator`.
-
 ## When to use
 
 Verbatim trigger phrases the user might say:

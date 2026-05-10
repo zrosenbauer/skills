@@ -8,21 +8,50 @@
 // unreusable at different sizes.
 //
 // Usage:
-//   node lint-viewbox.mjs <path>...   # check one or more SVG files
-//   node lint-viewbox.mjs <dir>       # recursively check all .svg under <dir>
+//   node lint-viewbox.mjs <path>...                # check one or more SVG files
+//   node lint-viewbox.mjs <dir>                    # recursively check all .svg under <dir>
+//   node lint-viewbox.mjs --skip <name> <path>...  # add a directory name to the skip set (repeatable)
 //
 // Exit codes: 0 = all pass, 1 = at least one failure, 2 = bad invocation.
 
 import { readFileSync, readdirSync, statSync } from 'node:fs'
 import { resolve, join, extname, relative } from 'node:path'
 
-const args = process.argv.slice(2)
-if (!args.length) {
-  console.error('usage: lint-viewbox.mjs <svg-or-dir>...')
+const rawArgs = process.argv.slice(2)
+if (!rawArgs.length) {
+  printUsage()
   process.exit(2)
 }
 
-const SKIP_DIRS = new Set(['node_modules', 'scripts', '_legacy'])
+// Default skip set is the bare minimum that's always wrong to descend into.
+// Layout-specific skips (e.g. 'scripts', '_legacy') belong on the CLI via
+// --skip, not hardcoded here.
+const SKIP_DIRS = new Set(['node_modules', '.git'])
+const args = []
+for (let i = 0; i < rawArgs.length; i++) {
+  const a = rawArgs[i]
+  if (a === '--help' || a === '-h') {
+    printUsage()
+    process.exit(0)
+  } else if (a === '--skip') {
+    const v = rawArgs[++i]
+    if (!v) {
+      console.error('✗ --skip requires a directory name')
+      process.exit(2)
+    }
+    SKIP_DIRS.add(v)
+  } else if (a.startsWith('--skip=')) {
+    SKIP_DIRS.add(a.slice('--skip='.length))
+  } else {
+    args.push(a)
+  }
+}
+
+if (!args.length) {
+  console.error('✗ no paths given')
+  printUsage()
+  process.exit(2)
+}
 
 const targets = []
 for (const arg of args) {
@@ -45,6 +74,9 @@ if (!targets.length) {
 }
 
 let failures = 0
+// Intentionally serial: at realistic scales (< 1000 SVGs) total cost is
+// sub-100ms. If this ever runs over 1000+ files, swap to Promise.all over
+// fs/promises.readFile — the loop body is already pure-per-file.
 for (const path of targets) {
   if (!check(path)) failures++
 }
@@ -55,6 +87,13 @@ console.log(`\n${passed}/${total} passed${failures ? ` — ${failures} need fixi
 process.exit(failures ? 1 : 0)
 
 // ---------------------------------------------------------------------------
+
+function printUsage() {
+  console.error(
+    'usage: lint-viewbox.mjs [--skip <name>]... <svg-or-dir>...\n' +
+      "  --skip <name>   directory name to skip when recursing (repeatable; defaults: 'node_modules', '.git')"
+  )
+}
 
 function findSvgs(dir) {
   const out = []

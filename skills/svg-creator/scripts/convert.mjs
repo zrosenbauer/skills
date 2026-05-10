@@ -21,10 +21,22 @@
 //     otherwise, which can shift glyph metrics across machines.
 //
 // Exit codes: 0 = success, 1 = conversion failed, 2 = bad invocation.
+//
+// SECURITY / THREAT MODEL:
+//   This script renders SVG via librsvg (through sharp). librsvg has had
+//   recurring issues with external resource loading and XML parsing
+//   (file:// disclosure, http(s) SSRF, XXE, billion-laughs). We pre-strip
+//   external href schemes before handing the document to sharp (see
+//   sanitizeSvg() below) — this neutralizes the file:// / http(s):// SSRF
+//   surface for <image href="..."> references but is NOT a full XML
+//   sanitizer. DO NOT run this script on fully untrusted SVG input.
+//   Trusted input = SVGs you authored, fetched from a source you control,
+//   or reviewed by hand. Treat third-party SVG uploads as hostile.
 
-import { statSync } from 'node:fs'
-import { createRequire } from 'node:module'
+import { readFileSync, statSync } from 'node:fs'
 import { resolve, basename, extname, join, dirname } from 'node:path'
+
+import { requireFromCwd } from './_resolve-from-cwd.mjs'
 
 const FORMATS = new Set(['png', 'jpeg', 'webp', 'avif'])
 
@@ -57,10 +69,9 @@ const outPath = args.out
   ? resolve(args.out)
   : join(dirname(input), basename(input, '.svg') + '.' + format)
 
-const req = createRequire(resolve(process.cwd(), '_'))
 let sharp
 try {
-  sharp = req('sharp')
+  sharp = requireFromCwd('sharp')
 } catch {
   console.error('✗ sharp is not installed. Run:')
   console.error('    node ' + join(import.meta.dirname ?? '.', 'preflight.mjs') + ' --install')
@@ -69,8 +80,19 @@ try {
   process.exit(1)
 }
 
+let svgBuffer
 try {
-  let pipe = sharp(input, { density: args.density ?? 144 })
+  // Read + sanitize in-memory so we hand sharp a Buffer, not a path. This
+  // forces our pre-strip to run before librsvg sees any external href.
+  const raw = readFileSync(input, 'utf8')
+  svgBuffer = Buffer.from(sanitizeSvg(raw), 'utf8')
+} catch (err) {
+  console.error(`✗ cannot read ${args.input}: ${err.message}`)
+  process.exit(1)
+}
+
+try {
+  let pipe = sharp(svgBuffer, { density: args.density ?? 144 })
   if (args.width || args.height) {
     pipe = pipe.resize({
       width: args.width,
@@ -103,6 +125,19 @@ try {
 }
 
 // ---------------------------------------------------------------------------
+
+// Neutralize external href references in an SVG document before handing it
+// to librsvg. This blocks the obvious file:// disclosure / http(s) SSRF
+// surface for <image href="..."> / xlink:href references. We KEEP data:
+// URIs (legitimate inline raster, common usage) and relative paths
+// (harmless and uncommon in convert-bound SVGs). We do not parse XML —
+// regex is sufficient for stripping schemes from quoted attribute values.
+function sanitizeSvg(content) {
+  return content.replace(
+    /(\b(?:xlink:)?href\s*=\s*["'])(?:file:|https?:|\/\/)[^"']*(["'])/gi,
+    '$1about:blank$2'
+  )
+}
 
 function parseArgs(argv) {
   const out = {

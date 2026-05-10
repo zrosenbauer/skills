@@ -252,8 +252,9 @@ async function main() {
 }
 
 // Run main() only when invoked as a CLI, not when imported.
-const invokedDirectly =
-  import.meta.url === `file://${process.argv[1]}` || process.argv[1]?.endsWith('providers.mjs')
+// pathToFileURL handles Windows backslashes and URL encoding correctly.
+import { pathToFileURL } from 'node:url'
+const invokedDirectly = import.meta.url === pathToFileURL(process.argv[1] ?? '').href
 if (invokedDirectly) {
   main().catch((err) => {
     process.stderr.write(`providers: ${err?.stack ?? err}\n`)

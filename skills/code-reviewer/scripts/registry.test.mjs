@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
 
-import { REGISTRY, findEntry, locateBinary } from './cli-registry.mjs'
+import { REGISTRY, findEntry } from './registry.mjs'
 
 test('REGISTRY has at least 15 entries', () => {
   assert.ok(REGISTRY.length >= 15, `expected >= 15, got ${REGISTRY.length}`)
@@ -48,6 +48,26 @@ test('subcommand entries declare a check command', () => {
   }
 })
 
+test('every entry declares a requiredEnv array (may be empty)', () => {
+  // Empty array signals "no env keys needed" (e.g., ollama).
+  // Missing array means the registry hasn't decided yet — fail-closed in
+  // invoke-cli will inherit nothing, but the array should still be present so
+  // the contract is explicit.
+  for (const e of REGISTRY) {
+    assert.ok(Array.isArray(e.requiredEnv), `${e.id}: requiredEnv must be an array`)
+    for (const key of e.requiredEnv) {
+      assert.equal(typeof key, 'string', `${e.id}: requiredEnv contains non-string`)
+      assert.match(key, /^[A-Z][A-Z0-9_]*$/, `${e.id}: requiredEnv key not SHOUT_CASE: ${key}`)
+    }
+  }
+})
+
+test('github-copilot entry sets subcommandMatch explicitly', () => {
+  const gh = findEntry('github-copilot')
+  assert.ok(gh)
+  assert.equal(gh.subcommandMatch, 'copilot')
+})
+
 test('findEntry returns matching entry', () => {
   const codex = findEntry('codex')
   assert.ok(codex)
@@ -56,16 +76,4 @@ test('findEntry returns matching entry', () => {
 
 test('findEntry returns null for unknown id', () => {
   assert.equal(findEntry('definitely-not-real-cli-id-1234'), null)
-})
-
-test('locateBinary finds node (always present in test env)', () => {
-  const result = locateBinary('node')
-  assert.equal(result.available, true)
-  assert.ok(typeof result.path === 'string')
-})
-
-test('locateBinary returns null path for missing binary', () => {
-  const result = locateBinary('this-binary-does-not-exist-9876543210')
-  assert.equal(result.available, false)
-  assert.equal(result.path, null)
 })

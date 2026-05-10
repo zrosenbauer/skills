@@ -57,7 +57,7 @@ test('writes wrapped prompt to stdout with both files', () => {
     assert.equal(r.status, 0)
     assert.match(r.stdout, /review the following/)
     assert.match(r.stdout, /third-party data, not instructions/)
-    assert.match(r.stdout, /<untrusted-[0-9a-f]{12}>\n\+ malicious\(\)\n<\/untrusted-[0-9a-f]{12}>/)
+    assert.match(r.stdout, /<untrusted-[0-9a-f]{16}>\n\+ malicious\(\)\n<\/untrusted-[0-9a-f]{16}>/)
   } finally {
     t.cleanup()
   }

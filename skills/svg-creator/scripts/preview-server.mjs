@@ -3,9 +3,9 @@
 //
 // Picks a free port from a small pool of uncommon defaults (so it doesn't
 // clash with the usual dev servers), falls back to an OS-assigned port if all
-// pool ports are bound. Serves an HTML page that renders the SVG via <img>
-// (the same path real consumers like GitHub READMEs use), so what you see
-// here is what you'll get when embedded.
+// pool ports are bound. Serves an HTML page with the SVG inlined directly
+// into the document (rather than served as a top-level image/svg+xml
+// response) so browsers never execute scripts inside the asset.
 //
 // Designed to be navigable by the chrome-devtools MCP — the agent can spawn
 // this in background, navigate_page to the printed URL, then take_screenshot
@@ -45,23 +45,20 @@ if (extname(svgPath).toLowerCase() !== '.svg') {
 
 const port = await pickPort()
 
+// Read the SVG once at startup: avoids per-request sync I/O on the event
+// loop, and lets us inline the source directly into the HTML response.
+const svgSource = readFileSync(svgPath, 'utf8')
+const svgDims = extractDims(svgSource)
+const htmlBody = renderHtml(basename(svgPath), svgSource, svgDims)
+
 const server = createServer((req, res) => {
   try {
     if (req.url === '/' || req.url === '/index.html') {
-      const svg = readFileSync(svgPath, 'utf8')
-      const dims = extractDims(svg)
-      const body = renderHtml(basename(svgPath), svg, dims)
       res.writeHead(200, {
         'content-type': 'text/html; charset=utf-8',
         'cache-control': 'no-store',
       })
-      res.end(body)
-    } else if (req.url === '/svg') {
-      res.writeHead(200, {
-        'content-type': 'image/svg+xml; charset=utf-8',
-        'cache-control': 'no-store',
-      })
-      res.end(readFileSync(svgPath))
+      res.end(htmlBody)
     } else if (req.url === '/health') {
       res.writeHead(200, { 'content-type': 'text/plain' })
       res.end('ok')
@@ -79,7 +76,7 @@ server.listen(port, '127.0.0.1', () => {
   const actual = typeof addr === 'object' && addr ? addr.port : port
   console.log(`✓ preview ready at http://localhost:${actual}/`)
   console.log(`  serving ${svgPath}`)
-  console.log(`  endpoints: /  /svg  /health`)
+  console.log(`  endpoints: /  /health`)
 })
 
 server.on('error', (err) => {
@@ -151,7 +148,7 @@ function renderHtml(name, svgSource, dims) {
       border-radius: 8px;
       margin-bottom: 24px;
     }
-    .stage img { display: block; max-width: 90vw; height: auto; }
+    .stage svg { display: block; max-width: 90vw; height: auto; }
     section h2 { font-size: 13px; color: #9CA3AF; margin: 0 0 8px; font-weight: 500; }
     pre { background: #111; color: #e9e9e9; padding: 16px; border-radius: 6px; overflow: auto; max-width: 110ch; font: 12px/1.5 ui-monospace, 'SF Mono', monospace; margin: 0; }
   </style>
@@ -159,10 +156,10 @@ function renderHtml(name, svgSource, dims) {
 <body>
   <header>
     <h1>${esc(name)}</h1>
-    <div class="meta">${esc(String(dims.w))} × ${esc(String(dims.h))} · <a href="/svg">raw svg</a></div>
+    <div class="meta">${esc(String(dims.w))} × ${esc(String(dims.h))}</div>
   </header>
   <div class="stage" id="stage">
-    <img id="preview" src="/svg" alt="${esc(name)}">
+    ${svgSource}
   </div>
   <section>
     <h2>Source</h2>

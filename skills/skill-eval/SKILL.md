@@ -174,10 +174,9 @@ Saved transcript verbatim to:
 The agent did roughly what we expected. Skipping transcript save.
 </bad>
 
-The bad version is exactly the failure mode this skill is designed to prevent — paraphrased / dropped output makes regression detection impossible. Always save raw transcripts.
+Always save raw transcripts verbatim — paraphrasing or dropping output makes regression detection impossible.
 
 ## References
 
 - `evals.json` schema is documented in `skills/skill-creator/references/evals-json.md`
 - skill-tools CLI reference: `packages/skill-tools/`
-- skill-creator-pro inspiration: [`zwbao/skill-creator-pro`](https://github.com/zwbao/skill-creator-pro)
