@@ -32,6 +32,12 @@ export interface VendoredFile {
 export interface SyncReport {
   skill: string
   scriptName: string
+  /**
+   * Top-level vendored directory for this script under the skill. Used by
+   * applySync to wholesale-replace the directory so files removed from the
+   * source allowlist also disappear from the vendored copy.
+   */
+  targetDir: string
   files: VendoredFile[]
   drift: VendoredFile[]
   missingScript: boolean
@@ -61,12 +67,10 @@ export function planSync(repoRoot: string): SyncReport[] {
  */
 export function applySync(report: SyncReport): void {
   if (report.missingScript) return
-  const [first] = report.files
-  if (!first) return
+  if (report.files.length === 0) return
 
-  const targetDir = path.dirname(first.target)
-  if (existsSync(targetDir)) rmSync(targetDir, { recursive: true, force: true })
-  mkdirSync(targetDir, { recursive: true })
+  if (existsSync(report.targetDir)) rmSync(report.targetDir, { recursive: true, force: true })
+  mkdirSync(report.targetDir, { recursive: true })
 
   for (const file of report.files) {
     mkdirSync(path.dirname(file.target), { recursive: true })
@@ -106,18 +110,20 @@ function buildReport({
   scriptName: string
 }): SyncReport {
   const sourceDir = path.join(repoRoot, SKILL_SCRIPTS_DIR, scriptName)
+  const targetDir = path.join(skill.location.dir, 'scripts', scriptName)
   if (!existsSync(sourceDir)) {
     return {
       skill: skill.location.name,
       scriptName,
+      targetDir,
       files: [],
       drift: [],
       missingScript: true,
     }
   }
 
-  const targetDir = path.join(skill.location.dir, 'scripts', scriptName)
-  const files = listVendorableFiles(sourceDir).map((rel) => ({
+  const relativePaths = manifestVendorablePaths(sourceDir) ?? listVendorableFiles(sourceDir)
+  const files = relativePaths.map((rel) => ({
     relative: rel,
     source: path.join(sourceDir, rel),
     target: path.join(targetDir, rel),
@@ -141,6 +147,7 @@ function buildReport({
   return {
     skill: skill.location.name,
     scriptName,
+    targetDir,
     files,
     drift,
     missingScript: false,
@@ -148,9 +155,65 @@ function buildReport({
 }
 
 /**
+ * If the source directory is a workspace package with a `files` array in
+ * its `package.json`, return the vendorable paths from that allowlist.
+ * Each entry can be a file path (vendored directly) or a directory path
+ * (recursively included). Returns `null` if there's no manifest or no
+ * `files` array, in which case the caller falls back to convention-based
+ * discovery.
+ *
+ * Conceptually mirrors `npm pack`'s file selection: `files` is the
+ * authoritative ship list when a package opts in.
+ *
+ * @private
+ */
+function manifestVendorablePaths(sourceDir: string): string[] | null {
+  const manifestPath = path.join(sourceDir, 'package.json')
+  if (!existsSync(manifestPath)) return null
+  let manifest: { files?: unknown }
+  try {
+    manifest = JSON.parse(readFileSync(manifestPath, 'utf8'))
+  } catch {
+    return null
+  }
+  if (!Array.isArray(manifest.files) || manifest.files.length === 0) return null
+
+  const out: string[] = []
+  const seen = new Set<string>()
+  const add = (rel: string): void => {
+    if (seen.has(rel)) return
+    seen.add(rel)
+    out.push(rel)
+  }
+  const walk = (absDir: string, relPrefix: string): void => {
+    for (const entry of readdirSync(absDir)) {
+      if (entry.startsWith('.')) continue
+      const abs = path.join(absDir, entry)
+      const rel = relPrefix ? `${relPrefix}/${entry}` : entry
+      const st = statSync(abs)
+      if (st.isDirectory()) walk(abs, rel)
+      else if (st.isFile()) add(rel)
+    }
+  }
+
+  for (const raw of manifest.files) {
+    if (typeof raw !== 'string') continue
+    const entry = raw.replace(/^\/+/, '').replace(/\/+$/, '')
+    if (!entry || entry.startsWith('..')) continue
+    const abs = path.join(sourceDir, entry)
+    if (!existsSync(abs)) continue
+    const st = statSync(abs)
+    if (st.isFile()) add(entry)
+    else if (st.isDirectory()) walk(abs, entry)
+  }
+  return out.toSorted()
+}
+
+/**
  * Recursively walk a directory and return paths (relative to `dir`) of files
  * eligible for vendoring. Excludes test files and dotfiles — tests live with
- * the source only, dotfiles aren't intended consumption.
+ * the source only, dotfiles aren't intended consumption. This is the
+ * fallback when a skill-script has no `package.json` `files` allowlist.
  *
  * @private
  */
@@ -178,6 +241,10 @@ function isVendorable(relPath: string): boolean {
   if (relPath.endsWith('.test.mjs')) return false
   if (relPath.endsWith('.test.js')) return false
   if (relPath === 'README.md') return false
+  // Workspace metadata — never part of the vendored payload.
+  if (relPath === 'package.json') return false
+  if (relPath === 'tsconfig.json') return false
+  if (relPath === 'tsdown.config.ts') return false
   return true
 }
 

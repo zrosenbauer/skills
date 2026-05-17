@@ -1,0 +1,119 @@
+{
+  "skill_name": "npm-namer",
+  "evals": [
+    {
+      "id": 0,
+      "eval_name": "messy-seeds-ranked",
+      "prompt": "i want to publish a logging lib thats tiny and fast. ideas: tinylog, microlog, jslog, picolog. find me something good and available",
+      "expected_output": "Agent runs the bundled namer script (no hand-rolled curl/npm view), reports availability+moniker status for each of the 4 inputs, permutes beyond the inputs, and presents at least one available alternative.",
+      "files": [],
+      "assertions": [
+        {
+          "text": "invokes the bundled namer script",
+          "type": "regex",
+          "pattern": "npm-namer/scripts/npm-namer/dist/check\\.m?js"
+        },
+        {
+          "text": "reports verdict for at least one of the 4 input seeds",
+          "type": "regex",
+          "pattern": "(tinylog|microlog|jslog|picolog)[\\s\\S]{0,200}(available|taken|moniker|collision|invalid|exists)",
+          "flags": "i"
+        },
+        {
+          "text": "surfaces at least one available candidate",
+          "type": "regex",
+          "pattern": "available",
+          "flags": "i"
+        },
+        {
+          "text": "surfaces at least one taken or moniker-colliding name",
+          "type": "regex",
+          "pattern": "(taken|moniker|collision|exists)",
+          "flags": "i"
+        },
+        {
+          "text": "reports how many candidates were considered",
+          "type": "regex",
+          "pattern": "(considered|permuted|checked|candidates)\\D{0,30}\\d{2,}",
+          "flags": "i"
+        }
+      ]
+    },
+    {
+      "id": 1,
+      "eval_name": "vague-concept-brainstorm",
+      "prompt": "need a name for a cli that queries bigquery with sql autocomplete in the terminal. cant think of anything",
+      "expected_output": "Agent brainstorms 10+ candidate names from the concept (no seeds given), runs the bundled namer script over them, returns a shortlist of available, moniker-clear names. Final answer is not a single guess but a ranked shortlist.",
+      "files": [],
+      "assertions": [
+        {
+          "text": "invokes the bundled namer script",
+          "type": "regex",
+          "pattern": "npm-namer/scripts/npm-namer/dist/check\\.m?js"
+        },
+        {
+          "text": "brainstorming step visible before the check",
+          "type": "regex",
+          "pattern": "(brainstorm|candidates|seeds?|keywords|generated|permut)",
+          "flags": "i"
+        },
+        {
+          "text": "considers many candidates (≥10 mentioned)",
+          "type": "regex",
+          "pattern": "(considered|permuted|checked|candidates)\\D{0,30}(1\\d|[2-9]\\d|\\d{3,})",
+          "flags": "i"
+        },
+        {
+          "text": "presents multiple available options in the shortlist",
+          "type": "regex",
+          "pattern": "available[\\s\\S]{0,800}available",
+          "flags": "i"
+        },
+        {
+          "text": "anchors candidates to the bigquery/sql concept",
+          "type": "regex",
+          "pattern": "(bq|bigquery|sql|query|term|cli)",
+          "flags": "i"
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "eval_name": "pre-brainstormed-batch",
+      "prompt": "already brainstormed these: querysmith, bqterm, sqlsage, sqlforge — which are actually available?",
+      "expected_output": "Agent skips brainstorming and runs the bundled namer script in batch-check mode over exactly the 4 provided names. Output has an explicit verdict for each. No unsolicited extra candidates beyond optional sibling suggestions.",
+      "files": [],
+      "assertions": [
+        {
+          "text": "invokes the bundled namer script",
+          "type": "regex",
+          "pattern": "npm-namer/scripts/npm-namer/dist/check\\.m?js"
+        },
+        {
+          "text": "verdict for querysmith",
+          "type": "regex",
+          "pattern": "querysmith[\\s\\S]{0,200}(available|taken|moniker|collision|invalid|exists)",
+          "flags": "i"
+        },
+        {
+          "text": "verdict for bqterm",
+          "type": "regex",
+          "pattern": "bqterm[\\s\\S]{0,200}(available|taken|moniker|collision|invalid|exists)",
+          "flags": "i"
+        },
+        {
+          "text": "verdict for sqlsage",
+          "type": "regex",
+          "pattern": "sqlsage[\\s\\S]{0,200}(available|taken|moniker|collision|invalid|exists)",
+          "flags": "i"
+        },
+        {
+          "text": "verdict for sqlforge",
+          "type": "regex",
+          "pattern": "sqlforge[\\s\\S]{0,200}(available|taken|moniker|collision|invalid|exists)",
+          "flags": "i"
+        }
+      ]
+    }
+  ]
+}

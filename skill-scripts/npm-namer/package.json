@@ -1,0 +1,29 @@
+{
+  "name": "@zrosenbauer/skill-scripts-npm-namer",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Source + build pipeline for the npm-namer skill's CLI. The bundled output in dist/ is what ships with the skill; the sync tool vendors only the files listed in the `files` array.",
+  "license": "MIT",
+  "author": "Zac Rosenbauer <zacrosenbauer@gmail.com>",
+  "files": [
+    "dist",
+    "popular-names.json",
+    "refresh-popular-names.mjs"
+  ],
+  "type": "module",
+  "scripts": {
+    "build": "tsdown --config tsdown.config.ts",
+    "test": "node --test src/*.test.mjs",
+    "lint": "true",
+    "typecheck": "true",
+    "clean": "rm -rf dist"
+  },
+  "dependencies": {
+    "damerau-levenshtein": "^1.0.8",
+    "massaman": "^0.2.0",
+    "validate-npm-package-name": "^8.0.0"
+  },
+  "devDependencies": {
+    "tsdown": "^0.22.0"
+  }
+}

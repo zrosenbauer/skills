@@ -7,6 +7,12 @@ dist/
 build/
 out/
 *.tsbuildinfo
+# Skill-script bundles ship to consumers, so the committed `dist/` is the
+# canonical artifact (source in `skill-scripts/*/`, vendored into `skills/*/scripts/*/`).
+!skill-scripts/*/dist/
+!skill-scripts/*/dist/**
+!skills/*/scripts/*/dist/
+!skills/*/scripts/*/dist/**
 
 # Turbo
 .turbo/
