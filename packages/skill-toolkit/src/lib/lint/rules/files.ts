@@ -11,7 +11,7 @@ export const fileRules = defineRuleset({
       description: 'skill should ship a human-facing README.md',
       check: (skill) =>
         match(skill)
-          .with({ hasReadme: true }, () => pass)
+          .with({ hasReadme: true }, () => pass())
           .otherwise(() => fail({ message: 'no README.md' })),
     }),
     defineRule({
@@ -20,7 +20,7 @@ export const fileRules = defineRuleset({
       description: 'skill should ship a LICENSE',
       check: (skill) =>
         match(skill)
-          .with({ hasLicense: true }, () => pass)
+          .with({ hasLicense: true }, () => pass())
           .otherwise(() => fail({ message: 'no LICENSE' })),
     }),
   ],

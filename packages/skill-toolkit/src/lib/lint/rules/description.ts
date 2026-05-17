@@ -16,7 +16,7 @@ export const descriptionRules = defineRuleset({
         match(frontmatter.description.length)
           .when(
             (len) => len >= 80,
-            () => pass
+            () => pass()
           )
           .otherwise((len) =>
             fail({
@@ -33,7 +33,7 @@ export const descriptionRules = defineRuleset({
         match(frontmatter.description.length)
           .when(
             (len) => len <= 1024,
-            () => pass
+            () => pass()
           )
           .otherwise((len) => fail({ message: `description is ${len} chars (target ≤ 1024)` })),
     }),
@@ -45,7 +45,7 @@ export const descriptionRules = defineRuleset({
         match(frontmatter.description)
           .when(
             (d) => /use when|should be used when/i.test(d),
-            () => pass
+            () => pass()
           )
           .otherwise(() =>
             fail({
@@ -62,7 +62,7 @@ export const descriptionRules = defineRuleset({
         match((frontmatter.description.match(QUOTED_PHRASE_RE) ?? []).length)
           .when(
             (count) => count >= 3,
-            () => pass
+            () => pass()
           )
           .otherwise((count) =>
             fail({
@@ -77,7 +77,7 @@ export const descriptionRules = defineRuleset({
       description: 'description must not contain then/next/step 1/process/first',
       check: ({ frontmatter }) =>
         match(frontmatter.description.match(ANTI_SHORTCUT_RE))
-          .with(P.nullish, () => pass)
+          .with(P.nullish, () => pass())
           .otherwise((m) =>
             fail({
               message: `description contains anti-shortcut word "${m[0]}"`,
@@ -93,7 +93,7 @@ export const descriptionRules = defineRuleset({
         match(frontmatter.description)
           .when(
             (d) => /skip when|do not use when|avoid when/i.test(d),
-            () => pass
+            () => pass()
           )
           .otherwise(() =>
             fail({

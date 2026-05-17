@@ -13,7 +13,7 @@ export const bodyRules = defineRuleset({
         match(bodyLineCount)
           .when(
             (n) => n <= 500,
-            () => pass
+            () => pass()
           )
           .otherwise((n) =>
             fail({
@@ -30,7 +30,7 @@ export const bodyRules = defineRuleset({
         match((body.match(/^##\s/gm) ?? []).length)
           .when(
             (n) => n >= 3,
-            () => pass
+            () => pass()
           )
           .otherwise((n) => fail({ message: `body has ${n} \`## \` sections (target ≥ 3)` })),
     }),
@@ -43,7 +43,7 @@ export const bodyRules = defineRuleset({
           .replace(/`[^`]*?(?:TODO|FIXME|XXX)[^`]*?`/g, '')
           .replace(/```[\s\S]*?```/g, '')
         return match(filtered.match(/\b(TODO|FIXME|XXX)\b/))
-          .with(P.nullish, () => pass)
+          .with(P.nullish, () => pass())
           .otherwise((m) =>
             fail({
               message: `body contains "${m[0]}" placeholder`,
@@ -60,7 +60,7 @@ export const bodyRules = defineRuleset({
         match(body)
           .when(
             (b) => /<example>[\s\S]+?<\/example>/.test(b),
-            () => pass
+            () => pass()
           )
           .otherwise(() =>
             fail({

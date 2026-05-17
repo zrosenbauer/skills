@@ -4,54 +4,71 @@ import type { SkillRecord } from '../skills/types.js'
 import type { Severity } from './types.js'
 
 /**
+ * Satisfied branch of a `CheckResult`. Produced by `pass()` when a
+ * rule's predicate holds.
+ */
+export interface CheckResultPass {
+  /**
+   * Discriminant — `'pass'` when the rule is satisfied and no
+   * finding should be produced.
+   */
+  status: 'pass'
+}
+
+/**
+ * Failing branch of a `CheckResult`. Produced by `fail({...})` when a
+ * rule's predicate is violated.
+ */
+export interface CheckResultFail {
+  /**
+   * Discriminant — `'fail'` when the rule produces a finding.
+   */
+  status: 'fail'
+  /**
+   * Human-readable description of what the rule found. Rendered
+   * inline next to the rule id in the lint output.
+   */
+  message: string
+  /**
+   * Optional remediation hint shown when the caller passes
+   * `--fix`. Should describe the change, not perform it.
+   */
+  fix?: string
+  /**
+   * Optional per-finding severity override. When omitted, the
+   * runner uses the rule's default severity.
+   */
+  severity?: Severity
+}
+
+/**
  * Tagged result of a rule's `check` function. Either the rule is
  * satisfied (`status: 'pass'`) or a finding is produced
  * (`status: 'fail'` with details). The runner switches on `status`
  * rather than nullability so the contract is explicit at every call.
  */
-export type CheckResult =
-  | {
-      /**
-       * Discriminant — `'pass'` when the rule is satisfied and no
-       * finding should be produced.
-       */
-      status: 'pass'
-    }
-  | {
-      /**
-       * Discriminant — `'fail'` when the rule produces a finding.
-       */
-      status: 'fail'
-      /**
-       * Human-readable description of what the rule found. Rendered
-       * inline next to the rule id in the lint output.
-       */
-      message: string
-      /**
-       * Optional remediation hint shown when the caller passes
-       * `--fix`. Should describe the change, not perform it.
-       */
-      fix?: string
-      /**
-       * Optional per-finding severity override. When omitted, the
-       * runner uses the rule's default severity.
-       */
-      severity?: Severity
-    }
+export type CheckResult = CheckResultPass | CheckResultFail
 
 /**
- * Sentinel for the satisfied branch of a check. Read at call sites:
- * `return pass`. Cheaper than constructing a fresh object every time
- * a rule passes (which is most of them, most of the time).
+ * Build a passing CheckResult. Pair with `fail({...})` — call sites
+ * read symmetrically: `pass()` vs `fail({ message })`.
  */
-export const pass: CheckResult = { status: 'pass' }
+export function pass(): CheckResultPass {
+  return { status: 'pass' }
+}
 
 /**
  * Build a failing CheckResult. Matches on `fix` so the result is
  * constructed without conditional spreads under
  * `exactOptionalPropertyTypes: true`.
  */
-export function fail({ message, fix }: { message: string; fix?: string | undefined }): CheckResult {
+export function fail({
+  message,
+  fix,
+}: {
+  message: string
+  fix?: string | undefined
+}): CheckResultFail {
   return match(fix)
     .with(P.string, (f) => ({ status: 'fail' as const, message, fix: f }))
     .otherwise(() => ({ status: 'fail' as const, message }))
@@ -88,8 +105,8 @@ export interface Rule {
    */
   description: string
   /**
-   * The actual predicate. Returns `pass` when the rule is satisfied,
-   * or a `{ status: 'fail', ... }` result describing the violation.
+   * The actual predicate. Returns `pass()` when the rule is satisfied,
+   * or `fail({ message, fix? })` describing the violation.
    */
   check: RuleCheck
 }

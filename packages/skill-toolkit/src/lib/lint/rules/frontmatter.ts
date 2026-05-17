@@ -15,7 +15,7 @@ export const frontmatterRules = defineRuleset({
         match(location.name)
           .when(
             (n) => NAMING_RE.test(n),
-            () => pass
+            () => pass()
           )
           .otherwise((name) =>
             fail({
@@ -30,7 +30,7 @@ export const frontmatterRules = defineRuleset({
       description: 'frontmatter must parse against the schema',
       check: ({ frontmatterParseError }) =>
         match(frontmatterParseError)
-          .with(P.nullish, () => pass)
+          .with(P.nullish, () => pass())
           .otherwise((err) => fail({ message: `frontmatter failed schema validation: ${err}` })),
     }),
     defineRule({
@@ -40,7 +40,7 @@ export const frontmatterRules = defineRuleset({
       check: ({ frontmatter }) =>
         match(frontmatter.name)
           .when(isEmpty, () => fail({ message: 'Frontmatter is missing `name`' }))
-          .otherwise(() => pass),
+          .otherwise(() => pass()),
     }),
     defineRule({
       id: 'fm-name-mismatch',
@@ -50,7 +50,7 @@ export const frontmatterRules = defineRuleset({
         match(frontmatter.name)
           .when(
             (name) => name === location.name,
-            () => pass
+            () => pass()
           )
           .otherwise((name) =>
             fail({
@@ -66,7 +66,7 @@ export const frontmatterRules = defineRuleset({
       check: ({ frontmatter }) =>
         match(frontmatter.description)
           .when(isEmpty, () => fail({ message: 'Frontmatter is missing `description`' }))
-          .otherwise(() => pass),
+          .otherwise(() => pass()),
     }),
     defineRule({
       id: 'fm-missing-argument-hint',
@@ -80,7 +80,7 @@ export const frontmatterRules = defineRuleset({
               fix: "Add `argument-hint: '[<arg>]'` (use empty string if no args)",
             })
           )
-          .otherwise(() => pass),
+          .otherwise(() => pass()),
     }),
     defineRule({
       id: 'fm-missing-user-invocable',
@@ -91,7 +91,7 @@ export const frontmatterRules = defineRuleset({
           .with(P.nullish, () =>
             fail({ message: '`user-invocable` not set (Claude Code extension)' })
           )
-          .otherwise(() => pass),
+          .otherwise(() => pass()),
     }),
     defineRule({
       id: 'fm-missing-model-invocable',
@@ -102,7 +102,7 @@ export const frontmatterRules = defineRuleset({
           .with(P.nullish, () =>
             fail({ message: '`model-invocable` not set (Claude Code extension)' })
           )
-          .otherwise(() => pass),
+          .otherwise(() => pass()),
     }),
   ],
 })
