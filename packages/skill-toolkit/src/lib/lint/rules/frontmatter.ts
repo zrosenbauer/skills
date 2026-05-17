@@ -1,7 +1,6 @@
-import { match, P } from 'massaman'
+import { isEmpty, match, P } from 'massaman'
 
-import { checkFieldNonEmpty, checkFieldPresent, fail } from '../helpers.js'
-import { defineRule, defineRuleset, pass } from '../rule.js'
+import { defineRule, defineRuleset, fail, pass } from '../rule.js'
 
 const NAMING_RE = /^[a-z][a-z0-9-]+[a-z0-9]$/
 
@@ -38,7 +37,10 @@ export const frontmatterRules = defineRuleset({
       id: 'fm-missing-name',
       severity: 'error',
       description: 'Frontmatter must include `name`',
-      check: checkFieldNonEmpty({ field: 'name' }),
+      check: ({ frontmatter }) =>
+        match(frontmatter.name)
+          .when(isEmpty, () => fail({ message: 'Frontmatter is missing `name`' }))
+          .otherwise(() => pass),
     }),
     defineRule({
       id: 'fm-name-mismatch',
@@ -61,35 +63,46 @@ export const frontmatterRules = defineRuleset({
       id: 'fm-missing-description',
       severity: 'error',
       description: 'Frontmatter must include `description`',
-      check: checkFieldNonEmpty({ field: 'description' }),
+      check: ({ frontmatter }) =>
+        match(frontmatter.description)
+          .when(isEmpty, () => fail({ message: 'Frontmatter is missing `description`' }))
+          .otherwise(() => pass),
     }),
     defineRule({
       id: 'fm-missing-argument-hint',
       severity: 'info',
       description: 'argument-hint is a Claude Code extension; recommended for cross-agent compat',
-      check: checkFieldPresent({
-        field: 'argument-hint',
-        message: '`argument-hint` not set (Claude Code extension)',
-        fix: "Add `argument-hint: '[<arg>]'` (use empty string if no args)",
-      }),
+      check: ({ frontmatter }) =>
+        match(frontmatter['argument-hint'])
+          .with(P.nullish, () =>
+            fail({
+              message: '`argument-hint` not set (Claude Code extension)',
+              fix: "Add `argument-hint: '[<arg>]'` (use empty string if no args)",
+            })
+          )
+          .otherwise(() => pass),
     }),
     defineRule({
       id: 'fm-missing-user-invocable',
       severity: 'info',
       description: 'user-invocable is a Claude Code extension; recommended',
-      check: checkFieldPresent({
-        field: 'user-invocable',
-        message: '`user-invocable` not set (Claude Code extension)',
-      }),
+      check: ({ frontmatter }) =>
+        match(frontmatter['user-invocable'])
+          .with(P.nullish, () =>
+            fail({ message: '`user-invocable` not set (Claude Code extension)' })
+          )
+          .otherwise(() => pass),
     }),
     defineRule({
       id: 'fm-missing-model-invocable',
       severity: 'info',
       description: 'model-invocable is a Claude Code extension; recommended',
-      check: checkFieldPresent({
-        field: 'model-invocable',
-        message: '`model-invocable` not set (Claude Code extension)',
-      }),
+      check: ({ frontmatter }) =>
+        match(frontmatter['model-invocable'])
+          .with(P.nullish, () =>
+            fail({ message: '`model-invocable` not set (Claude Code extension)' })
+          )
+          .otherwise(() => pass),
     }),
   ],
 })

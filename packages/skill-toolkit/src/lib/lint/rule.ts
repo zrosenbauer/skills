@@ -1,3 +1,5 @@
+import { match, P } from 'massaman'
+
 import type { SkillRecord } from '../skills/types.js'
 import type { Severity } from './types.js'
 
@@ -43,6 +45,17 @@ export type CheckResult =
  * a rule passes (which is most of them, most of the time).
  */
 export const pass: CheckResult = { status: 'pass' }
+
+/**
+ * Build a failing CheckResult. Matches on `fix` so the result is
+ * constructed without conditional spreads under
+ * `exactOptionalPropertyTypes: true`.
+ */
+export function fail({ message, fix }: { message: string; fix?: string | undefined }): CheckResult {
+  return match(fix)
+    .with(P.string, (f) => ({ status: 'fail' as const, message, fix: f }))
+    .otherwise(() => ({ status: 'fail' as const, message }))
+}
 
 /**
  * Signature every rule's `check` field conforms to. Receives the

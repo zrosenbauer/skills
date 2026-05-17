@@ -1,7 +1,6 @@
-import { match } from 'massaman'
+import { match, P } from 'massaman'
 
-import { checkDescriptionForbids, checkDescriptionMatches, fail } from '../helpers.js'
-import { defineRule, defineRuleset, pass } from '../rule.js'
+import { defineRule, defineRuleset, fail, pass } from '../rule.js'
 
 const ANTI_SHORTCUT_RE = /\b(then|next|step\s+1|process|first)\b/i
 const QUOTED_PHRASE_RE = /"[^"]+"/g
@@ -42,11 +41,18 @@ export const descriptionRules = defineRuleset({
       id: 'desc-no-trigger',
       severity: 'warn',
       description: 'description should contain "Use when" or "should be used when"',
-      check: checkDescriptionMatches({
-        pattern: /use when|should be used when/i,
-        message: 'description lacks "Use when" / "should be used when" anchor',
-        fix: 'Lead with "This skill should be used when ..."',
-      }),
+      check: ({ frontmatter }) =>
+        match(frontmatter.description)
+          .when(
+            (d) => /use when|should be used when/i.test(d),
+            () => pass
+          )
+          .otherwise(() =>
+            fail({
+              message: 'description lacks "Use when" / "should be used when" anchor',
+              fix: 'Lead with "This skill should be used when ..."',
+            })
+          ),
     }),
     defineRule({
       id: 'desc-few-triggers',
@@ -69,21 +75,32 @@ export const descriptionRules = defineRuleset({
       id: 'desc-anti-shortcut',
       severity: 'error',
       description: 'description must not contain then/next/step 1/process/first',
-      check: checkDescriptionForbids({
-        pattern: ANTI_SHORTCUT_RE,
-        message: (m) => `description contains anti-shortcut word "${m}"`,
-        fix: 'Reword the description; procedural verbs cause the agent to follow it as instructions',
-      }),
+      check: ({ frontmatter }) =>
+        match(frontmatter.description.match(ANTI_SHORTCUT_RE))
+          .with(P.nullish, () => pass)
+          .otherwise((m) =>
+            fail({
+              message: `description contains anti-shortcut word "${m[0]}"`,
+              fix: 'Reword the description; procedural verbs cause the agent to follow it as instructions',
+            })
+          ),
     }),
     defineRule({
       id: 'desc-no-skip',
       severity: 'info',
       description: 'description should include a "Skip when" clause',
-      check: checkDescriptionMatches({
-        pattern: /skip when|do not use when|avoid when/i,
-        message: 'description lacks "Skip when" clause',
-        fix: 'Add "Skip when [anti-trigger]" so the dispatcher knows what NOT to route',
-      }),
+      check: ({ frontmatter }) =>
+        match(frontmatter.description)
+          .when(
+            (d) => /skip when|do not use when|avoid when/i.test(d),
+            () => pass
+          )
+          .otherwise(() =>
+            fail({
+              message: 'description lacks "Skip when" clause',
+              fix: 'Add "Skip when [anti-trigger]" so the dispatcher knows what NOT to route',
+            })
+          ),
     }),
   ],
 })

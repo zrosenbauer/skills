@@ -1,7 +1,6 @@
 import { match, P } from 'massaman'
 
-import { checkBodyMatches, fail } from '../helpers.js'
-import { defineRule, defineRuleset, pass } from '../rule.js'
+import { defineRule, defineRuleset, fail, pass } from '../rule.js'
 
 export const bodyRules = defineRuleset({
   name: 'body',
@@ -57,11 +56,18 @@ export const bodyRules = defineRuleset({
       id: 'body-no-example',
       severity: 'warn',
       description: 'body should contain at least one <example> block',
-      check: checkBodyMatches({
-        pattern: /<example>[\s\S]+?<\/example>/,
-        message: 'body has no <example> block',
-        fix: 'Add at least one worked example wrapped in <example>...</example>',
-      }),
+      check: (_skill, body) =>
+        match(body)
+          .when(
+            (b) => /<example>[\s\S]+?<\/example>/.test(b),
+            () => pass
+          )
+          .otherwise(() =>
+            fail({
+              message: 'body has no <example> block',
+              fix: 'Add at least one worked example wrapped in <example>...</example>',
+            })
+          ),
     }),
   ],
 })

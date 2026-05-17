@@ -1,7 +1,6 @@
 import { match } from 'massaman'
 
-import { fail } from '../helpers.js'
-import { defineRule, defineRuleset, pass } from '../rule.js'
+import { defineRule, defineRuleset, fail, pass } from '../rule.js'
 
 export const fileRules = defineRuleset({
   name: 'files',
