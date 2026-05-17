@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { aggregate, renderMarkdown } from '../commands/benchmark.js'
+import { aggregate, renderMarkdown } from './benchmark.js'
 import type { IterationSummary, ScenarioSummary, VariantSummary } from './iterations.js'
 import type { EvalCase, GradingFile } from './schemas.js'
 

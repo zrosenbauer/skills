@@ -4,9 +4,9 @@ import path from 'node:path'
 import { command } from '@kidd-cli/core'
 import { z } from 'zod'
 
-import { gradeAll } from '../lib/grading.js'
+import { gradeAll } from '../evals/grading.js'
+import { gradingFileSchema, type EvalCase } from '../evals/schemas.js'
 import { findRepoRoot } from '../lib/repo-root.js'
-import { gradingFileSchema, type EvalCase } from '../lib/schemas.js'
 import { findSkills, type SkillRecord } from '../lib/skills.js'
 
 const positionals = z.object({

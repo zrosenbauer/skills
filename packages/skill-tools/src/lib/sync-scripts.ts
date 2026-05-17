@@ -10,8 +10,24 @@ import {
 } from 'node:fs'
 import path from 'node:path'
 
-import { type ScriptsManifest, scriptsManifestSchema } from './schemas.js'
+import { z } from 'zod'
+
 import { findSkills, type SkillRecord } from './skills.js'
+
+/**
+ * Schema for `<skill>/scripts.json` — declares which canonical scripts under
+ * `skill-scripts/<name>/` should be vendored into `<skill>/scripts/<name>/`.
+ */
+export const scriptsManifestSchema = z.object({
+  scripts: z
+    .array(
+      z.string().regex(/^[a-z][a-z0-9-]+[a-z0-9]$/, {
+        message: 'script name must be kebab-case',
+      })
+    )
+    .min(1, { message: 'scripts.json must list at least one script' }),
+})
+export type ScriptsManifest = z.infer<typeof scriptsManifestSchema>
 
 const SKILL_SCRIPTS_DIR = 'skill-scripts'
 

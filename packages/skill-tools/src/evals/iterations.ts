@@ -3,13 +3,13 @@ import path from 'node:path'
 
 import { attempt } from 'massaman'
 
+import type { SkillRecord } from '../lib/skills.js'
 import {
   type BenchmarkFile,
   benchmarkFileSchema,
   type GradingFile,
   gradingFileSchema,
 } from './schemas.js'
-import type { SkillRecord } from './skills.js'
 
 export interface IterationSummary {
   iteration: number

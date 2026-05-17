@@ -1,4 +1,4 @@
-import type { SkillRecord } from '../skills.js'
+import type { SkillRecord } from '../lib/skills.js'
 
 export type Severity = 'error' | 'warn' | 'info'
 

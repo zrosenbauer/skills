@@ -1,6 +1,6 @@
 import { isEmpty } from 'massaman'
 
-import type { SkillRecord } from '../skills.js'
+import type { SkillRecord } from '../lib/skills.js'
 import { type CheckResult, pass } from './types.js'
 
 /**

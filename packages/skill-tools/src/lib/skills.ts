@@ -3,13 +3,31 @@ import path from 'node:path'
 
 import { attempt } from 'massaman'
 import { parse as parseYaml } from 'yaml'
+import { z } from 'zod'
 
-import {
-  type EvalsFile,
-  evalsFileSchema,
-  type SkillFrontmatter,
-  skillFrontmatterSchema,
-} from './schemas.js'
+import { type EvalsFile, evalsFileSchema } from '../evals/schemas.js'
+
+/**
+ * Skill frontmatter — what every agent loader reads. `name` + `description`
+ * are universally required; everything else is a Claude Code extension that
+ * other agents ignore.
+ */
+export const skillFrontmatterSchema = z.object({
+  name: z.string().min(1),
+  description: z.string().min(1),
+  'argument-hint': z.string().optional(),
+  'user-invocable': z.boolean().optional(),
+  'model-invocable': z.boolean().optional(),
+  metadata: z
+    .object({
+      internal: z.boolean().optional(),
+      author: z.string().optional(),
+      version: z.string().optional(),
+      tags: z.string().optional(),
+    })
+    .optional(),
+})
+export type SkillFrontmatter = z.infer<typeof skillFrontmatterSchema>
 
 const FRONTMATTER_RE = /^---\n([\s\S]+?)\n---\n/
 const SKILL_ROOTS = ['skills', '.agents/skills'] as const

@@ -2,15 +2,15 @@ import { command } from '@kidd-cli/core'
 import { groupBy, match, P } from 'massaman'
 import { z } from 'zod'
 
+import { findRepoRoot } from '../lib/repo-root.js'
+import { findSkills, type SkillRecord } from '../lib/skills.js'
 import {
   type Finding,
   type Severity,
   type SkillLintResult,
   lintSkill,
   summarize,
-} from '../lib/lint/index.js'
-import { findRepoRoot } from '../lib/repo-root.js'
-import { findSkills, type SkillRecord } from '../lib/skills.js'
+} from '../lint/index.js'
 
 const options = z.object({
   severity: z

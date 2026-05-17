@@ -3,29 +3,6 @@ import path from 'node:path'
 import { z } from 'zod'
 
 /**
- * Skill frontmatter — what we parse out of SKILL.md
- *
- * Universal core: `name`, `description`. Other fields are Claude Code
- * extensions and stay optional so cross-agent skills don't fail validation.
- */
-export const skillFrontmatterSchema = z.object({
-  name: z.string().min(1),
-  description: z.string().min(1),
-  'argument-hint': z.string().optional(),
-  'user-invocable': z.boolean().optional(),
-  'model-invocable': z.boolean().optional(),
-  metadata: z
-    .object({
-      internal: z.boolean().optional(),
-      author: z.string().optional(),
-      version: z.string().optional(),
-      tags: z.string().optional(),
-    })
-    .optional(),
-})
-export type SkillFrontmatter = z.infer<typeof skillFrontmatterSchema>
-
-/**
  * Assertion shape inside `evals.json`. Deterministic only — no LLM-as-judge.
  */
 export const assertionSchema = z.discriminatedUnion('type', [
@@ -114,34 +91,6 @@ export const gradingFileSchema = z.object({
   graded_at: z.string(),
 })
 export type GradingFile = z.infer<typeof gradingFileSchema>
-
-/**
- * Schema for `<skill>/scripts.json` — declares which canonical scripts under
- * `skill-scripts/<name>/` should be vendored into `<skill>/scripts/<name>/`.
- *
- * `pnpm skill-tools sync-scripts` reads this manifest and copies the source
- * files (excluding `*.test.mjs`) from each named directory into the skill.
- * Drift is enforced via `--check`.
- */
-export const scriptsManifestSchema = z.object({
-  scripts: z
-    .array(
-      z.string().regex(/^[a-z][a-z0-9-]+[a-z0-9]$/, {
-        message: 'script name must be kebab-case',
-      })
-    )
-    .min(1, { message: 'scripts.json must list at least one script' }),
-})
-export type ScriptsManifest = z.infer<typeof scriptsManifestSchema>
-
-/**
- * Per-run timing recorded by the eval runner.
- */
-export const timingFileSchema = z.object({
-  total_tokens: z.number().int().nonnegative().optional(),
-  duration_ms: z.number().nonnegative(),
-})
-export type TimingFile = z.infer<typeof timingFileSchema>
 
 /**
  * Aggregate of grading.json files across one iteration of one skill.
