@@ -239,15 +239,27 @@ Each concern: what it is → why it exists → cost → recommendation. Mark a b
 
 ---
 
-## Estimated impact
+## Actual impact (post-execution)
 
-| Scenario                                                                    | LOC removed | Deps removed                                    |
-| --------------------------------------------------------------------------- | ----------: | ----------------------------------------------- |
-| C1 (TUI) + C2 (provider-docs) + C3 (result) + C6 (lint trim) + C8 (hygiene) |       ~1027 | react, ink, @inkjs/ui, es-toolkit, @types/react |
-| Above + C7 (delete eval/benchmark)                                          |       ~1392 | + drop write-schemas in C4                      |
-| Above + C9 (drop ts-pattern)                                                |       ~1392 | + ts-pattern                                    |
+| Commit    | What landed                                                                                                  |    LOC delta |
+| --------- | ------------------------------------------------------------------------------------------------------------ | -----------: |
+| `b6a1d80` | C1 + C2 + C3 + C5 + C8 + C9 + C11 — TUI, provider-docs, result, workspace.ts, ts-pattern, es-toolkit cleanup | -1439 / +636 |
+| `ba1a991` | Refresh installed `.agents/skills/` after above                                                              |    -37 / +27 |
+| `1c53746` | Feature-dir restructure (lint/, evals/, lib/) + schema split                                                 |  -181 / +177 |
+| `b31f63c` | C7 — full evals concept wipe (incl. C4 schemas)                                                              |  -4044 / +71 |
+| `75faaab` | Refresh installs + drop skill-eval from lock                                                                 |   -429 / +28 |
 
-For reference: current non-test source is ~1880 LOC. The aggressive path leaves ~490 LOC + zod + kidd + (possibly yaml).
+**Total: ~-5130 / +939 lines across skill-tools, skills, and root docs.**
+
+**Runtime deps dropped:** `react`, `ink`, `@inkjs/ui`, `@types/react`, `es-toolkit`, `ts-pattern` (6 total).
+**Runtime deps added:** `massaman`, `yaml` (2 total).
+**Net dep change: -4.**
+
+**skill-tools src/ LOC (non-test):** ~1880 → ~620.
+
+**Skills deleted:** `skill-eval` (entire skill).
+**Skill-tools commands deleted:** `view`, `refresh-provider-docs`, `eval`, `benchmark` (4 of 6).
+**Skill-tools commands remaining:** `lint`, `sync-scripts` (2).
 
 ---
 
@@ -255,17 +267,17 @@ For reference: current non-test source is ~1880 LOC. The aggressive path leaves 
 
 Use this section to record the actual decisions as we make them. Format: `decision — date — rationale`.
 
-- **DELETE** C1 (TUI) — 2026-05-17 — confirmed unused; one-liner replacement is fine
-- **DELETE** C2 (refresh-provider-docs) — 2026-05-17 — over-engineered for quarterly cadence; ad-hoc curl + paste when refresh is needed. Snapshots themselves stay (load-bearing for skill-portability). Update docs in providers.mjs / SKILL.md / CONTRIBUTING.md to drop the `pnpm skill-tools refresh-provider-docs` references.
-- **DELETE** C3 (result.ts) — 2026-05-17 — fully covered by massaman; add `massaman` dep, swap import in workspace.ts, delete result.ts + result.test.ts
-- **DEFER** C4 (schemas trim) — 2026-05-17 — outcome depends on C7 (write-side schemas die with eval/benchmark if those are cut). Revisit after C7. See note on Claude vs Base skill schema split below.
-- **DELETE** C5 (workspace.ts as shared module) — 2026-05-17 — `SkillRecord` is lint's data model in disguise; only lint needs the full shape. Inline ~30 LOC discovery into `commands/lint.ts`. Give sync-scripts its own ~10 LOC walker for `{name, dir, source}`. Move `findRepoRoot` to `lib/repo-root.ts`. Drop bespoke YAML parser; add `yaml` dep. If C7 keeps eval/benchmark, the `.workspace/iteration-N/` reader (~90 LOC) moves into `commands/benchmark.ts` or `lib/iteration-reader.ts`. **Net: 278 LOC → ~40 LOC.**
-- **DEFER** C6 (lint flatten) — 2026-05-17 — large change; revisit after other concerns are resolved so we know the full shape of the consolidated module (C5 may inline `findSkills` here)
-- **DEFER** C7 (eval/benchmark) — 2026-05-17 — large change, assess after other concerns; gates final shape of C4 (write-side schemas) and C5 (workspace iteration reader)
-- **TRIM** C8 (sync-scripts hygiene) — 2026-05-17 — delete dead exports `syncAll` (lines 271-275) and `findManifests` (lines 85-92); `findRepoRoot` re-export at line 277 dies as part of C5. Leave the two file walkers alone.
-- **SWAP** C9 (ts-pattern → massaman) — 2026-05-17 — replace `import { match, P } from 'ts-pattern'` with `from 'massaman'` everywhere; drop `ts-pattern` direct dep. Pairs with C3 + C11 to consolidate FP layer onto massaman (thin wrapper over es-toolkit + ts-pattern + extras).
-- [pending] C10 (ANSI colors) — leave as-is
-- **SWAP** C11 (es-toolkit → massaman) — 2026-05-17 — both functions exist in massaman; consolidates FP lib; dogfooding
+- **DELETE** C1 (TUI) — 2026-05-17 — confirmed unused; one-liner replacement is fine. **Landed: `b6a1d80`.**
+- **DELETE** C2 (refresh-provider-docs) — 2026-05-17 — over-engineered for quarterly cadence; ad-hoc curl + paste when refresh is needed. Snapshots themselves stay (load-bearing for skill-portability). **Landed: `b6a1d80`.**
+- **DELETE** C3 (result.ts) — 2026-05-17 — fully covered by massaman. **Landed: `b6a1d80`.**
+- **DELETE** C4 (schemas trim) — 2026-05-17 — died with C7. Write-side eval schemas removed wholesale; `skillFrontmatterSchema` inlined into `lib/skills.ts`, `scriptsManifestSchema` inlined into `lib/sync-scripts.ts`. **Landed: `b31f63c`** (as part of evals wipe).
+- **DELETE** C5 (workspace.ts as shared module) — 2026-05-17 — split into `lib/skills.ts` (60 LOC) + `lib/repo-root.ts` (10 LOC) + `lib/iterations.ts` (90 LOC, later deleted with C7). **Landed: `b6a1d80`.** 278 LOC → ~70 LOC.
+- **DEFER** C6 (lint flatten) — 2026-05-17 — large change; the only remaining structural item. Now scoped: `src/lint/` is 5 files (helpers, index, linter, rules, types) totaling ~600 LOC; could collapse to ~250 LOC in one file. Lower priority now that the package is much smaller.
+- **DELETE** C7 (eval/benchmark) — 2026-05-17 — full wipe of the evals concept. ~365 LOC of grading/benchmark/iterations + the `/skill-eval` skill + 15 `evals.json` files + 3 reference docs + 4 lint rules + heavy rewrites of skill-creator and skill-reviewer. Inspired by `zwbao/skill-creator-pro` but used exactly once; viteval is the right tool if real eval grading is ever needed. **Landed: `b31f63c`** (source) + `75faaab` (install refresh).
+- **TRIM** C8 (sync-scripts hygiene) — 2026-05-17 — `syncAll` + `findManifests` dead exports removed; `findRepoRoot` re-export migrated. **Landed: `b6a1d80`.**
+- **SWAP** C9 (ts-pattern → massaman) — 2026-05-17 — replaced direct `ts-pattern` import with `massaman` (which re-exports it). Direct dep dropped. **Landed: `b6a1d80`.**
+- **LEAVE** C10 (ANSI colors) — 2026-05-17 — fine as-is, not worth a `chalk` dep or extracted helper.
+- **SWAP** C11 (es-toolkit → massaman) — 2026-05-17 — `groupBy` + `isEmpty` swapped to massaman; direct `es-toolkit` dep dropped. **Landed: `b6a1d80`.**
 
 ---
 
@@ -308,47 +320,59 @@ Why this matters:
 
 Tie-in with `skill-portability`: that skill already maintains a provider matrix in `providers.mjs` (`requiredFrontmatter` / `ignoredFrontmatter` / `forbiddenFrontmatter`). The schema split should align with that matrix — ideally the same source of truth produces both the zod schemas and the portability matrix.
 
-**Action: defer until C4 resolves.** When we revisit the schemas, split first, then trim.
+**Status: still a valid future direction.** C4 resolved (write-side eval schemas are gone; `skillFrontmatterSchema` lives in `lib/skills.ts`). The split now applies to a single, simpler schema: 6 fields, 3 universal + 3 Claude extensions. Worth doing if/when a second provider's frontmatter shape lands in the lint (e.g. if a Cursor-flavored lint rule is added). Not urgent today.
 
 ---
 
-## EXECUTED 2026-05-17
+## Final state (2026-05-17)
 
-Resolved decisions C1, C2, C3, C5, C8, C9, C11 all landed in one commit. Verified: typecheck clean, 63/63 vitest pass, lint 0 errors/warns/infos, sync-scripts 0 drift. Deps dropped: `react`, `ink`, `@inkjs/ui`, `@types/react`, `es-toolkit`, `ts-pattern`. Deps added: `massaman`, `yaml`. Net: -4 runtime deps. LOC delta in skill-tools: roughly -750 (TUI + workspace.ts + result.ts + refresh-provider-docs net of new `lib/skills.ts` + `lib/repo-root.ts` + `lib/iterations.ts`).
+**10 of 11 concerns resolved.** Only C6 (lint flatten) remains open — lower priority now that the codebase is much smaller.
 
-Remaining deferred: C4 (write-schemas), C6 (lint flatten), C7 (eval/benchmark).
+### Final layout
+
+```
+packages/skill-tools/src/
+├── commands/              # 2 thin CLI dispatch files (lint, sync-scripts)
+├── lint/                  # rules + helpers + runner + tests (6 files, ~600 LOC)
+├── lib/                   # skills, repo-root, sync-scripts (~270 LOC)
+├── index.ts
+└── kidd.config.ts
+```
+
+### Validation at last commit
+
+- typecheck clean
+- 21/21 vitest pass
+- `pnpm skill-tools lint` — 0 error / 0 warn / 0 info across 13 skills
+- `pnpm skill-tools sync-scripts --check` — 0 drift
+- Zero textual references to `evals.json` / `/skill-eval` / `RED→GREEN` / `pressure-scenarios` / `tdd-for-skills` anywhere in source paths
+
+### Skills before/after
+
+Public skills: 9 → 8 (deleted: `skill-eval`).
+Each surviving skill: just `SKILL.md` + `README.md` + `LICENSE` (+ optional `references/`, `scripts/`, `scripts.json`). No more `evals.json` requirement.
+
+### What's open
+
+- **C6 (lint flatten):** consolidate `src/lint/` (5 files, ~600 LOC) → single `src/lint.ts` (~250 LOC). Mechanical, well-scoped, but the package is now small enough that the savings are modest.
+- **BaseSkill / ClaudeSkill schema split:** see Architectural notes above. Defer until a second provider's frontmatter needs lint coverage.
 
 ---
 
-## Status summary (after first walkthrough)
+## Resolution summary
 
-**Resolved (8):**
+| #   | Decision | Landed in | Notes                                                                      |
+| --- | -------- | --------- | -------------------------------------------------------------------------- |
+| C1  | DELETE   | `b6a1d80` | TUI + react/ink/@inkjs/ui deps                                             |
+| C2  | DELETE   | `b6a1d80` | refresh-provider-docs; snapshots stay (load-bearing for skill-portability) |
+| C3  | DELETE   | `b6a1d80` | result.ts → massaman                                                       |
+| C4  | DELETE   | `b31f63c` | schemas trim — died with C7                                                |
+| C5  | DELETE   | `b6a1d80` | workspace.ts split into `lib/skills.ts` + `lib/repo-root.ts`               |
+| C6  | OPEN     | —         | lint flatten — lower priority now                                          |
+| C7  | DELETE   | `b31f63c` | eval/benchmark wholesale wipe                                              |
+| C8  | TRIM     | `b6a1d80` | dead exports `syncAll`, `findManifests`                                    |
+| C9  | SWAP     | `b6a1d80` | ts-pattern direct dep → massaman re-export                                 |
+| C10 | LEAVE    | —         | ANSI colors inline — fine as-is                                            |
+| C11 | SWAP     | `b6a1d80` | es-toolkit → massaman                                                      |
 
-| #   | Decision | Notes                                                                                |
-| --- | -------- | ------------------------------------------------------------------------------------ |
-| C1  | DELETE   | TUI + `react`/`ink`/`@inkjs/ui` deps                                                 |
-| C2  | DELETE   | refresh-provider-docs; snapshots stay (load-bearing for skill-portability)           |
-| C3  | DELETE   | result.ts → use `massaman`                                                           |
-| C5  | DELETE   | workspace.ts as shared module; inline to lint.ts + tiny repo-root.ts; add `yaml` dep |
-| C8  | TRIM     | dead exports `syncAll`, `findManifests`                                              |
-| C9  | SWAP     | ts-pattern direct dep → use massaman re-export                                       |
-| C10 | LEAVE    | ANSI colors inline — fine as-is                                                      |
-| C11 | SWAP     | es-toolkit → massaman                                                                |
-
-**Deferred (3):**
-
-| #   | Status | Gate                                                 |
-| --- | ------ | ---------------------------------------------------- |
-| C4  | DEFER  | Schemas trim — outcome depends on C7                 |
-| C6  | DEFER  | Lint flatten — large, want full picture first        |
-| C7  | DEFER  | Eval/benchmark triangle — big decision, assess later |
-
-**Net pending C7:** runtime deps drop from `react`, `ink`, `@inkjs/ui`, `es-toolkit`, `ts-pattern` (5) → `massaman`, `yaml` added. **Net -3 deps.** LOC drops by ~1000+ before C6/C7 trim further.
-
-## Open questions for Zac (remaining)
-
-1. **C7 — Do you actually run `/skill-eval` regularly?** Looking at the repo, only `npm-namer` has a `.workspace/iteration-1/`. The infra has run once per skill, during initial authoring. Three paths: DELETE (~450 LOC + the `/skill-eval` skill), KEEP (status quo), SHRINK (keep `eval`, drop `benchmark` aggregation).
-
-2. **C6 — When do we want to tackle the lint flatten?** Big mechanical change (~600 LOC across 5 files → ~250 LOC in 1 file). Best done after C5 lands so we know exactly what `findSkills` looks like in its final home.
-
-3. **Order of operations question:** do you want to land the resolved changes (C1, C2, C3, C5, C8, C9, C11) as one big "skill-tools cleanup" PR, or split into smaller PRs (e.g. "delete TUI", "delete refresh-provider-docs", "consolidate FP deps onto massaman", "inline workspace into lint")? Smaller is safer for review; bigger reduces overhead.
+**10 of 11 resolved.** Only C6 (lint flatten) remains and is no longer urgent.
