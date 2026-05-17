@@ -2,10 +2,10 @@ import { existsSync } from 'node:fs'
 import path from 'node:path'
 
 import { findSkills } from '../skills/find.js'
+import { readManifest } from '../skills/manifest.js'
 import type { SkillRecord } from '../skills/types.js'
 import { listVendorableFiles, manifestVendorablePaths } from './discovery.js'
 import { filesMatch } from './hash.js'
-import { readManifest } from './manifest.js'
 import { SKILL_SCRIPTS_DIR, type SyncReport, type VendoredFile } from './types.js'
 
 /**

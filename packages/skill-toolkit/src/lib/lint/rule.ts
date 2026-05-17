@@ -58,8 +58,10 @@ export type RuleCheck = (skill: SkillRecord, body: string) => CheckResult
  */
 export interface Rule {
   /**
-   * Stable identifier for the rule (e.g. `DIR_NAME`, `BODY_TOO_LONG`).
-   * Surfaces in the lint output and is the lookup key for `getRule`.
+   * Kebab-case identifier for the rule (e.g. `dir-name`,
+   * `body-too-long`). Surfaces in the lint output, is the lookup key
+   * for `getRule`, and is what users reference in
+   * `skill.json.lint.<id>` overrides.
    */
   id: string
   /**
@@ -96,12 +98,17 @@ export interface Ruleset {
   rules: Rule[]
 }
 
+const KEBAB_RE = /^[a-z][a-z0-9-]+[a-z0-9]$/
+
 /**
- * Identity helper for declaring a rule. Sharpens type inference at
- * the call site and gives one place to evolve rule shape (e.g. add
- * runtime validation later) without touching every definition.
+ * Identity helper for declaring a rule. Validates the id is
+ * kebab-case at boot — fail-fast so a typo doesn't ship a rule users
+ * can't reference in `skill.json.lint`.
  */
 export function defineRule(rule: Rule): Rule {
+  if (!KEBAB_RE.test(rule.id)) {
+    throw new Error(`Rule id "${rule.id}" must be kebab-case (matches ${KEBAB_RE.source})`)
+  }
   return rule
 }
 
@@ -111,5 +118,10 @@ export function defineRule(rule: Rule): Rule {
  * render findings by category.
  */
 export function defineRuleset(ruleset: Ruleset): Ruleset {
+  if (!KEBAB_RE.test(ruleset.name)) {
+    throw new Error(
+      `Ruleset name "${ruleset.name}" must be kebab-case (matches ${KEBAB_RE.source})`
+    )
+  }
   return ruleset
 }

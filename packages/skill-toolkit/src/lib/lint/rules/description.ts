@@ -1,3 +1,5 @@
+import { match } from 'massaman'
+
 import { checkDescriptionForbids, checkDescriptionMatches, fail } from '../helpers.js'
 import { defineRule, defineRuleset, pass } from '../rule.js'
 
@@ -8,30 +10,36 @@ export const descriptionRules = defineRuleset({
   name: 'description',
   rules: [
     defineRule({
-      id: 'DESC_TOO_SHORT',
+      id: 'desc-too-short',
       severity: 'warn',
       description: 'description should be at least 80 characters',
       check: ({ frontmatter }) =>
-        frontmatter.description.length < 80
-          ? fail({
-              message: `description is ${frontmatter.description.length} chars (target ≥ 80)`,
+        match(frontmatter.description.length)
+          .when(
+            (len) => len >= 80,
+            () => pass
+          )
+          .otherwise((len) =>
+            fail({
+              message: `description is ${len} chars (target ≥ 80)`,
               fix: 'Add trigger phrases or disambiguation context',
             })
-          : pass,
+          ),
     }),
     defineRule({
-      id: 'DESC_TOO_LONG',
+      id: 'desc-too-long',
       severity: 'warn',
       description: 'description should be at most 1024 characters',
       check: ({ frontmatter }) =>
-        frontmatter.description.length > 1024
-          ? fail({
-              message: `description is ${frontmatter.description.length} chars (target ≤ 1024)`,
-            })
-          : pass,
+        match(frontmatter.description.length)
+          .when(
+            (len) => len <= 1024,
+            () => pass
+          )
+          .otherwise((len) => fail({ message: `description is ${len} chars (target ≤ 1024)` })),
     }),
     defineRule({
-      id: 'DESC_NO_TRIGGER',
+      id: 'desc-no-trigger',
       severity: 'warn',
       description: 'description should contain "Use when" or "should be used when"',
       check: checkDescriptionMatches({
@@ -41,21 +49,24 @@ export const descriptionRules = defineRuleset({
       }),
     }),
     defineRule({
-      id: 'DESC_FEW_TRIGGERS',
+      id: 'desc-few-triggers',
       severity: 'warn',
       description: 'description should list ≥ 3 verbatim trigger phrases in quotes',
-      check: ({ frontmatter }) => {
-        const matches = frontmatter.description.match(QUOTED_PHRASE_RE) ?? []
-        return matches.length >= 3
-          ? pass
-          : fail({
-              message: `description has ${matches.length} quoted trigger phrases (target ≥ 3)`,
+      check: ({ frontmatter }) =>
+        match((frontmatter.description.match(QUOTED_PHRASE_RE) ?? []).length)
+          .when(
+            (count) => count >= 3,
+            () => pass
+          )
+          .otherwise((count) =>
+            fail({
+              message: `description has ${count} quoted trigger phrases (target ≥ 3)`,
               fix: 'List verbatim user prompts in double quotes',
             })
-      },
+          ),
     }),
     defineRule({
-      id: 'DESC_ANTI_SHORTCUT',
+      id: 'desc-anti-shortcut',
       severity: 'error',
       description: 'description must not contain then/next/step 1/process/first',
       check: checkDescriptionForbids({
@@ -65,7 +76,7 @@ export const descriptionRules = defineRuleset({
       }),
     }),
     defineRule({
-      id: 'DESC_NO_SKIP',
+      id: 'desc-no-skip',
       severity: 'info',
       description: 'description should include a "Skip when" clause',
       check: checkDescriptionMatches({

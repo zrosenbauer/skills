@@ -64,8 +64,3 @@ export interface SyncReport {
  * subdirectories of this path via their `skill.json` manifest.
  */
 export const SKILL_SCRIPTS_DIR = 'skill-scripts'
-
-/**
- * Filename of the per-skill manifest. Lives at `<skill>/skill.json`.
- */
-export const SKILL_MANIFEST_FILE = 'skill.json'

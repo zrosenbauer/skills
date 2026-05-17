@@ -9,56 +9,62 @@ export const frontmatterRules = defineRuleset({
   name: 'frontmatter',
   rules: [
     defineRule({
-      id: 'DIR_NAME',
+      id: 'dir-name',
       severity: 'error',
       description: 'Skill directory name must be kebab-case (^[a-z][a-z0-9-]+[a-z0-9]$)',
       check: ({ location }) =>
-        match(NAMING_RE.test(location.name))
-          .with(true, () => pass)
-          .otherwise(() =>
+        match(location.name)
+          .when(
+            (n) => NAMING_RE.test(n),
+            () => pass
+          )
+          .otherwise((name) =>
             fail({
-              message: `Directory name "${location.name}" is not kebab-case`,
+              message: `Directory name "${name}" is not kebab-case`,
               fix: 'Rename the directory to match ^[a-z][a-z0-9-]+[a-z0-9]$',
             })
           ),
     }),
     defineRule({
-      id: 'FM_PARSE_FAILED',
+      id: 'fm-parse-failed',
       severity: 'error',
       description: 'frontmatter must parse against the schema',
-      check: (skill) =>
-        match(skill.frontmatterParseError)
+      check: ({ frontmatterParseError }) =>
+        match(frontmatterParseError)
           .with(P.nullish, () => pass)
           .otherwise((err) => fail({ message: `frontmatter failed schema validation: ${err}` })),
     }),
     defineRule({
-      id: 'FM_MISSING_NAME',
+      id: 'fm-missing-name',
       severity: 'error',
       description: 'Frontmatter must include `name`',
       check: checkFieldNonEmpty({ field: 'name' }),
     }),
     defineRule({
-      id: 'FM_NAME_MISMATCH',
+      id: 'fm-name-mismatch',
       severity: 'error',
       description: 'Frontmatter `name` must match directory basename',
       check: ({ frontmatter, location }) =>
-        match(frontmatter.name === location.name)
-          .with(true, () => pass)
-          .otherwise(() =>
+        match(frontmatter.name)
+          .when(
+            (name) => name === location.name,
+            () => pass
+          )
+          .otherwise((name) =>
             fail({
-              message: `name="${frontmatter.name}" does not match directory "${location.name}"`,
+              message: `name="${name}" does not match directory "${location.name}"`,
               fix: `Set frontmatter \`name: ${location.name}\``,
             })
           ),
     }),
     defineRule({
-      id: 'FM_MISSING_DESCRIPTION',
+      id: 'fm-missing-description',
       severity: 'error',
       description: 'Frontmatter must include `description`',
       check: checkFieldNonEmpty({ field: 'description' }),
     }),
     defineRule({
-      id: 'FM_MISSING_ARGUMENT_HINT',
+      id: 'fm-missing-argument-hint',
       severity: 'info',
       description: 'argument-hint is a Claude Code extension; recommended for cross-agent compat',
       check: checkFieldPresent({
@@ -68,7 +74,7 @@ export const frontmatterRules = defineRuleset({
       }),
     }),
     defineRule({
-      id: 'FM_MISSING_USER_INVOCABLE',
+      id: 'fm-missing-user-invocable',
       severity: 'info',
       description: 'user-invocable is a Claude Code extension; recommended',
       check: checkFieldPresent({
@@ -77,7 +83,7 @@ export const frontmatterRules = defineRuleset({
       }),
     }),
     defineRule({
-      id: 'FM_MISSING_MODEL_INVOCABLE',
+      id: 'fm-missing-model-invocable',
       severity: 'info',
       description: 'model-invocable is a Claude Code extension; recommended',
       check: checkFieldPresent({
