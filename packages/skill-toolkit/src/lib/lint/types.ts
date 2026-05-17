@@ -49,3 +49,14 @@ export interface SkillLintResult {
    */
   findings: Finding[]
 }
+
+/**
+ * Per-severity totals across every linted skill. Produced by
+ * `summarize()` and consumed by formatters and the CLI's exit-code
+ * decision.
+ */
+export interface LintTotals {
+  errors: number
+  warns: number
+  infos: number
+}

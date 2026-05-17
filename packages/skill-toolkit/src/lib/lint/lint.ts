@@ -7,7 +7,7 @@ import { type LintRuleConfig, readManifest } from '../skills/manifest.js'
 import type { SkillRecord } from '../skills/types.js'
 import type { Rule } from './rule.js'
 import { listRules } from './rules/index.js'
-import type { Finding, SkillLintResult } from './types.js'
+import type { Finding, LintTotals, SkillLintResult } from './types.js'
 
 /**
  * Run every rule against one skill and collect its findings. The
@@ -83,12 +83,8 @@ function produceFinding({ rule, override, skill, body }: ProduceFindingParams): 
  * over `Severity` so a future tier (e.g. `'hint'`) fails the build
  * here until handled.
  */
-export function summarize(results: SkillLintResult[]): {
-  errors: number
-  warns: number
-  infos: number
-} {
-  const counts = { errors: 0, warns: 0, infos: 0 }
+export function summarize(results: SkillLintResult[]): LintTotals {
+  const counts: LintTotals = { errors: 0, warns: 0, infos: 0 }
   for (const r of results) {
     for (const f of r.findings) {
       match(f.severity)
