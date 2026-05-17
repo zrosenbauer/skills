@@ -5,7 +5,7 @@
   <a href="./LICENSE"><img src="https://img.shields.io/badge/license-MIT-d97757?style=flat-square" alt="MIT" /></a>
 </p>
 
-A curated collection of [agent skills](https://skills.sh) for AI coding assistants — pressure-tested for TypeScript reviews, refactors, skill authoring, and cross-agent portability.
+A curated collection of [agent skills](https://skills.sh) for AI coding assistants — TypeScript reviews, refactors, skill authoring, and cross-agent portability.
 
 Skills are `SKILL.md` files that tell an AI agent **when** and **how** to do something. They're agent-agnostic — drop them into Claude Code, Cursor, Codex, or any tool that supports the [skills.sh](https://skills.sh) format.
 
@@ -28,11 +28,10 @@ The [`skills` CLI](https://www.npmjs.com/package/skills) handles discovery and p
 | 1   | [`code-reviewer`](./skills/code-reviewer)                               | Adversarial review of a diff or PR — finds real issues, not nits       |
 | 2   | [`ts-best-practices`](./skills/ts-best-practices)                       | Writing or refactoring TypeScript with idiomatic patterns              |
 | 3   | [`ts-best-practices-functional`](./skills/ts-best-practices-functional) | Refactoring TS toward functional patterns — Result types, no mutation  |
-| 4   | [`skill-creator`](./skills/skill-creator)                               | Authoring a new skill with the RED→GREEN eval cycle baked in           |
-| 5   | [`skill-eval`](./skills/skill-eval)                                     | Re-running baselines on existing skills after a model upgrade          |
-| 6   | [`skill-portability`](./skills/skill-portability)                       | Checking whether a skill works across Claude Code, Cursor, Codex, etc. |
+| 4   | [`skill-creator`](./skills/skill-creator)                               | Authoring a new skill with naming + description rules baked in         |
+| 5   | [`skill-portability`](./skills/skill-portability)                       | Checking whether a skill works across Claude Code, Cursor, Codex, etc. |
 
-Each skill ships its own `SKILL.md` and `evals.json` under [`skills/<name>/`](./skills).
+Each skill ships its own `SKILL.md` under [`skills/<name>/`](./skills).
 
 > **Discover more skills** → browse the leaderboard at [skills.sh](https://skills.sh) — top-installed agent skills across the ecosystem (vercel-labs, anthropics, microsoft, remotion, …).
 

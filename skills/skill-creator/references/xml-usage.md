@@ -39,7 +39,7 @@ Wrapping every section in XML (`<purpose>`, `<workflow>`, `<inputs>`, etc.) was 
 ### Single example
 
 <example>
-User says "build a skill for parsing TOML files". Agent runs Discover, names it `toml-parser`, RED phase, draft, lint, GREEN, package.
+User says "build a skill for parsing TOML files". Agent runs Discover, names it `toml-parser`, drafts frontmatter, drafts body, runs the self-lint, packages.
 </example>
 
 ### Contrast pair

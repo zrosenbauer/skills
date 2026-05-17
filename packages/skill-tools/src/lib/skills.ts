@@ -5,8 +5,6 @@ import { attempt } from 'massaman'
 import { parse as parseYaml } from 'yaml'
 import { z } from 'zod'
 
-import { type EvalsFile, evalsFileSchema } from '../evals/schemas.js'
-
 /**
  * Skill frontmatter — what every agent loader reads. `name` + `description`
  * are universally required; everything else is a Claude Code extension that
@@ -45,16 +43,12 @@ export interface SkillRecord {
   bodyLineCount: number
   hasReadme: boolean
   hasLicense: boolean
-  hasEvalsJson: boolean
-  evalsFile: EvalsFile | null
-  evalsParseError: string | null
 }
 
 /**
  * Discover every skill under `skills/` (public) and `.agents/skills/` (private).
- * Each record carries the parsed frontmatter, evals file, and the cheap
- * existence flags lint uses. Failures don't throw — they surface as
- * `frontmatterParseError` / `evalsParseError` so the lint can report them.
+ * Failures don't throw — they surface as `frontmatterParseError` so the lint
+ * can report them.
  */
 export function findSkills(repoRoot: string): SkillRecord[] {
   const records: SkillRecord[] = []
@@ -92,14 +86,6 @@ function readSkill(location: SkillLocation): SkillRecord {
   const frontmatterParseError = fmParse && !fmParse.ok ? fmParse.error.message : null
   const body = skillMd.replace(FRONTMATTER_RE, '')
 
-  const evalsPath = path.join(location.dir, 'evals.json')
-  const hasEvalsJson = existsSync(evalsPath)
-  const evalsParse = hasEvalsJson
-    ? attempt(() => evalsFileSchema.parse(JSON.parse(readFileSync(evalsPath, 'utf8'))))
-    : null
-  const evalsFile: EvalsFile | null = evalsParse?.ok ? evalsParse.value : null
-  const evalsParseError = evalsParse && !evalsParse.ok ? evalsParse.error.message : null
-
   return {
     location,
     frontmatter,
@@ -107,8 +93,5 @@ function readSkill(location: SkillLocation): SkillRecord {
     bodyLineCount: body.split('\n').length,
     hasReadme: existsSync(path.join(location.dir, 'README.md')),
     hasLicense: existsSync(path.join(location.dir, 'LICENSE')),
-    hasEvalsJson,
-    evalsFile,
-    evalsParseError,
   }
 }

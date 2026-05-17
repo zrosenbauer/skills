@@ -15,7 +15,6 @@ interface BuildSkillOptions {
   body?: string
   hasReadme?: boolean
   hasLicense?: boolean
-  hasEvalsJson?: boolean
   internal?: boolean
 }
 
@@ -90,9 +89,6 @@ ${body}
     bodyLineCount: body.split('\n').length,
     hasReadme: opts.hasReadme ?? true,
     hasLicense: opts.hasLicense ?? true,
-    hasEvalsJson: opts.hasEvalsJson ?? true,
-    evalsFile: null,
-    evalsParseError: null,
   }
 }
 
@@ -192,27 +188,6 @@ describe('lintSkill', () => {
       })
     })
   })
-
-  describe('evals', () => {
-    it('errors on missing evals.json for public skills', () => {
-      const skill = buildSkill({ source: 'public', hasEvalsJson: false })
-      const { findings } = lintSkill(skill)
-      expect(findings.find((f) => f.code === 'EVALS_MISSING')).toMatchObject({
-        severity: 'error',
-      })
-    })
-
-    it('warns (not errors) on missing evals.json for internal skills', () => {
-      const skill = buildSkill({
-        source: 'private',
-        hasEvalsJson: false,
-        internal: true,
-      })
-      const { findings } = lintSkill(skill)
-      const found = findings.find((f) => f.code === 'EVALS_MISSING')
-      expect(found).toMatchObject({ severity: 'warn' })
-    })
-  })
 })
 
 describe('summarize', () => {
@@ -220,7 +195,6 @@ describe('summarize', () => {
     const skill = buildSkill({
       description: 'too short, no triggers, no Skip when',
       body: '## Workflow\n\nTODO: write me\n',
-      hasEvalsJson: false,
     })
     const result = lintSkill(skill)
     const totals = summarize([result])

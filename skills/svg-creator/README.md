@@ -20,7 +20,6 @@ svg-creator/
 ├── SKILL.md                          # the workflow
 ├── README.md
 ├── LICENSE
-├── evals.json                        # pressure scenarios + assertions
 ├── references/
 │   ├── colors.md                     # starter hex palette + typography
 │   └── patterns.md                   # copy-pasteable SVG recipes

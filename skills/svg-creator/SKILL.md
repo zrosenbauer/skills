@@ -245,7 +245,6 @@ child's coordinate by the offset and reset the viewBox to `0 0 660 420`.
 ## Files in this skill
 
 - `SKILL.md` — this file
-- `evals.json` — pressure scenarios + assertions
 - `scripts/preflight.mjs` — runtime dependency check
 - `scripts/preview-server.mjs` — local Node HTTP preview server
 - `scripts/convert.mjs` — sharp-based SVG → PNG / JPEG / WebP / AVIF converter

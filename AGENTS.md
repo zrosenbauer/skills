@@ -13,16 +13,14 @@ A personal monorepo for [agent skills](https://skills.sh) authored by Zac Rosenb
 ├── skills/              # AUTHORING SOURCE — skills authored here, published via `npx skills add`
 │   └── <name>/
 │       ├── SKILL.md     # the skill
-│       ├── evals.json   # ≥3 pressure scenarios + assertions (committed)
 │       ├── LICENSE
-│       ├── README.md
-│       └── .workspace/  # GITIGNORED — transcripts, grading, benchmarks (per skill)
+│       └── README.md
 ├── .agents/skills/      # INSTALL DESTINATION — where `npx skills add` puts installed skills
 ├── skills-lock.json     # tracks installed skills (source, sourceType, skillPath, hash)
 ├── skill-scripts/       # canonical source for shared scripts (e.g. prompt-shield)
 │   └── <name>/          # vendored into `<skill>/scripts/<name>/` via `skill-tools sync-scripts`
 ├── packages/
-│   └── skill-tools/     # CLI for linting + evaluating skills (kidd + Ink TUI)
+│   └── skill-tools/     # CLI for linting skills
 ├── contributing/        # supplementary contributor docs (e.g. prompt-injection.md)
 ├── lefthook.yml         # pre-commit hooks (sync, format, lint, drift check)
 ├── package.json         # root, private, workspaces via pnpm-workspace.yaml
@@ -68,8 +66,6 @@ Body of the skill — instructions for the agent when invoked.
 
 `name` and `description` are universally required. Other fields are Claude Code extensions; cross-agent skills include them defensively (other agents ignore unknown fields).
 
-Every skill in `skills/` MUST ship an `evals.json` (≥ 3 pressure scenarios + assertions). The lint blocks shipping otherwise. See [`evals.json` schema](skills/skill-creator/references/evals-json.md) and [pressure scenarios guide](skills/skill-creator/references/pressure-scenarios.md).
-
 Optional companions: `LICENSE`, `README.md`, `references/<topic>.md`, `templates/<thing>.template`.
 
 ## Tooling
@@ -89,24 +85,21 @@ pnpm test                              # turbo run test
 pnpm test:scripts                      # node --test across skills/*/scripts and skill-scripts/*
 pnpm skill-tools lint                  # lint every skill against the three-tier rule set
 pnpm skill-tools lint <name>           # lint one skill
-pnpm skill-tools benchmark <name>      # aggregate iteration grading into benchmark.md
 pnpm skill-tools sync-scripts          # vendor canonical scripts into each consuming skill
 pnpm skill-tools sync-scripts --check  # fail if any vendored copy drifts from source
 pnpm audit:skills                      # snyk-agent-scan on public skills (needs SNYK_TOKEN)
 ```
 
-Authoring and evaluating skills:
+Authoring skills:
 
-- **`/skill-creator <name>`** — author a new skill (interactive workflow: pressure scenarios → RED baselines → SKILL.md → GREEN re-run → lint → package)
-- **`/skill-eval <name>`** or `/skill-eval --all` — re-run baselines on existing skills (after a Claude version upgrade, before publishing, etc.)
+- **`/skill-creator <name>`** — author a new skill (interactive workflow: discover → name → frontmatter → body → lint → package).
 
 ## Conventions for agents
 
 - **Never edit `CLAUDE.md` directly** — it's a symlink to `AGENTS.md`. Edit `AGENTS.md`.
-- **New skills go through `/skill-creator`.** It enforces naming, description quality, the RED→GREEN cycle, and writes `evals.json` for you. Hand-authoring skills is allowed but they must still pass `pnpm skill-tools lint --severity error`.
-- All skills live in `skills/<kebab-case>/` — including authoring/eval tooling like `skill-creator` and `skill-eval`. Every skill is publicly distributed.
+- **New skills go through `/skill-creator`.** It enforces naming and description quality. Hand-authoring skills is allowed but they must still pass `pnpm skill-tools lint --severity error`.
+- All skills live in `skills/<kebab-case>/`. Every skill is publicly distributed.
 - Never hand-edit or `rm` anything under `.agents/skills/` — that's the install destination managed by the skills CLI (tracked by `skills-lock.json`).
-- Skill workspaces (nested at `<skill>/.workspace/`) are gitignored — only `evals.json` ships.
 - Shared utilities go in `packages/<name>/` with their own `package.json` and follow the workspace name convention `@zrosenbauer/<name>`.
 - Don't add a `package.json` to a skill directory unless it actually needs JS deps — most skills are pure markdown.
 - Prefer editing existing skills over forking. If forking from a third-party skill, keep the upstream `LICENSE` alongside it.

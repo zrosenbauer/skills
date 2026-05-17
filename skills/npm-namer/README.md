@@ -21,7 +21,6 @@ See [`SKILL.md`](SKILL.md) for the verbatim trigger phrases.
 ```
 skills/npm-namer/
 ├── SKILL.md                              # the skill body
-├── evals.json                            # 3 pressure scenarios
 ├── scripts.json                          # declares { "scripts": ["npm-namer"] }
 ├── README.md                             # this file
 ├── LICENSE                               # MIT

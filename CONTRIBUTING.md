@@ -20,17 +20,15 @@ pnpm install
 ├── skills/              # AUTHORING SOURCE — skills authored here, published via `npx skills add`
 │   └── <name>/
 │       ├── SKILL.md     # the skill itself
-│       ├── evals.json   # ≥3 pressure scenarios + assertions (committed)
 │       ├── scripts.json # optional — declares which shared scripts to vendor in
 │       ├── scripts/     # skill-local scripts + vendored shared script dirs
 │       ├── LICENSE
-│       ├── README.md
-│       └── .workspace/  # gitignored — transcripts, grading, benchmarks (per skill)
+│       └── README.md
 ├── .agents/skills/      # INSTALL DESTINATION managed by `npx skills add` — DO NOT hand-edit
 ├── skill-scripts/       # canonical source for shared scripts (e.g. prompt-shield)
 │   └── <name>/          # vendored into `<skill>/scripts/<name>/` via `pnpm skill-tools sync-scripts`
 ├── packages/
-│   └── skill-tools/     # CLI for linting + evaluating skills (kidd + Ink TUI)
+│   └── skill-tools/     # CLI for linting skills
 ├── contributing/        # supplementary contributor docs (e.g. prompt-injection.md)
 ├── lefthook.yml         # pre-commit hooks (sync, format, lint, drift check)
 ├── package.json         # root, private, workspaces via pnpm-workspace.yaml
@@ -57,7 +55,7 @@ Then `pnpm skill-tools sync-scripts` vendors a byte-identical copy into the skil
 
 ## Authoring a skill
 
-The supported path is `/skill-creator` — it walks the RED → GREEN → REFACTOR cycle, enforces naming and description rules, and writes `evals.json` for you.
+The supported path is `/skill-creator` — it enforces naming and description rules and runs the self-lint.
 
 ```bash
 # In Claude Code (or any agent that loads this repo's skills):
@@ -69,7 +67,6 @@ If you'd rather hand-author, the minimum setup is:
 ```bash
 mkdir -p skills/my-skill
 $EDITOR skills/my-skill/SKILL.md
-$EDITOR skills/my-skill/evals.json   # ≥3 pressure scenarios — required by lint
 ```
 
 Hand-authored skills must still pass `pnpm skill-tools lint --severity error`.
@@ -96,17 +93,6 @@ Instructions for the agent when this skill is invoked.
 
 `name` and `description` are the universal core (required by the [`skills` CLI](https://www.npmjs.com/package/skills)). The other fields are Claude Code extensions — other agents ignore them. See [skills.sh](https://skills.sh) for the full spec.
 
-### Evals are required for every skill
-
-Every skill under `skills/` must ship an `evals.json` with at least 3 pressure scenarios and deterministic assertions. The lint blocks publishing otherwise.
-
-References:
-
-- [`evals.json` schema](./skills/skill-creator/references/evals-json.md)
-- [Pressure scenarios guide](./skills/skill-creator/references/pressure-scenarios.md)
-
-The runner skill `/skill-eval` re-runs baselines (e.g. after a Claude version upgrade), and `pnpm skill-tools benchmark <name>` aggregates the iteration grading into `benchmark.md`. Transcripts and grading live in a gitignored `<skill>/.workspace/` directory inside each skill.
-
 ## Scripts
 
 All `pnpm <task>` scripts are thin wrappers around `turbo run <task>`.
@@ -125,7 +111,6 @@ Skill-specific tooling:
 ```bash
 pnpm skill-tools lint                      # lint every skill (three-tier severity)
 pnpm skill-tools lint <name>               # lint one skill
-pnpm skill-tools benchmark <name>          # aggregate iteration grading to benchmark.md
 pnpm skill-tools sync-scripts              # vendor canonical scripts into each consuming skill
 pnpm skill-tools sync-scripts --check      # fail if any vendored copy drifts from source
 pnpm audit:skills                          # run snyk-agent-scan on public skills (needs SNYK_TOKEN)
@@ -175,5 +160,4 @@ pnpm init
 
 1. Fork and branch.
 2. Run `pnpm skill-tools lint --severity error` and `pnpm test` before pushing.
-3. For new or modified public skills, include an updated `evals.json` and (ideally) a fresh transcript showing GREEN.
-4. Open a PR describing the change and the failure mode it addresses.
+3. Open a PR describing the change and the failure mode it addresses.
