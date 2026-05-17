@@ -68,7 +68,7 @@ Pressure-test the gap _before_ writing the skill. See [`references/pressure-scen
 2. For each scenario, decide assertions (regex / contains / file_exists) — see [`references/evals-json.md`](references/evals-json.md).
 3. Write `skills/<name>/evals.json` from the [`templates/evals.json.template`](templates/evals.json.template).
 4. Invoke [`/skill-eval <name>`](../../../skills/skill-eval) which dispatches Agent(general-purpose) for each scenario _without_ the skill loaded and saves transcripts to `skills/<name>/.workspace/iteration-1/eval-K-name/without_skill/`.
-5. Inspect the without-skill transcripts (open one in `pnpm skill-tools view <name>`). If the baseline already passes the assertions cleanly, the skill is unnecessary — **tell the user and stop**. Better to skip than ship a no-op skill.
+5. Inspect the without-skill transcripts at `skills/<name>/.workspace/iteration-1/eval-K-name/without_skill/transcript.md`. If the baseline already passes the assertions cleanly, the skill is unnecessary — **tell the user and stop**. Better to skip than ship a no-op skill.
 
 The transcripts are gitignored; the `evals.json` is committed.
 

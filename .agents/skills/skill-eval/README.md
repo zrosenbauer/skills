@@ -30,7 +30,7 @@ The skill walks through:
 5. Aggregate via `skill-tools benchmark`
 6. Report regressions and improvements
 
-After running, navigate transcripts with `pnpm skill-tools view <skill>`.
+After running, transcripts live under `skills/<skill>/.workspace/iteration-N/` — open them directly in your editor.
 
 ## License
 

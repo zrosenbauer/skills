@@ -23,8 +23,8 @@
  *     fileFormat:    'SKILL.md' | '.cursor/rules/*.mdc' | 'AGENTS.md' | etc.
  *     fileLocation:  where the provider expects the file to live
  *     docUrls:       prioritized list — llms.txt / llms-full.txt first, HTML last.
- *                    Used by the dev-time refresh script ONLY (skill-tools
- *                    refresh-provider-docs); never fetched at agent runtime.
+ *                    Used as the source URL when refreshing snapshots by hand;
+ *                    never fetched at agent runtime.
  *     localDocPath:  relative path (from this file's parent skill dir) to the
  *                    bundled snapshot. The skill-portability workflow loads
  *                    THIS path — not docUrls. Snapshots are committed and
@@ -36,10 +36,10 @@
  *     notes:         caveats, gotchas
  *   }
  *
- * Update policy: hardcoded by hand. Run `pnpm skill-tools refresh-provider-docs`
- * to refresh snapshots from upstream. Run `--check` (this script) to verify
- * docUrls still resolve. When a provider moves docs, update docUrls here, run
- * the refresh script, commit both.
+ * Update policy: hardcoded by hand. Refresh snapshots by hand on cadence —
+ * see CONTRIBUTING.md. Run `--check` (this script) to verify docUrls still
+ * resolve. When a provider moves docs, update docUrls here, refresh the
+ * snapshot, commit both.
  */
 
 export const providers = [
