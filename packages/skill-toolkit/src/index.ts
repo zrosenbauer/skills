@@ -4,9 +4,9 @@ await cli({
   commands: `${import.meta.dirname}/commands`,
   description: 'Authoring, linting, and evaluation tools for the skills monorepo',
   help: {
-    header: 'skill-tools - work with the agent skills in this repo',
+    header: 'skill-toolkit - work with the agent skills in this repo',
     order: ['lint', 'sync-scripts'],
   },
-  name: 'skill-tools',
+  name: 'skill-toolkit',
   version: '0.0.0',
 })

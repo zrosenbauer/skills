@@ -34,14 +34,14 @@ The `{salt}` is a fresh 12-hex-char value (~74 bits of entropy) generated per ca
 Add the script to your skill's manifest:
 
 ```json
-// skills/<your-skill>/scripts.json
+// skills/<your-skill>/skill.json
 { "scripts": ["prompt-shield"] }
 ```
 
 Then sync to vendor a copy into `skills/<your-skill>/scripts/prompt-shield/`:
 
 ```bash
-pnpm skill-tools sync-scripts
+pnpm skill-toolkit sync-scripts
 ```
 
 Two consumption patterns:
@@ -60,7 +60,7 @@ node ./scripts/prompt-shield/wrap-prompt.mjs \
 
 ## Don't edit the vendored copies
 
-The source of truth is `skill-scripts/prompt-shield/`. Vendored copies under `skills/<skill>/scripts/prompt-shield/` are derived; `pnpm skill-tools sync-scripts --check` fails CI if they drift. The Lefthook pre-commit re-runs sync when source files change.
+The source of truth is `skill-scripts/prompt-shield/`. Vendored copies under `skills/<skill>/scripts/prompt-shield/` are derived; `pnpm skill-toolkit sync-scripts --check` fails CI if they drift. The Lefthook pre-commit re-runs sync when source files change.
 
 ## Background
 

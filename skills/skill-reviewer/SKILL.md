@@ -54,7 +54,7 @@ Verbatim trigger phrases:
 Locate the skill directory. Confirm `SKILL.md` exists. Run:
 
 ```bash
-pnpm skill-tools lint <skill-name>
+pnpm skill-toolkit lint <skill-name>
 ```
 
 Capture the lint output verbatim — it's the floor, not the ceiling. Lint passing means **mechanical** rules pass; it does not mean the skill is well-authored.
@@ -124,7 +124,7 @@ SUMMARY: <N> findings (<E> error / <W> warn / <I> info) — <skill-type> skill
 ## Clean
 - <specific rule that passes — e.g., "Description has 5 verbatim triggers in double quotes (description.md:38)">
 - <another specific rule>
-- <`pnpm skill-tools lint <name>` — <pass/fail summary>>
+- <`pnpm skill-toolkit lint <name>` — <pass/fail summary>>
 ```
 
 Empty severity sections render as `## ERRORS\n(none)` — keeps the shape comparable across runs. A pass verdict is `0 error / 0 warn / 0 info` plus a populated Clean section.
@@ -154,7 +154,7 @@ If a skill genuinely has 0 findings, say so in the Clean section. Inventing crit
 <example>
 <input>"review skills/ts-best-practices — does it still hold up against our conventions?"</input>
 <output>
-1. Resolve: `skills/ts-best-practices/`. Run `pnpm skill-tools lint ts-best-practices` → clean.
+1. Resolve: `skills/ts-best-practices/`. Run `pnpm skill-toolkit lint ts-best-practices` → clean.
 2. Classify: **discipline skill** (rules like "use *Params for ≥2-arg fns", "JSDoc on exports").
 3. Read deep references: `description.md`, `frontmatter.md`, `xml-usage.md`.
 4. Frontmatter audit: trigger parity drift — `SKILL.md` has 6 triggers, `description` and `README.md` have 5. Description missing `"audit this ts file"`.
@@ -182,7 +182,7 @@ SUMMARY: 3 findings (0 error / 2 warn / 1 info) — discipline skill
 - Frontmatter has all Claude Code extension fields (argument-hint, user-invocable, model-invocable)
 - Body has 2 <example> blocks (xml-usage.md ≥ 1 required)
 - Rationalization table present — appropriate for a discipline skill (skill-creator step 6)
-- pnpm skill-tools lint ts-best-practices — 0 error / 0 warn / 0 info
+- pnpm skill-toolkit lint ts-best-practices — 0 error / 0 warn / 0 info
 ```
 
 </output>
@@ -211,7 +211,7 @@ SUMMARY: 0 findings (0 error / 0 warn / 0 info) — technique skill
 - Body: ≥ 3 `## ` sections, ≥ 1 `<example>` block, no TODO/FIXME
 - Companions: README.md, LICENSE, references/, scripts/ all present
 - Single-source-of-truth in providers.mjs reflects the skill's own thesis
-- pnpm skill-tools lint skill-portability — 0/0/0
+- pnpm skill-toolkit lint skill-portability — 0/0/0
 ```
 
 Nothing manufactured. If you want depth beyond the structural review, run `node skills/skill-portability/scripts/providers.mjs --check` to confirm the docUrls are still 200 — that's the skill's own staleness check.

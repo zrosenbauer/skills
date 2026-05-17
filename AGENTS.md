@@ -18,9 +18,9 @@ A personal monorepo for [agent skills](https://skills.sh) authored by Zac Rosenb
 ├── .agents/skills/      # INSTALL DESTINATION — where `npx skills add` puts installed skills
 ├── skills-lock.json     # tracks installed skills (source, sourceType, skillPath, hash)
 ├── skill-scripts/       # canonical source for shared scripts (e.g. prompt-shield)
-│   └── <name>/          # vendored into `<skill>/scripts/<name>/` via `skill-tools sync-scripts`
+│   └── <name>/          # vendored into `<skill>/scripts/<name>/` via `skill-toolkit sync-scripts`
 ├── packages/
-│   └── skill-tools/     # CLI for linting skills
+│   └── skill-toolkit/     # CLI for linting skills
 ├── contributing/        # supplementary contributor docs (e.g. prompt-injection.md)
 ├── lefthook.yml         # pre-commit hooks (sync, format, lint, drift check)
 ├── package.json         # root, private, workspaces via pnpm-workspace.yaml
@@ -38,9 +38,9 @@ All skills under `skills/` are public by design — every skill ships through `n
 
 ### Sharing scripts between skills
 
-Helpers needed by more than one skill (e.g. `prompt-shield` for indirect-prompt-injection mitigation) live in `skill-scripts/<name>/` as the canonical source. Each consuming skill declares it in `<skill>/scripts.json` (`{ "scripts": ["prompt-shield"] }`) and `pnpm skill-tools sync-scripts` vendors a byte-identical copy into `<skill>/scripts/<name>/`. Vendored copies are committed so skills stay self-contained when shipped.
+Helpers needed by more than one skill (e.g. `prompt-shield` for indirect-prompt-injection mitigation) live in `skill-scripts/<name>/` as the canonical source. Each consuming skill declares it in `<skill>/skill.json` (`{ "scripts": ["prompt-shield"] }`) and `pnpm skill-toolkit sync-scripts` vendors a byte-identical copy into `<skill>/scripts/<name>/`. Vendored copies are committed so skills stay self-contained when shipped.
 
-**Never edit a vendored copy.** Edit `skill-scripts/<name>/` and let the sync run (Lefthook does this automatically on pre-commit). The drift check (`pnpm skill-tools sync-scripts --check`, also pre-commit) fails if any vendored copy diverges from source. See [`contributing/prompt-injection.md`](contributing/prompt-injection.md) for the threat model and the prompt-shield consumption examples.
+**Never edit a vendored copy.** Edit `skill-scripts/<name>/` and let the sync run (Lefthook does this automatically on pre-commit). The drift check (`pnpm skill-toolkit sync-scripts --check`, also pre-commit) fails if any vendored copy diverges from source. See [`contributing/prompt-injection.md`](contributing/prompt-injection.md) for the threat model and the prompt-shield consumption examples.
 
 ## Skill format
 
@@ -78,15 +78,15 @@ Common commands:
 
 ```bash
 pnpm install                           # install all workspace deps + lefthook hooks (via prepare)
-pnpm build                             # turbo run build (compiles skill-tools via kidd)
+pnpm build                             # turbo run build (compiles skill-toolkit via kidd)
 pnpm lint                              # turbo run lint
 pnpm typecheck                         # turbo run typecheck
 pnpm test                              # turbo run test
 pnpm test:scripts                      # node --test across skills/*/scripts and skill-scripts/*
-pnpm skill-tools lint                  # lint every skill against the three-tier rule set
-pnpm skill-tools lint <name>           # lint one skill
-pnpm skill-tools sync-scripts          # vendor canonical scripts into each consuming skill
-pnpm skill-tools sync-scripts --check  # fail if any vendored copy drifts from source
+pnpm skill-toolkit lint                  # lint every skill against the three-tier rule set
+pnpm skill-toolkit lint <name>           # lint one skill
+pnpm skill-toolkit sync-scripts          # vendor canonical scripts into each consuming skill
+pnpm skill-toolkit sync-scripts --check  # fail if any vendored copy drifts from source
 pnpm audit:skills                      # snyk-agent-scan on public skills (needs SNYK_TOKEN)
 ```
 
@@ -97,7 +97,7 @@ Authoring skills:
 ## Conventions for agents
 
 - **Never edit `CLAUDE.md` directly** — it's a symlink to `AGENTS.md`. Edit `AGENTS.md`.
-- **New skills go through `/skill-creator`.** It enforces naming and description quality. Hand-authoring skills is allowed but they must still pass `pnpm skill-tools lint --severity error`.
+- **New skills go through `/skill-creator`.** It enforces naming and description quality. Hand-authoring skills is allowed but they must still pass `pnpm skill-toolkit lint --severity error`.
 - All skills live in `skills/<kebab-case>/`. Every skill is publicly distributed.
 - Never hand-edit or `rm` anything under `.agents/skills/` — that's the install destination managed by the skills CLI (tracked by `skills-lock.json`).
 - Shared utilities go in `packages/<name>/` with their own `package.json` and follow the workspace name convention `@zrosenbauer/<name>`.

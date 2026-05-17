@@ -21,7 +21,7 @@ See [`SKILL.md`](SKILL.md) for the verbatim trigger phrases.
 ```
 skills/npm-namer/
 ├── SKILL.md                              # the skill body
-├── scripts.json                          # declares { "scripts": ["npm-namer"] }
+├── skill.json                            # declares { "scripts": ["npm-namer"] }
 ├── README.md                             # this file
 ├── LICENSE                               # MIT
 ├── references/
@@ -38,7 +38,7 @@ skills/npm-namer/
 - `dist/check.mjs` — bundled CLI produced by `tsdown` (committed)
 - `popular-names.json` — top ~15K popular packages corpus
 - `refresh-popular-names.mjs` — corpus-refresh helper
-- `package.json` — declares deps + the `files` allowlist (`["dist", "popular-names.json", "refresh-popular-names.mjs"]`) that `skill-tools sync-scripts` honors
+- `package.json` — declares deps + the `files` allowlist (`["dist", "popular-names.json", "refresh-popular-names.mjs"]`) that `skill-toolkit sync-scripts` honors
 
 The shipped bundle is self-contained: the consumer runs `node dist/check.mjs` with zero install. Production dependencies are bundled in; only `popular-names.json` is loaded at runtime from a sibling path.
 
@@ -72,7 +72,7 @@ The corpus is a snapshot — refresh periodically as popular packages churn:
 
 ```bash
 node skill-scripts/npm-namer/refresh-popular-names.mjs              # defaults to --top 15000
-pnpm skill-tools sync-scripts                                       # re-vendor
+pnpm skill-toolkit sync-scripts                                       # re-vendor
 git add skill-scripts/npm-namer/popular-names.json skills/npm-namer/scripts/npm-namer/popular-names.json
 git commit -m "chore(npm-namer): refresh popular-names corpus"
 ```
@@ -85,7 +85,7 @@ After editing any file under `skill-scripts/npm-namer/src/`:
 
 ```bash
 pnpm --filter @zrosenbauer/npm-namer-build build
-pnpm skill-tools sync-scripts
+pnpm skill-toolkit sync-scripts
 ```
 
 ## Tests

@@ -1,0 +1,7 @@
+export { applySync } from './apply.js'
+export { planSync } from './plan.js'
+export { readManifest } from './manifest.js'
+export { SkillManifestSchema } from './schema.js'
+export type { SkillManifest } from './schema.js'
+export { SKILL_MANIFEST_FILE, SKILL_SCRIPTS_DIR } from './types.js'
+export type { SyncReport, VendoredFile } from './types.js'

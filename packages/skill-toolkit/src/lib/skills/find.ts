@@ -3,47 +3,11 @@ import path from 'node:path'
 
 import { attempt } from 'massaman'
 import { parse as parseYaml } from 'yaml'
-import { z } from 'zod'
 
-/**
- * Skill frontmatter — what every agent loader reads. `name` + `description`
- * are universally required; everything else is a Claude Code extension that
- * other agents ignore.
- */
-export const skillFrontmatterSchema = z.object({
-  name: z.string().min(1),
-  description: z.string().min(1),
-  'argument-hint': z.string().optional(),
-  'user-invocable': z.boolean().optional(),
-  'model-invocable': z.boolean().optional(),
-  metadata: z
-    .object({
-      internal: z.boolean().optional(),
-      author: z.string().optional(),
-      version: z.string().optional(),
-      tags: z.string().optional(),
-    })
-    .optional(),
-})
-export type SkillFrontmatter = z.infer<typeof skillFrontmatterSchema>
+import { FRONTMATTER_RE, SkillSchema, type SkillFrontmatter } from './schema.js'
+import type { SkillLocation, SkillRecord } from './types.js'
 
-const FRONTMATTER_RE = /^---\n([\s\S]+?)\n---\n/
 const SKILL_ROOTS = ['skills', '.agents/skills'] as const
-
-export interface SkillLocation {
-  name: string
-  dir: string
-  source: 'public' | 'private'
-}
-
-export interface SkillRecord {
-  location: SkillLocation
-  frontmatter: SkillFrontmatter
-  frontmatterParseError: string | null
-  bodyLineCount: number
-  hasReadme: boolean
-  hasLicense: boolean
-}
 
 /**
  * Discover every skill under `skills/` (public) and `.agents/skills/` (private).
@@ -74,12 +38,14 @@ export function findSkills(repoRoot: string): SkillRecord[] {
   return records.toSorted((a, b) => a.location.name.localeCompare(b.location.name))
 }
 
+/**
+ * Read one skill's `SKILL.md` and produce a record. Frontmatter parse errors
+ * are captured (not thrown) so the lint can surface them as findings.
+ */
 function readSkill(location: SkillLocation): SkillRecord {
   const skillMd = readFileSync(path.join(location.dir, 'SKILL.md'), 'utf8')
   const fmMatch = FRONTMATTER_RE.exec(skillMd)
-  const fmParse = fmMatch
-    ? attempt(() => skillFrontmatterSchema.parse(parseYaml(fmMatch[1] ?? '')))
-    : null
+  const fmParse = fmMatch ? attempt(() => SkillSchema.parse(parseYaml(fmMatch[1] ?? ''))) : null
   const frontmatter: SkillFrontmatter = fmParse?.ok
     ? fmParse.value
     : { name: location.name, description: '' }

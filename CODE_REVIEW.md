@@ -1,6 +1,6 @@
-# skill-tools — code review
+# skill-toolkit — code review
 
-Goal: simplify `packages/skill-tools/` and remove what isn't load-bearing. This file records the analysis and decisions. **No code changes yet** — captures only.
+Goal: simplify `packages/skill-toolkit/` and remove what isn't load-bearing. This file records the analysis and decisions. **No code changes yet** — captures only.
 
 ## Snapshot
 
@@ -14,16 +14,16 @@ Goal: simplify `packages/skill-tools/` and remove what isn't load-bearing. This 
 
 These are wired into automation and can't be silently dropped without rewriting the callers:
 
-| Entry                   | Caller                                         | Notes                                                                                            |
-| ----------------------- | ---------------------------------------------- | ------------------------------------------------------------------------------------------------ |
-| `sync-scripts`          | Lefthook pre-commit (job 1)                    | Vendors `skill-scripts/<name>/` into each consuming skill                                        |
-| `sync-scripts --check`  | Lefthook pre-commit (job 5)                    | Fails commit on vendored drift                                                                   |
-| `lint --severity error` | Lefthook pre-commit (job 4)                    | Blocks bad skills from landing                                                                   |
-| `lint`                  | `/skill-creator` step 6 (self-lint)            | Authoring loop                                                                                   |
-| `eval`                  | `/skill-eval` step 4                           | Grades transcripts                                                                               |
-| `benchmark`             | `/skill-eval` step 5                           | Aggregates per-iteration grading                                                                 |
-| `view`                  | `/skill-creator` step 3 + `/skill-eval` step 6 | Optional — both reference `pnpm skill-tools view`, but as a "suggest to user" call, not enforced |
-| `refresh-provider-docs` | `skill-portability` skill docs                 | Manual cadence (quarterly per its own description)                                               |
+| Entry                   | Caller                                         | Notes                                                                                              |
+| ----------------------- | ---------------------------------------------- | -------------------------------------------------------------------------------------------------- |
+| `sync-scripts`          | Lefthook pre-commit (job 1)                    | Vendors `skill-scripts/<name>/` into each consuming skill                                          |
+| `sync-scripts --check`  | Lefthook pre-commit (job 5)                    | Fails commit on vendored drift                                                                     |
+| `lint --severity error` | Lefthook pre-commit (job 4)                    | Blocks bad skills from landing                                                                     |
+| `lint`                  | `/skill-creator` step 6 (self-lint)            | Authoring loop                                                                                     |
+| `eval`                  | `/skill-eval` step 4                           | Grades transcripts                                                                                 |
+| `benchmark`             | `/skill-eval` step 5                           | Aggregates per-iteration grading                                                                   |
+| `view`                  | `/skill-creator` step 3 + `/skill-eval` step 6 | Optional — both reference `pnpm skill-toolkit view`, but as a "suggest to user" call, not enforced |
+| `refresh-provider-docs` | `skill-portability` skill docs                 | Manual cadence (quarterly per its own description)                                                 |
 
 The Lefthook hooks are the hard constraint. Everything else is "skill workflows mention it" — losing it just means updating those docs.
 
@@ -35,7 +35,7 @@ Each concern: what it is → why it exists → cost → recommendation. Mark a b
 
 ### C1. The Ink/React TUI (`view` command + `tui/` directory)
 
-- **What:** `pnpm skill-tools view [skill]` opens an Ink TUI that lists skills → iterations → scenarios, then shells out to `$EDITOR` on the selected transcript.
+- **What:** `pnpm skill-toolkit view [skill]` opens an Ink TUI that lists skills → iterations → scenarios, then shells out to `$EDITOR` on the selected transcript.
 - **Files:** `commands/view.tsx` (26) + `tui/App.tsx` (133) + `tui/SkillList.tsx` (52) + `tui/IterationList.tsx` (72) + `tui/ScenarioList.tsx` (99) + `tui/editor.ts` (66) + tests. **~448 LOC.**
 - **Deps it pulls in:** `react`, `ink`, `@inkjs/ui` — three runtime deps that exist only for this command.
 - **Cost vs. value:** the TUI navigates filesystem trees (3 levels deep) and shells out. A shell function (`fd transcript.md skills/*/.workspace | fzf | xargs $EDITOR`) covers the same job in ~5 lines. The "score column" formatting in `ScenarioList` is the only non-trivial render — easy to reproduce as a `find` + `awk` one-liner.
@@ -47,7 +47,7 @@ Each concern: what it is → why it exists → cost → recommendation. Mark a b
 - [ ] Drop `react`, `ink`, `@inkjs/ui` from `dependencies`
 - [ ] Drop `@types/react` from `devDependencies`
 - [ ] Replace the docs references in `skill-creator` / `skill-eval` with the `fd | fzf | $EDITOR` one-liner
-- [ ] (Optional) ship a 10-line `bin/view.mjs` if you still want `pnpm skill-tools view` as a command
+- [ ] (Optional) ship a 10-line `bin/view.mjs` if you still want `pnpm skill-toolkit view` as a command
 
 **Saves: ~448 LOC + 3 runtime deps + the React build path through kidd.**
 
@@ -58,7 +58,7 @@ Each concern: what it is → why it exists → cost → recommendation. Mark a b
 - **What:** HTTP-fetches `docUrls` listed in `skills/skill-portability/scripts/providers.mjs`, strips HTML, writes a snapshot per provider into `skills/skill-portability/references/providers/<id>.md`.
 - **File:** `commands/refresh-provider-docs.ts` (206 LOC).
 - **Used by:** one skill (skill-portability), one cadence (quarterly), one invocation pattern (manual).
-- **Cost vs. value:** this is a CLI-shaped script masquerading as a skill-tools command. It imports `findRepoRoot` from sync-scripts, but otherwise has zero dependency on the rest of skill-tools. The HTML-strip logic is bespoke regex chains.
+- **Cost vs. value:** this is a CLI-shaped script masquerading as a skill-toolkit command. It imports `findRepoRoot` from sync-scripts, but otherwise has zero dependency on the rest of skill-toolkit. The HTML-strip logic is bespoke regex chains.
 - **Where it belongs:** alongside `providers.mjs` itself, since they share the schema. `skills/skill-portability/scripts/refresh.mjs` would be self-contained.
 
 **Recommendation: MOVE OUT.**
@@ -68,7 +68,7 @@ Each concern: what it is → why it exists → cost → recommendation. Mark a b
 - [ ] Update skill-portability docs to invoke `node skills/skill-portability/scripts/refresh-providers.mjs`
 - [ ] Update CONTRIBUTING.md references
 
-**Saves: 206 LOC from skill-tools.** (Code total unchanged, but skill-tools shrinks and the script lives with its config.)
+**Saves: 206 LOC from skill-toolkit.** (Code total unchanged, but skill-toolkit shrinks and the script lives with its config.)
 
 ---
 
@@ -77,11 +77,11 @@ Each concern: what it is → why it exists → cost → recommendation. Mark a b
 - **What:** bespoke `Result<T,E>` + `attempt` / `attemptAsync` helpers (75 LOC + 78 LOC tests = 153 LOC).
 - **Why it exists:** mirrors the convention from `skills/functional-ts-best-practices` (per its own header comment).
 - **Cost:** `massaman` already ships `Result`, `ok`, `err`, `attempt`, `attemptAsync`, `isOk`, `isErr` — and we already use it elsewhere in the repo (npm-namer). Maintaining two parallel implementations is drift waiting to happen.
-- **Call sites in skill-tools:** `workspace.ts:93,102,221,255` (4 `attempt` calls).
+- **Call sites in skill-toolkit:** `workspace.ts:93,102,221,255` (4 `attempt` calls).
 
 **Recommendation: DELETE, import from `massaman` instead.**
 
-- [ ] Add `massaman` to `packages/skill-tools/package.json` deps
+- [ ] Add `massaman` to `packages/skill-toolkit/package.json` deps
 - [ ] Replace `import { attempt } from './result.js'` with `import { attempt } from 'massaman'` in workspace.ts
 - [ ] Delete `lib/result.ts` + `lib/result.test.ts`
 
@@ -213,7 +213,7 @@ Each concern: what it is → why it exists → cost → recommendation. Mark a b
 - **What:** `es-toolkit` is used in 2 places only:
   - `commands/lint.ts:2` — `groupBy` (one call site)
   - `lib/lint/helpers.ts:1` — `isEmpty` (one call site)
-- **Why swap:** `massaman` exports the same functions (verified — its export list includes `groupBy`, `isEmpty`, plus ~250 other FP utilities). Massaman is already coming into skill-tools via C3 (replacing `result.ts`), so this consolidates onto a single FP lib. Bonus: massaman is Zac's own library — dogfooding.
+- **Why swap:** `massaman` exports the same functions (verified — its export list includes `groupBy`, `isEmpty`, plus ~250 other FP utilities). Massaman is already coming into skill-toolkit via C3 (replacing `result.ts`), so this consolidates onto a single FP lib. Bonus: massaman is Zac's own library — dogfooding.
 - **Swap is mechanical:**
   - `import { groupBy } from 'es-toolkit'` → `import { groupBy } from 'massaman'`
   - `import { isEmpty } from 'es-toolkit/compat'` → `import { isEmpty } from 'massaman'`
@@ -249,13 +249,13 @@ Each concern: what it is → why it exists → cost → recommendation. Mark a b
 | `b31f63c` | C7 — full evals concept wipe (incl. C4 schemas)                                                              |  -4044 / +71 |
 | `75faaab` | Refresh installs + drop skill-eval from lock                                                                 |   -429 / +28 |
 
-**Total: ~-5130 / +939 lines across skill-tools, skills, and root docs.**
+**Total: ~-5130 / +939 lines across skill-toolkit, skills, and root docs.**
 
 **Runtime deps dropped:** `react`, `ink`, `@inkjs/ui`, `@types/react`, `es-toolkit`, `ts-pattern` (6 total).
 **Runtime deps added:** `massaman`, `yaml` (2 total).
 **Net dep change: -4.**
 
-**skill-tools src/ LOC (non-test):** ~1880 → ~620.
+**skill-toolkit src/ LOC (non-test):** ~1880 → ~620.
 
 **Skills deleted:** `skill-eval` (entire skill).
 **Skill-tools commands deleted:** `view`, `refresh-provider-docs`, `eval`, `benchmark` (4 of 6).
@@ -331,7 +331,7 @@ Tie-in with `skill-portability`: that skill already maintains a provider matrix 
 ### Final layout
 
 ```
-packages/skill-tools/src/
+packages/skill-toolkit/src/
 ├── commands/              # 2 thin CLI dispatch files (lint, sync-scripts)
 ├── lint/                  # rules + helpers + runner + tests (6 files, ~600 LOC)
 ├── lib/                   # skills, repo-root, sync-scripts (~270 LOC)
@@ -343,8 +343,8 @@ packages/skill-tools/src/
 
 - typecheck clean
 - 21/21 vitest pass
-- `pnpm skill-tools lint` — 0 error / 0 warn / 0 info across 13 skills
-- `pnpm skill-tools sync-scripts --check` — 0 drift
+- `pnpm skill-toolkit lint` — 0 error / 0 warn / 0 info across 13 skills
+- `pnpm skill-toolkit sync-scripts --check` — 0 drift
 - Zero textual references to `evals.json` / `/skill-eval` / `RED→GREEN` / `pressure-scenarios` / `tdd-for-skills` anywhere in source paths
 
 ### Skills before/after

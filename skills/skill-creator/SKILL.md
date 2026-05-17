@@ -107,9 +107,9 @@ Typical body sections:
 
 ### 5. Self-lint
 
-Run `pnpm skill-tools lint <name>`. All `error`-severity findings must clear; `warn` and `info` are advisory. If any rule fails, fix the SKILL.md and re-run.
+Run `pnpm skill-toolkit lint <name>`. All `error`-severity findings must clear; `warn` and `info` are advisory. If any rule fails, fix the SKILL.md and re-run.
 
-The full rule list lives in [`references/lint-checklist.md`](references/lint-checklist.md). The TS implementation in `packages/skill-tools/src/lint/rules.ts` is the enforcer.
+The full rule list lives in [`references/lint-checklist.md`](references/lint-checklist.md). The TS implementation in `packages/skill-toolkit/src/lint/rules.ts` is the enforcer.
 
 ### 6. Capture rationalizations (discipline skills only)
 

@@ -36,14 +36,14 @@ If you find a missing format, add it to `patterns.mjs` with a citation and a tes
 Add to your skill's manifest:
 
 ```json
-// skills/<your-skill>/scripts.json
+// skills/<your-skill>/skill.json
 { "scripts": ["prompt-shield", "secret-shield"] }
 ```
 
 Vendor it in:
 
 ```bash
-pnpm skill-tools sync-scripts
+pnpm skill-toolkit sync-scripts
 ```
 
 Two consumption patterns:
@@ -68,7 +68,7 @@ node ./scripts/secret-shield/secret-shield.mjs --redact diff.txt # write redacte
 
 ## Don't edit the vendored copies
 
-Source of truth is `skill-scripts/secret-shield/`. Vendored copies under `skills/<skill>/scripts/secret-shield/` are derived; the Lefthook pre-commit hook re-syncs them when source changes, and `pnpm skill-tools sync-scripts --check` fails CI on drift.
+Source of truth is `skill-scripts/secret-shield/`. Vendored copies under `skills/<skill>/scripts/secret-shield/` are derived; the Lefthook pre-commit hook re-syncs them when source changes, and `pnpm skill-toolkit sync-scripts --check` fails CI on drift.
 
 ## Background
 

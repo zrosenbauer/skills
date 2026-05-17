@@ -173,7 +173,7 @@ This repo ships a canonical implementation: [`skill-scripts/prompt-shield/`](../
 
 **To consume it from a skill:**
 
-1. Add `<skill>/scripts.json` listing the script(s) you need:
+1. Add `<skill>/skill.json` listing the script(s) you need:
 
    ```json
    { "scripts": ["prompt-shield", "secret-shield"] }
@@ -182,7 +182,7 @@ This repo ships a canonical implementation: [`skill-scripts/prompt-shield/`](../
 2. Run sync to vendor copies into `<skill>/scripts/<name>/`:
 
    ```bash
-   pnpm skill-tools sync-scripts
+   pnpm skill-toolkit sync-scripts
    ```
 
 3. Use it. Two consumption shapes:
@@ -203,7 +203,7 @@ This repo ships a canonical implementation: [`skill-scripts/prompt-shield/`](../
 
 - Edit only `skill-scripts/prompt-shield/`. Never edit a vendored copy.
 - The Lefthook pre-commit hook runs `sync-scripts` automatically when you stage changes under `skill-scripts/**`, then re-stages the updated vendored copies into the same commit.
-- `pnpm skill-tools sync-scripts --check` (also run by pre-commit) fails if any vendored copy drifts from source — catches hand-edits.
+- `pnpm skill-toolkit sync-scripts --check` (also run by pre-commit) fails if any vendored copy drifts from source — catches hand-edits.
 - Tests live with the source (`skill-scripts/prompt-shield/*.test.mjs`) and are not vendored. The `pnpm test:scripts` glob picks them up alongside skill-local tests.
 
 ## When to keep a skill local instead

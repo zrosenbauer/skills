@@ -2,15 +2,14 @@ import { command } from '@kidd-cli/core'
 import { groupBy, match, P } from 'massaman'
 import { z } from 'zod'
 
-import { findRepoRoot } from '../lib/repo-root.js'
-import { findSkills, type SkillRecord } from '../lib/skills.js'
 import {
   type Finding,
   type Severity,
   type SkillLintResult,
   lintSkill,
   summarize,
-} from '../lint/index.js'
+} from '../lib/lint/index.js'
+import { findRepoRoot, findSkills, type SkillRecord } from '../lib/skills/index.js'
 
 const options = z.object({
   severity: z
@@ -73,17 +72,32 @@ function resolveTargets(skills: SkillRecord[], skillName: string | undefined): S
   return skills.filter((s) => s.location.name === skillName)
 }
 
+/**
+ * Inputs for rendering one skill's section of the lint output.
+ */
 interface RenderSkillParams {
+  /**
+   * The skill's lint result — record plus findings — produced by
+   * `lintSkill`.
+   */
   result: SkillLintResult
+  /**
+   * Maximum severity order to render (from `SEVERITY_ORDER`). Findings
+   * with a higher order are filtered out — this is the `--severity`
+   * gate.
+   */
   minOrder: number
+  /**
+   * Whether to print fix hints under each finding. Driven by the
+   * `--fix` flag.
+   */
   showFix: boolean
 }
 
 /**
- * Render one skill's findings, grouped by severity tier.
- *
- * Uses `es-toolkit`'s groupBy so the output preserves a consistent
- * error → warn → info ordering even when the rules array shuffles.
+ * Render one skill's findings, grouped by severity tier so the output
+ * preserves a stable error → warn → info ordering even when the rules
+ * array shuffles.
  *
  * @private
  */
@@ -112,15 +126,28 @@ function renderSkill({ result, minOrder, showFix }: RenderSkillParams): string {
  * @private
  */
 function renderFinding(f: Finding, showFix: boolean): string {
-  const head = `  ${SEVERITY_COLOR[f.severity]}${SEVERITY_GLYPH[f.severity]} ${f.severity}${RESET}  ${DIM}${f.code}${RESET}  ${f.message}`
+  const head = `  ${SEVERITY_COLOR[f.severity]}${SEVERITY_GLYPH[f.severity]} ${f.severity}${RESET}  ${DIM}${f.id}${RESET}  ${f.message}`
   return match([showFix, f.fix])
     .with([true, P.string], () => `${head}\n      ${DIM}→ ${f.fix}${RESET}`)
     .otherwise(() => head)
 }
 
+/**
+ * Aggregate finding counts across every linted skill — what the
+ * summary footer renders.
+ */
 interface Totals {
+  /**
+   * Total findings at `error` severity across every linted skill.
+   */
   errors: number
+  /**
+   * Total findings at `warn` severity across every linted skill.
+   */
   warns: number
+  /**
+   * Total findings at `info` severity across every linted skill.
+   */
   infos: number
 }
 

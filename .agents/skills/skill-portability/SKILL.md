@@ -54,7 +54,7 @@ Verbatim trigger phrases:
 
 - Authoring a brand-new skill → use `skill-creator`
 - Rerunning a skill's existing eval baselines → use `skill-eval`
-- Linting a skill against this monorepo's rules → use `pnpm skill-tools lint`
+- Linting a skill against this monorepo's rules → use `pnpm skill-toolkit lint`
 - Comparing skill behavior across model versions → that's `skill-eval`, not this
 
 ## Inputs

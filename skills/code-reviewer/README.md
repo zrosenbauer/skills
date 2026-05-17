@@ -16,7 +16,7 @@ npx skills add zrosenbauer/skills --skill code-reviewer
 - Reads the in-scope files / diff from the local working tree
 - Probes `$PATH` for ~20 known AI CLIs (Codex, Gemini, Aider, Cursor agent, Crush, Mods, Ollama, Goose, Continue, Windsurf, Droid, Tabnine, Amp, Qwen Code, iFlow, Kimi, aichat, gh copilot, etc.) and **recommends cross-model handoff** when one is available — a different model on the same machine catches what the current one misses
 - Falls back to multi-bg-agent / agent-team for multi-persona parallel review when cross-model isn't viable; falls back to in-process only as a last resort
-- Outputs findings in three-tier severity (error / warn / info) matching the repo's `skill-tools` lint format
+- Outputs findings in three-tier severity (error / warn / info) matching the repo's `skill-toolkit` lint format
 
 ## Personas
 

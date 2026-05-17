@@ -1,6 +1,6 @@
 # Self-lint checklist
 
-Run with `pnpm skill-tools lint <name>` (or `pnpm skill-tools lint` for all skills). The TS implementation in [`packages/skill-tools/src/lib/lint.ts`](../../../../packages/skill-tools/src/lib/lint.ts) is the enforcer; this doc is the human-readable reference.
+Run with `pnpm skill-toolkit lint <name>` (or `pnpm skill-toolkit lint` for all skills). The TS implementation in [`packages/skill-toolkit/src/lib/lint.ts`](../../../../packages/skill-toolkit/src/lib/lint.ts) is the enforcer; this doc is the human-readable reference.
 
 ## Severity model
 
@@ -10,7 +10,7 @@ Run with `pnpm skill-tools lint <name>` (or `pnpm skill-tools lint` for all skil
 | `warn`   | Likely problem; fix unless justified | 0                |
 | `info`   | Recommendation; apply if cheap       | 0                |
 
-`pnpm skill-tools lint` shows all three by default. Use `--severity error` to filter to blockers only, or `--fix` to print fix hints alongside each finding.
+`pnpm skill-toolkit lint` shows all three by default. Use `--severity error` to filter to blockers only, or `--fix` to print fix hints alongside each finding.
 
 ## Rules
 
@@ -69,13 +69,13 @@ Run with `pnpm skill-tools lint <name>` (or `pnpm skill-tools lint` for all skil
 ## CI usage
 
 ```bash
-pnpm skill-tools lint                   # all skills, all severities
-pnpm skill-tools lint --severity error  # only blockers
-pnpm skill-tools lint <skill-name>      # one skill
-pnpm skill-tools lint --fix             # show fix hints
+pnpm skill-toolkit lint                   # all skills, all severities
+pnpm skill-toolkit lint --severity error  # only blockers
+pnpm skill-toolkit lint <skill-name>      # one skill
+pnpm skill-toolkit lint --fix             # show fix hints
 ```
 
-Exit code is `2` if any `error` was found, `0` otherwise. Wire `pnpm skill-tools lint --severity error` into pre-commit / CI to block bad skills.
+Exit code is `2` if any `error` was found, `0` otherwise. Wire `pnpm skill-toolkit lint --severity error` into pre-commit / CI to block bad skills.
 
 ## Disabling a check
 

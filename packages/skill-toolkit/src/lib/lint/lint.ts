@@ -1,20 +1,25 @@
 import { readFileSync } from 'node:fs'
 import path from 'node:path'
 
-import type { SkillRecord } from '../lib/skills.js'
-import { RULES } from './rules.js'
-import type { Finding, Rule, SkillLintResult } from './types.js'
+import type { SkillRecord } from '../skills/types.js'
+import { listRules } from './rules/index.js'
+import type { Finding, SkillLintResult } from './types.js'
 
+/**
+ * Run every rule against one skill and collect its findings. The runner —
+ * not the rule — attaches `id` and the default `severity`, so a check can
+ * override severity per-finding without restating its identity.
+ */
 export function lintSkill(skill: SkillRecord): SkillLintResult {
   const skillMd = readFileSync(path.join(skill.location.dir, 'SKILL.md'), 'utf8')
   const body = skillMd.replace(/^---\n[\s\S]+?\n---\n/, '')
 
   const findings: Finding[] = []
-  for (const rule of RULES) {
+  for (const rule of listRules()) {
     const result = rule.check(skill, body)
-    if (!result) continue
+    if (result.status === 'pass') continue
     findings.push({
-      code: rule.code,
+      id: rule.id,
       severity: result.severity ?? rule.severity,
       message: result.message,
       ...(result.fix !== undefined && { fix: result.fix }),
@@ -24,6 +29,10 @@ export function lintSkill(skill: SkillRecord): SkillLintResult {
   return { skill, findings }
 }
 
+/**
+ * Tally findings across skills by severity tier. Drives the summary
+ * footer at the bottom of the lint output.
+ */
 export function summarize(results: SkillLintResult[]): {
   errors: number
   warns: number
@@ -39,7 +48,3 @@ export function summarize(results: SkillLintResult[]): {
   }
   return counts
 }
-
-export const lintRules: ReadonlyArray<Pick<Rule, 'code' | 'severity' | 'description'>> = RULES.map(
-  ({ code, severity, description }) => ({ code, severity, description })
-)

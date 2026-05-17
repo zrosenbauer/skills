@@ -21,7 +21,7 @@ importers:
         specifier: ^2.8.20
         version: 2.9.9
 
-  packages/skill-tools:
+  packages/skill-toolkit:
     dependencies:
       '@kidd-cli/core':
         specifier: ^0.23.1
@@ -1702,8 +1702,8 @@ snapshots:
 
   '@babel/generator@8.0.0-rc.3':
     dependencies:
-      '@babel/parser': 8.0.0-rc.3
-      '@babel/types': 8.0.0-rc.3
+      '@babel/parser': 8.0.0-rc.5
+      '@babel/types': 8.0.0-rc.5
       '@jridgewell/gen-mapping': 0.3.13
       '@jridgewell/trace-mapping': 0.3.31
       '@types/jsesc': 2.5.1

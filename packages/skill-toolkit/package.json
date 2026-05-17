@@ -1,12 +1,12 @@
 {
-  "name": "@zrosenbauer/skill-tools",
+  "name": "@zrosenbauer/skill-toolkit",
   "version": "0.0.0",
   "private": true,
   "description": "CLI for authoring, linting, and evaluating skills in this monorepo",
   "license": "MIT",
   "author": "Zac Rosenbauer <zacrosenbauer@gmail.com>",
   "bin": {
-    "skill-tools": "./dist/index.mjs"
+    "skill-toolkit": "./dist/index.mjs"
   },
   "type": "module",
   "scripts": {

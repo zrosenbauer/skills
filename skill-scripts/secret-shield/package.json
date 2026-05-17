@@ -2,7 +2,7 @@
   "name": "@zrosenbauer/skill-scripts-secret-shield",
   "version": "0.0.0",
   "private": true,
-  "description": "Preflight scanner that blocks secrets (API keys, tokens, .env values) from being forwarded to external CLIs or LLMs. Vendored verbatim into consuming skills by skill-tools sync-scripts. No build step — pure Node ESM.",
+  "description": "Preflight scanner that blocks secrets (API keys, tokens, .env values) from being forwarded to external CLIs or LLMs. Vendored verbatim into consuming skills by skill-toolkit sync-scripts. No build step — pure Node ESM.",
   "license": "MIT",
   "author": "Zac Rosenbauer <zacrosenbauer@gmail.com>",
   "files": [

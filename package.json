@@ -22,7 +22,7 @@
     "typecheck": "turbo run typecheck",
     "check": "pnpm lint && pnpm format && pnpm typecheck && pnpm test && pnpm test:scripts",
     "clean": "turbo run clean && rm -rf node_modules .turbo",
-    "skill-tools": "node packages/skill-tools/dist/index.mjs"
+    "skill-toolkit": "node packages/skill-toolkit/dist/index.mjs"
   },
   "devDependencies": {
     "lefthook": "^2.1.6",

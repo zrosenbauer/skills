@@ -1,6 +1,6 @@
 # Review output format
 
-How to format the review. Universal across all four personas. Matches the three-tier severity from `skill-tools` lint so consumers can read both.
+How to format the review. Universal across all four personas. Matches the three-tier severity from `skill-toolkit` lint so consumers can read both.
 
 ## Severity tiers
 

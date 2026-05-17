@@ -4,7 +4,7 @@
  *
  * Mitigates W007 (insecure credential handling) when a skill ingests
  * code/diffs and could exfiltrate embedded secrets to an external CLI.
- * Pure — no I/O. Vendored into each consuming skill via skill-tools
+ * Pure — no I/O. Vendored into each consuming skill via skill-toolkit
  * sync-scripts; do not edit the vendored copy.
  *
  * Detection is regex-based against the curated `patterns.mjs` registry.

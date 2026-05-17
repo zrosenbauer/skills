@@ -22,7 +22,7 @@ Verbatim trigger phrases:
 
 ## What it bakes in
 
-This is a **discipline skill** — `pnpm skill-tools lint` already covers mechanical rules, so the gap this skill closes is the lazy-reviewer failure mode:
+This is a **discipline skill** — `pnpm skill-toolkit lint` already covers mechanical rules, so the gap this skill closes is the lazy-reviewer failure mode:
 
 - **Skill-type classification first** (discipline / technique / pattern / reference) so the audit lens matches the skill
 - **Deep-reference reading** beyond `lint-checklist.md` — description quality, frontmatter shape, XML usage

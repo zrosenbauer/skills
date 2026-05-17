@@ -1,8 +1,8 @@
 import { command } from '@kidd-cli/core'
 import { z } from 'zod'
 
-import { findRepoRoot } from '../lib/repo-root.js'
-import { applySync, planSync, type SyncReport } from '../lib/sync-scripts.js'
+import { applySync, planSync, type SyncReport } from '../lib/scripts/index.js'
+import { findRepoRoot } from '../lib/skills/index.js'
 
 const options = z.object({
   check: z
@@ -75,7 +75,12 @@ export default command({
   },
 })
 
-/** @private */
+/**
+ * Render the drift block for one report: the headline plus one line per
+ * vendored file that diverges from its source.
+ *
+ * @private
+ */
 function renderDrift(report: SyncReport): string {
   const head = `${BOLD}${report.skill}${RESET} ${DIM}→${RESET} ${YELLOW}drift${RESET} ${report.scriptName}`
   const items = report.drift.map((d) => `    ${DIM}~${RESET} ${d.relative}`).join('\n')

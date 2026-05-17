@@ -20,15 +20,15 @@ pnpm install
 ├── skills/              # AUTHORING SOURCE — skills authored here, published via `npx skills add`
 │   └── <name>/
 │       ├── SKILL.md     # the skill itself
-│       ├── scripts.json # optional — declares which shared scripts to vendor in
+│       ├── skill.json   # optional manifest — declares which shared scripts to vendor in
 │       ├── scripts/     # skill-local scripts + vendored shared script dirs
 │       ├── LICENSE
 │       └── README.md
 ├── .agents/skills/      # INSTALL DESTINATION managed by `npx skills add` — DO NOT hand-edit
 ├── skill-scripts/       # canonical source for shared scripts (e.g. prompt-shield)
-│   └── <name>/          # vendored into `<skill>/scripts/<name>/` via `pnpm skill-tools sync-scripts`
+│   └── <name>/          # vendored into `<skill>/scripts/<name>/` via `pnpm skill-toolkit sync-scripts`
 ├── packages/
-│   └── skill-tools/     # CLI for linting skills
+│   └── skill-toolkit/     # CLI for linting skills
 ├── contributing/        # supplementary contributor docs (e.g. prompt-injection.md)
 ├── lefthook.yml         # pre-commit hooks (sync, format, lint, drift check)
 ├── package.json         # root, private, workspaces via pnpm-workspace.yaml
@@ -45,13 +45,13 @@ All skills under `skills/` are publicly distributed by design — every skill sh
 
 ### Sharing scripts between skills
 
-When more than one skill needs the same helper (e.g. `prompt-shield` for indirect-prompt-injection mitigation), the canonical source goes in `skill-scripts/<name>/`. Each consuming skill declares it in `scripts.json`:
+When more than one skill needs the same helper (e.g. `prompt-shield` for indirect-prompt-injection mitigation), the canonical source goes in `skill-scripts/<name>/`. Each consuming skill declares it in `skill.json`:
 
 ```json
 { "scripts": ["prompt-shield"] }
 ```
 
-Then `pnpm skill-tools sync-scripts` vendors a byte-identical copy into the skill's `scripts/<name>/` directory. Vendored copies are committed so skills stay self-contained when shipped via `npx skills add`. Do not hand-edit vendored copies — Lefthook's pre-commit drift check (`pnpm skill-tools sync-scripts --check`) will fail. See [`contributing/prompt-injection.md`](./contributing/prompt-injection.md) for the prompt-shield example.
+Then `pnpm skill-toolkit sync-scripts` vendors a byte-identical copy into the skill's `scripts/<name>/` directory. Vendored copies are committed so skills stay self-contained when shipped via `npx skills add`. Do not hand-edit vendored copies — Lefthook's pre-commit drift check (`pnpm skill-toolkit sync-scripts --check`) will fail. See [`contributing/prompt-injection.md`](./contributing/prompt-injection.md) for the prompt-shield example.
 
 ## Authoring a skill
 
@@ -69,7 +69,7 @@ mkdir -p skills/my-skill
 $EDITOR skills/my-skill/SKILL.md
 ```
 
-Hand-authored skills must still pass `pnpm skill-tools lint --severity error`.
+Hand-authored skills must still pass `pnpm skill-toolkit lint --severity error`.
 
 ### `SKILL.md` format
 
@@ -109,10 +109,10 @@ All `pnpm <task>` scripts are thin wrappers around `turbo run <task>`.
 Skill-specific tooling:
 
 ```bash
-pnpm skill-tools lint                      # lint every skill (three-tier severity)
-pnpm skill-tools lint <name>               # lint one skill
-pnpm skill-tools sync-scripts              # vendor canonical scripts into each consuming skill
-pnpm skill-tools sync-scripts --check      # fail if any vendored copy drifts from source
+pnpm skill-toolkit lint                      # lint every skill (three-tier severity)
+pnpm skill-toolkit lint <name>               # lint one skill
+pnpm skill-toolkit sync-scripts              # vendor canonical scripts into each consuming skill
+pnpm skill-toolkit sync-scripts --check      # fail if any vendored copy drifts from source
 pnpm audit:skills                          # run snyk-agent-scan on public skills (needs SNYK_TOKEN)
 ```
 
@@ -131,7 +131,7 @@ The snapshots are committed alongside the skill — that's intentional.
 1. Runs `sync-scripts` if anything under `skill-scripts/**` is staged, then re-stages the vendored copies.
 2. Auto-formats staged files with `oxfmt` and re-stages.
 3. Lints staged JS/TS with `oxlint`.
-4. Runs `skill-tools lint --severity error` if any skill or skill-script source is staged.
+4. Runs `skill-toolkit lint --severity error` if any skill or skill-script source is staged.
 5. Always runs `sync-scripts --check` to catch hand-edits to vendored copies.
 
 Skip ad-hoc with `LEFTHOOK=0 git commit ...`. Avoid `--no-verify` outside of emergencies.
@@ -159,5 +159,5 @@ pnpm init
 ## Submitting changes
 
 1. Fork and branch.
-2. Run `pnpm skill-tools lint --severity error` and `pnpm test` before pushing.
+2. Run `pnpm skill-toolkit lint --severity error` and `pnpm test` before pushing.
 3. Open a PR describing the change and the failure mode it addresses.

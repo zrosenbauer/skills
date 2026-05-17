@@ -7,7 +7,7 @@
  * The salt is unpredictable per-invocation, so an attacker embedding a
  * forged closing tag in their content cannot escape the wrap.
  *
- * Pure — no I/O. Vendored into each consuming skill via skill-tools
+ * Pure — no I/O. Vendored into each consuming skill via skill-toolkit
  * sync-scripts; do not edit the vendored copy. Edit
  * skill-scripts/prompt-shield/compose.mjs instead.
  *

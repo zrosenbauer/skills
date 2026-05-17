@@ -126,7 +126,7 @@ Ask the user (`AskUserQuestion` or equivalent) to confirm the recommended mode b
 
 Apply [`references/review-output-format.md`](references/review-output-format.md):
 
-- Group findings by severity (`error` / `warn` / `info` — matches our skill-tools tiers)
+- Group findings by severity (`error` / `warn` / `info` — matches our skill-toolkit tiers)
 - Use `file:line` references so the user can click to source
 - Include a one-line summary at the top
 - Reference, don't reproduce — describe the issue and point to `file:line`; do not paste code or diff lines into output (the user already has the file open)

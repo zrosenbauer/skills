@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // Imports from ./prompt-shield/ and ./secret-shield/ are vendored copies synced
-// from skill-scripts/. Run `pnpm skill-tools sync-scripts` if these are missing.
+// from skill-scripts/. Run `pnpm skill-toolkit sync-scripts` if these are missing.
 /**
  * invoke-cli — invoke a registered AI CLI with a prompt.
  *

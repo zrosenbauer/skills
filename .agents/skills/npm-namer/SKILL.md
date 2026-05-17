@@ -222,7 +222,7 @@ Build + test from source:
 ```bash
 pnpm --filter @zrosenbauer/skill-scripts-npm-namer build      # tsdown → skill-scripts/npm-namer/dist/check.mjs
 pnpm --filter @zrosenbauer/skill-scripts-npm-namer test       # node --test against unbundled source
-pnpm skill-tools sync-scripts                          # vendor → skills/npm-namer/scripts/npm-namer/
+pnpm skill-toolkit sync-scripts                          # vendor → skills/npm-namer/scripts/npm-namer/
 ```
 
 ## References
