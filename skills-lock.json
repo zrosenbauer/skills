@@ -7,6 +7,12 @@
       "skillPath": "skills/code-reviewer/SKILL.md",
       "computedHash": "e3d980d620c1e950a29a4140b823a9ace57165e767d237642ae572517db04eaf"
     },
+    "npm-namer": {
+      "source": "zrosenbauer/skills",
+      "sourceType": "github",
+      "skillPath": "skills/npm-namer/SKILL.md",
+      "computedHash": "f4b7e5be2fd8572537abb6900a0041977a46dad51d3cd7a65aa8937d52f28775"
+    },
     "skill-creator": {
       "source": "zrosenbauer/skills",
       "sourceType": "github",
