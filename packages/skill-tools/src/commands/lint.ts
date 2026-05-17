@@ -1,6 +1,5 @@
 import { command } from '@kidd-cli/core'
-import { groupBy } from 'es-toolkit'
-import { P, match } from 'ts-pattern'
+import { groupBy, match, P } from 'massaman'
 import { z } from 'zod'
 
 import {
@@ -10,7 +9,8 @@ import {
   lintSkill,
   summarize,
 } from '../lib/lint/index.js'
-import { type SkillRecord, discoverSkills, findRepoRoot } from '../lib/workspace.js'
+import { findRepoRoot } from '../lib/repo-root.js'
+import { findSkills, type SkillRecord } from '../lib/skills.js'
 
 const options = z.object({
   severity: z
@@ -41,7 +41,7 @@ export default command({
   description: 'Lint skills against the three-tier rule set (error / warn / info)',
   handler: (ctx) => {
     const repoRoot = findRepoRoot(process.cwd())
-    const allSkills = discoverSkills(repoRoot)
+    const allSkills = findSkills(repoRoot)
     const targets = resolveTargets(allSkills, ctx.args.skill)
 
     if (targets.length === 0) {

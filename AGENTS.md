@@ -89,7 +89,6 @@ pnpm test                              # turbo run test
 pnpm test:scripts                      # node --test across skills/*/scripts and skill-scripts/*
 pnpm skill-tools lint                  # lint every skill against the three-tier rule set
 pnpm skill-tools lint <name>           # lint one skill
-pnpm skill-tools view                  # TUI: browse skills / iterations / transcripts
 pnpm skill-tools benchmark <name>      # aggregate iteration grading into benchmark.md
 pnpm skill-tools sync-scripts          # vendor canonical scripts into each consuming skill
 pnpm skill-tools sync-scripts --check  # fail if any vendored copy drifts from source

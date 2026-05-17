@@ -140,7 +140,7 @@ Summarize per skill:
 - Any evals that _failed_ with the skill loaded (regression to investigate)
 - Path to the benchmark and to the latest iteration directory
 
-Suggest the user run `pnpm skill-tools view <skill-name>` to navigate transcripts in the TUI.
+Point the user at `skills/<skill-name>/.workspace/iteration-N/` for transcripts.
 
 ## Examples
 

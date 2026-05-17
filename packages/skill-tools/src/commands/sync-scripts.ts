@@ -1,7 +1,8 @@
 import { command } from '@kidd-cli/core'
 import { z } from 'zod'
 
-import { applySync, findRepoRoot, planSync, type SyncReport } from '../lib/sync-scripts.js'
+import { findRepoRoot } from '../lib/repo-root.js'
+import { applySync, planSync, type SyncReport } from '../lib/sync-scripts.js'
 
 const options = z.object({
   check: z

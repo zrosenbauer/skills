@@ -34,9 +34,9 @@ for the canonical list. The audit covers three layers:
 The canonical provider list, required/forbidden frontmatter fields, and
 **bundled doc snapshots** live in [`scripts/providers.mjs`](scripts/providers.mjs)
 and [`references/providers/`](references/providers/). Provider docs are
-refreshed at authoring time via `pnpm skill-tools refresh-provider-docs`
-and committed — the audit never fetches at runtime, so per-provider
-verdicts are deterministic and offline-capable.
+refreshed by hand on cadence (quarterly+) and committed — the audit never
+fetches at runtime, so per-provider verdicts are deterministic and
+offline-capable. See CONTRIBUTING.md for the refresh workflow.
 
 ## When to use
 
@@ -179,18 +179,12 @@ truncated to a placeholder, surface this in the inline output:
 ```
 ⚠ Provider snapshot missing or sparse: `cursor` — references/providers/cursor.md
   is 503 bytes (likely SPA-rendered upstream). Verdict relies on the
-  `notes` field. Run `pnpm skill-tools refresh-provider-docs` to refresh.
+  `notes` field. Refresh the snapshot by hand (see CONTRIBUTING.md).
 ```
 
 Don't silently fall back to WebFetch — that's exactly the runtime fetch
 behavior the bundled-snapshot design avoids. If a snapshot is genuinely
 missing, treat it as `unknown` in the verdict rather than guessing.
-
-To refresh snapshots from upstream (dev-time, not runtime):
-
-```bash
-pnpm skill-tools refresh-provider-docs
-```
 
 To verify URLs still resolve (HEAD requests, no body fetch):
 
@@ -260,8 +254,8 @@ provider's docs site staying up.
 </bad>
 
 The bad version reintroduces the runtime URL fetch the snapshot pattern
-exists to avoid. Snapshots are committed; refresh on cadence with
-`pnpm skill-tools refresh-provider-docs`.
+exists to avoid. Snapshots are committed; refresh by hand on cadence
+(see CONTRIBUTING.md).
 </example>
 
 ## References
@@ -270,7 +264,7 @@ exists to avoid. Snapshots are committed; refresh on cadence with
   format requirements, `localDocPath` for each provider's bundled snapshot.
   Run `--check` to verify upstream URLs still resolve.
 - [`references/providers/`](references/providers/) — per-provider doc
-  snapshots (auto-generated; refresh via `pnpm skill-tools refresh-provider-docs`).
+  snapshots (committed; refresh by hand on cadence — see CONTRIBUTING.md).
 - [`references/provider-formats.md`](references/provider-formats.md) —
   per-provider deep dive: frontmatter shape, file location conventions,
   tool surface, common porting gotchas.

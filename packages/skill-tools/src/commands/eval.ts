@@ -5,8 +5,9 @@ import { command } from '@kidd-cli/core'
 import { z } from 'zod'
 
 import { gradeAll } from '../lib/grading.js'
+import { findRepoRoot } from '../lib/repo-root.js'
 import { gradingFileSchema, type EvalCase } from '../lib/schemas.js'
-import { discoverSkills, findRepoRoot, type SkillRecord } from '../lib/workspace.js'
+import { findSkills, type SkillRecord } from '../lib/skills.js'
 
 const positionals = z.object({
   skill: z.string().describe('Skill name'),
@@ -28,7 +29,7 @@ export default command({
     'Grade a single transcript against the assertions in evals.json. Used by /skill-eval after each subagent dispatch.',
   handler: async (ctx) => {
     const repoRoot = findRepoRoot(process.cwd())
-    const skills = discoverSkills(repoRoot)
+    const skills = findSkills(repoRoot)
     const skill = skills.find((s: SkillRecord) => s.location.name === ctx.args.skill)
     if (!skill) {
       ctx.log.error(`No skill named "${ctx.args.skill}"`)

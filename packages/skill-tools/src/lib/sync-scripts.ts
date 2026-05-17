@@ -11,7 +11,7 @@ import {
 import path from 'node:path'
 
 import { type ScriptsManifest, scriptsManifestSchema } from './schemas.js'
-import { type SkillRecord, discoverSkills, findRepoRoot } from './workspace.js'
+import { findSkills, type SkillRecord } from './skills.js'
 
 const SKILL_SCRIPTS_DIR = 'skill-scripts'
 
@@ -48,7 +48,7 @@ export interface SyncReport {
  * (skill, declared-script) pair. Pure — never writes.
  */
 export function planSync(repoRoot: string): SyncReport[] {
-  const skills = discoverSkills(repoRoot)
+  const skills = findSkills(repoRoot)
   const reports: SyncReport[] = []
   for (const skill of skills) {
     const manifest = readManifest(skill)
@@ -76,19 +76,6 @@ export function applySync(report: SyncReport): void {
     mkdirSync(path.dirname(file.target), { recursive: true })
     writeFileSync(file.target, readFileSync(file.source))
   }
-}
-
-/**
- * Locate every skill that declares a manifest. Convenience for callers
- * that want to count or display.
- */
-export function findManifests(
-  repoRoot: string
-): { skill: SkillRecord; manifest: ScriptsManifest }[] {
-  return discoverSkills(repoRoot).flatMap((skill) => {
-    const manifest = readManifest(skill)
-    return manifest ? [{ skill, manifest }] : []
-  })
 }
 
 /** @private */
@@ -263,15 +250,3 @@ function filesMatch(a: string, b: string): boolean {
 function hashFile(p: string): string {
   return createHash('sha256').update(readFileSync(p)).digest('hex')
 }
-
-/**
- * Convenience entry point matching the signatures other lib modules use.
- * Computes a plan then applies it.
- */
-export function syncAll(repoRoot: string): SyncReport[] {
-  const plan = planSync(repoRoot)
-  for (const report of plan) applySync(report)
-  return plan
-}
-
-export { findRepoRoot }

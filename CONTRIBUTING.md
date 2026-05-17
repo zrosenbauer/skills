@@ -125,11 +125,9 @@ Skill-specific tooling:
 ```bash
 pnpm skill-tools lint                      # lint every skill (three-tier severity)
 pnpm skill-tools lint <name>               # lint one skill
-pnpm skill-tools view                      # TUI: browse skills, iterations, transcripts
 pnpm skill-tools benchmark <name>          # aggregate iteration grading to benchmark.md
 pnpm skill-tools sync-scripts              # vendor canonical scripts into each consuming skill
 pnpm skill-tools sync-scripts --check      # fail if any vendored copy drifts from source
-pnpm skill-tools refresh-provider-docs     # snapshot upstream provider docs for skill-portability
 pnpm audit:skills                          # run snyk-agent-scan on public skills (needs SNYK_TOKEN)
 ```
 
@@ -137,16 +135,9 @@ pnpm audit:skills                          # run snyk-agent-scan on public skill
 
 `skill-portability` audits skills against bundled provider doc snapshots committed under `skills/skill-portability/references/providers/<id>.md`. The skill never fetches at agent runtime — that keeps audits deterministic, offline-capable, and out of W011/W012 trigger range.
 
-Refresh the snapshots at authoring time on cadence:
+Refresh cadence is quarterly+. Update by hand: open `docUrls` in `skills/skill-portability/scripts/providers.mjs`, fetch the page (`curl <url>` or your browser's reader view), strip to plain text, and overwrite the corresponding `skills/skill-portability/references/providers/<id>.md` file. Run `node skills/skill-portability/scripts/providers.mjs --check` to HEAD upstream URLs and catch 404s before refreshing.
 
-```bash
-pnpm skill-tools refresh-provider-docs      # fetches docUrls[0] per provider, strips HTML, writes snapshots
-node skills/skill-portability/scripts/providers.mjs --check   # HEADs upstream URLs to spot 404s
-```
-
-**Recommended cadence:** quarterly, plus before any release that touches skill-portability. If an upstream provider moves their docs, update `docUrls` in `skills/skill-portability/scripts/providers.mjs` and re-run the refresh.
-
-The snapshots are committed alongside the skill — that's intentional. Each snapshot file carries an HTML comment header recording provenance (source URL, refresh timestamp, byte count). Don't hand-edit the snapshots; regenerate via the script.
+The snapshots are committed alongside the skill — that's intentional.
 
 ### Pre-commit hooks
 

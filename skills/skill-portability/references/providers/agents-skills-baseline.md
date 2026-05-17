@@ -4,9 +4,8 @@
   Refreshed at: 2026-05-09T21:37:07.848Z
   Bytes: 7,336
 
-  DO NOT EDIT BY HAND. Run `pnpm skill-tools refresh-provider-docs`
-  to refresh from upstream. Update the docUrls list in
-  skills/skill-portability/scripts/providers.mjs if a provider
+  Refresh by hand on cadence (see CONTRIBUTING.md). Update the docUrls
+  list in skills/skill-portability/scripts/providers.mjs if a provider
   moves their docs.
 -->
 

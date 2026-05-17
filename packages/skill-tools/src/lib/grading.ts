@@ -1,7 +1,7 @@
 import { statSync } from 'node:fs'
 import path from 'node:path'
 
-import { match } from 'ts-pattern'
+import { match } from 'massaman'
 
 import type { Assertion, GradingResult } from './schemas.js'
 

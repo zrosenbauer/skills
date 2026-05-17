@@ -1,7 +1,7 @@
 import { readFileSync } from 'node:fs'
 import path from 'node:path'
 
-import type { SkillRecord } from '../workspace.js'
+import type { SkillRecord } from '../skills.js'
 import { RULES } from './rules.js'
 import type { Finding, Rule, SkillLintResult } from './types.js'
 

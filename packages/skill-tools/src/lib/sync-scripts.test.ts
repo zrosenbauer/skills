@@ -4,7 +4,13 @@ import path from 'node:path'
 
 import { describe, expect, it } from 'vitest'
 
-import { applySync, planSync, syncAll, type SyncReport } from './sync-scripts.js'
+import { applySync, planSync, type SyncReport } from './sync-scripts.js'
+
+function syncAll(repoRoot: string): SyncReport[] {
+  const plan = planSync(repoRoot)
+  for (const report of plan) applySync(report)
+  return plan
+}
 
 interface RepoFile {
   path: string

@@ -4,20 +4,15 @@ import path from 'node:path'
 import { command } from '@kidd-cli/core'
 import { z } from 'zod'
 
+import { readWorkspace, type IterationSummary, type ScenarioSummary } from '../lib/iterations.js'
+import { findRepoRoot } from '../lib/repo-root.js'
 import {
   type BenchmarkFile,
   benchmarkFileSchema,
   type EvalCase,
   type GradingFile,
 } from '../lib/schemas.js'
-import {
-  discoverSkills,
-  findRepoRoot,
-  readWorkspace,
-  type IterationSummary,
-  type ScenarioSummary,
-  type SkillRecord,
-} from '../lib/workspace.js'
+import { findSkills, type SkillRecord } from '../lib/skills.js'
 
 const positionals = z.object({
   skill: z.string().describe('Skill name to benchmark'),
@@ -39,7 +34,7 @@ export default command({
     'Aggregate grading.json results from a workspace iteration into benchmark.json + benchmark.md',
   handler: (ctx) => {
     const repoRoot = findRepoRoot(process.cwd())
-    const skills = discoverSkills(repoRoot)
+    const skills = findSkills(repoRoot)
     const skill = skills.find((s: SkillRecord) => s.location.name === ctx.args.skill)
     if (!skill) {
       ctx.log.error(`No skill named "${ctx.args.skill}"`)

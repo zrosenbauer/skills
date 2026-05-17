@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest'
 
 import { aggregate, renderMarkdown } from '../commands/benchmark.js'
+import type { IterationSummary, ScenarioSummary, VariantSummary } from './iterations.js'
 import type { EvalCase, GradingFile } from './schemas.js'
-import type { IterationSummary, ScenarioSummary, VariantSummary } from './workspace.js'
 
 function definedFromScenarios(scenarios: ScenarioSummary[]): EvalCase[] {
   return scenarios.map((s) => ({

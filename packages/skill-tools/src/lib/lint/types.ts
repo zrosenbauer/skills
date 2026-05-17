@@ -1,4 +1,4 @@
-import type { SkillRecord } from '../workspace.js'
+import type { SkillRecord } from '../skills.js'
 
 export type Severity = 'error' | 'warn' | 'info'
 
