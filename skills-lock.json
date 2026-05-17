@@ -5,37 +5,31 @@
       "source": "zrosenbauer/skills",
       "sourceType": "github",
       "skillPath": "skills/code-reviewer/SKILL.md",
-      "computedHash": "fe0dc58bc5e863fb9b6c4a97e6b875a82ebb8da632a2176b5822220021fea29b"
+      "computedHash": "e3d980d620c1e950a29a4140b823a9ace57165e767d237642ae572517db04eaf"
     },
     "skill-creator": {
       "source": "zrosenbauer/skills",
       "sourceType": "github",
       "skillPath": "skills/skill-creator/SKILL.md",
-      "computedHash": "8a6aca87c0b264b4ca7610063d83228ad1f7935f52b430019edfa0ee26af36e2"
-    },
-    "skill-eval": {
-      "source": "zrosenbauer/skills",
-      "sourceType": "github",
-      "skillPath": "skills/skill-eval/SKILL.md",
-      "computedHash": "9b93a7b3510bc96681e0f7c64f41d0209041f61dc027df946c91a882159d7988"
+      "computedHash": "6d014a9492290168032d7312c30cbd4a7ef5b33e96fc1e31b591dfeb5c0442e3"
     },
     "skill-portability": {
       "source": "zrosenbauer/skills",
       "sourceType": "github",
       "skillPath": "skills/skill-portability/SKILL.md",
-      "computedHash": "9a498e1d8b32f390179e9cd20682bb0bb94c1c08c1bf945708c3dbfc41ea554b"
+      "computedHash": "4cd7b1e63ecdb9b6ca7610b7a85b08c8e9b73032b70b74dc0d7d1394fd5c2c92"
     },
     "ts-best-practices": {
       "source": "zrosenbauer/skills",
       "sourceType": "github",
       "skillPath": "skills/ts-best-practices/SKILL.md",
-      "computedHash": "031ee926560cd40663fe77af0f61da13b722735fe23b86035f9827bfee47be89"
+      "computedHash": "cfdd03aa35fba524290321dd4eed333f072cc4a7adb94a4970f3b19a757c8d6d"
     },
     "ts-best-practices-functional": {
       "source": "zrosenbauer/skills",
       "sourceType": "github",
       "skillPath": "skills/ts-best-practices-functional/SKILL.md",
-      "computedHash": "d8946fff3cce95c6f02c37442e8b2f77a143ae6fd929d9688824855097017765"
+      "computedHash": "0db78fcb99e003a1be797431b999829a091a4a0b1d2aa59f14398b54c5be2e38"
     }
   }
 }

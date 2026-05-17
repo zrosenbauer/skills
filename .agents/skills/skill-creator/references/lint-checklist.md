@@ -66,16 +66,6 @@ Run with `pnpm skill-tools lint <name>` (or `pnpm skill-tools lint` for all skil
 | `NO_README`  | info     | `README.md` present |
 | `NO_LICENSE` | info     | `LICENSE` present   |
 
-### Evals
-
-| Code                  | Severity                                   | What it checks                                 |
-| --------------------- | ------------------------------------------ | ---------------------------------------------- |
-| `EVALS_MISSING`       | error (warn for `metadata.internal: true`) | `evals.json` exists with ≥ 3 cases             |
-| `EVALS_MALFORMED`     | error                                      | `evals.json` parses against the Zod schema     |
-| `EVALS_NAME_MISMATCH` | warn                                       | `skill_name` in `evals.json` matches directory |
-
-→ See [`evals-json.md`](evals-json.md), [`tdd-for-skills.md`](tdd-for-skills.md), [`pressure-scenarios.md`](pressure-scenarios.md)
-
 ## CI usage
 
 ```bash
