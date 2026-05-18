@@ -38,25 +38,6 @@ refreshed by hand on cadence (quarterly+) and committed — the audit never
 fetches at runtime, so per-provider verdicts are deterministic and
 offline-capable. See CONTRIBUTING.md for the refresh workflow.
 
-## When to use
-
-Verbatim trigger phrases:
-
-- "is this skill cross-provider safe"
-- "will my skill work in cursor"
-- "will this load in codex"
-- "audit skill compatibility"
-- "check if this skill is portable"
-- "which providers support this skill"
-- "is my skill claude-only"
-
-## When NOT to use
-
-- Authoring a brand-new skill → use `skill-creator`
-- Rerunning a skill's existing eval baselines → use `skill-eval`
-- Linting a skill against this monorepo's rules → use `pnpm skill-toolkit lint`
-- Comparing skill behavior across model versions → that's `skill-eval`, not this
-
 ## Inputs
 
 `$ARGUMENTS` — one of:

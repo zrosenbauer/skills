@@ -27,25 +27,6 @@ model-invocable: true
 
 Reviews code in the current working tree through a chosen persona. Reference docs in [`references/`](references/) are loaded on demand — load only the persona and mode refs the user picks.
 
-## When to use
-
-Verbatim trigger phrases:
-
-- "review this code"
-- "audit this diff"
-- "find issues in this"
-- "second opinion on this"
-- "harsh review of"
-- "adversarial review"
-- "security review of"
-
-## When NOT to use
-
-- Formatting / style fixes → use a linter (`oxlint`, `eslint`, `prettier`, etc.)
-- Refactoring patterns → use `ts-best-practices` or `ts-best-practices-functional`
-- Reviewing pull requests from external repos / contributors → out of scope; the skill only reviews local files. If you need PR review, run it inside a trusted CI environment after vetting the source.
-- Writing new code from scratch → this skill reviews existing code
-
 ## Inputs
 
 `$ARGUMENTS` — one of:

@@ -5,37 +5,37 @@
       "source": "zrosenbauer/skills",
       "sourceType": "github",
       "skillPath": "skills/code-reviewer/SKILL.md",
-      "computedHash": "4b10fe2c38258da6269a41e63077e9bff80edf3eaff2341f14a934adeefba831"
+      "computedHash": "e1ab1af3c255783421f1da72956f568e1c32a6d48f79f0b2f55369fa94fcd0ac"
     },
     "npm-namer": {
       "source": "zrosenbauer/skills",
       "sourceType": "github",
       "skillPath": "skills/npm-namer/SKILL.md",
-      "computedHash": "28d572f96d7cb4f65cb445eefa38b216127e8ddd6f5b7faa58e54e1daf131b4f"
+      "computedHash": "8c51e4928e264204ed2d3762fd95f41740d5fd7afed27c4aa6100635624301ca"
     },
     "skill-creator": {
       "source": "zrosenbauer/skills",
       "sourceType": "github",
       "skillPath": "skills/skill-creator/SKILL.md",
-      "computedHash": "779a9563eae58ab238f219f5932374ade13c015d513beca610e5fbd2b52b5801"
+      "computedHash": "5b42cdf96c7ae46317cd829f95d19dff7d87d6752b2769cf4087fcaf672b6958"
     },
     "skill-portability": {
       "source": "zrosenbauer/skills",
       "sourceType": "github",
       "skillPath": "skills/skill-portability/SKILL.md",
-      "computedHash": "604a7e6e7135808568b93166d1ab36e97b276759a20ec14542f067f4e6abdecf"
+      "computedHash": "07d9cfd9b1052aa834dffd4512e1c3ec7f5624d126880f9e6a2e1bf0462f7e7d"
     },
     "ts-best-practices": {
       "source": "zrosenbauer/skills",
       "sourceType": "github",
       "skillPath": "skills/ts-best-practices/SKILL.md",
-      "computedHash": "cfdd03aa35fba524290321dd4eed333f072cc4a7adb94a4970f3b19a757c8d6d"
+      "computedHash": "560b2149e364cbcdfa9a8af733e111cf0334658f0dbb1a104bf28f21bc1a232d"
     },
     "ts-best-practices-functional": {
       "source": "zrosenbauer/skills",
       "sourceType": "github",
       "skillPath": "skills/ts-best-practices-functional/SKILL.md",
-      "computedHash": "0db78fcb99e003a1be797431b999829a091a4a0b1d2aa59f14398b54c5be2e38"
+      "computedHash": "ef4c2341e706745ebdc6a426f97e76fbf7aed8b8fde03cb203f595525557521d"
     }
   }
 }
