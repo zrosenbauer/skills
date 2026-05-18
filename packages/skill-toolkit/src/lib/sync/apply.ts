@@ -9,7 +9,7 @@ import type { SyncReport } from './types.js'
  * linger as stale vendored copies.
  */
 export function applySync(report: SyncReport): void {
-  if (report.missingScript) return
+  if (report.missingAsset) return
   if (report.files.length === 0) return
 
   if (existsSync(report.targetDir)) rmSync(report.targetDir, { recursive: true, force: true })

@@ -15,7 +15,7 @@ pre-commit:
     #    files (under skills/*/scripts/<name>/) get auto-staged.
     - name: sync-skill-scripts
       glob: 'skill-scripts/**'
-      run: pnpm skill-toolkit sync-scripts
+      run: pnpm skill-toolkit sync
       stage_fixed: true
 
     # 2. Auto-format staged files. Re-stage anything reformatted.
@@ -47,4 +47,4 @@ pre-commit:
     # 5. Drift check — vendored copies must match source. Catches
     #    hand-edited vendored copies that didn't trigger sync above.
     - name: sync-check
-      run: pnpm skill-toolkit sync-scripts --check
+      run: pnpm skill-toolkit sync --check

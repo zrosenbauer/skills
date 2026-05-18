@@ -41,7 +41,7 @@ Add the script to your skill's manifest:
 Then sync to vendor a copy into `skills/<your-skill>/scripts/prompt-shield/`:
 
 ```bash
-pnpm skill-toolkit sync-scripts
+pnpm skill-toolkit sync
 ```
 
 Two consumption patterns:
@@ -60,7 +60,7 @@ node ./scripts/prompt-shield/wrap-prompt.mjs \
 
 ## Don't edit the vendored copies
 
-The source of truth is `skill-scripts/prompt-shield/`. Vendored copies under `skills/<skill>/scripts/prompt-shield/` are derived; `pnpm skill-toolkit sync-scripts --check` fails CI if they drift. The Lefthook pre-commit re-runs sync when source files change.
+The source of truth is `skill-scripts/prompt-shield/`. Vendored copies under `skills/<skill>/scripts/prompt-shield/` are derived; `pnpm skill-toolkit sync --check` fails CI if they drift. The Lefthook pre-commit re-runs sync when source files change.
 
 ## Background
 

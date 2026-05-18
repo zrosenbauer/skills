@@ -26,7 +26,7 @@ pnpm install
 │       └── README.md
 ├── .agents/skills/      # INSTALL DESTINATION managed by `npx skills add` — DO NOT hand-edit
 ├── skill-scripts/       # canonical source for shared scripts (e.g. prompt-shield)
-│   └── <name>/          # vendored into `<skill>/scripts/<name>/` via `pnpm skill-toolkit sync-scripts`
+│   └── <name>/          # vendored into `<skill>/scripts/<name>/` via `pnpm skill-toolkit sync`
 ├── packages/
 │   └── skill-toolkit/     # CLI for linting skills
 ├── contributing/        # supplementary contributor docs (e.g. prompt-injection.md)
@@ -51,7 +51,7 @@ When more than one skill needs the same helper (e.g. `prompt-shield` for indirec
 { "scripts": ["prompt-shield"] }
 ```
 
-Then `pnpm skill-toolkit sync-scripts` vendors a byte-identical copy into the skill's `scripts/<name>/` directory. Vendored copies are committed so skills stay self-contained when shipped via `npx skills add`. Do not hand-edit vendored copies — Lefthook's pre-commit drift check (`pnpm skill-toolkit sync-scripts --check`) will fail. See [`contributing/prompt-injection.md`](./contributing/prompt-injection.md) for the prompt-shield example.
+Then `pnpm skill-toolkit sync` vendors a byte-identical copy into the skill's `scripts/<name>/` directory. Vendored copies are committed so skills stay self-contained when shipped via `npx skills add`. Do not hand-edit vendored copies — Lefthook's pre-commit drift check (`pnpm skill-toolkit sync --check`) will fail. See [`contributing/prompt-injection.md`](./contributing/prompt-injection.md) for the prompt-shield example.
 
 ## Authoring a skill
 
@@ -111,8 +111,8 @@ Skill-specific tooling:
 ```bash
 pnpm skill-toolkit lint                      # lint every skill (three-tier severity)
 pnpm skill-toolkit lint <name>               # lint one skill
-pnpm skill-toolkit sync-scripts              # vendor canonical scripts into each consuming skill
-pnpm skill-toolkit sync-scripts --check      # fail if any vendored copy drifts from source
+pnpm skill-toolkit sync              # vendor canonical scripts into each consuming skill
+pnpm skill-toolkit sync --check      # fail if any vendored copy drifts from source
 pnpm audit:skills                          # run snyk-agent-scan on public skills (needs SNYK_TOKEN)
 ```
 
@@ -128,11 +128,11 @@ The snapshots are committed alongside the skill — that's intentional.
 
 [Lefthook](https://lefthook.dev) is wired up via the `prepare` script — `pnpm install` runs `lefthook install` automatically. The `pre-commit` hook (defined in `lefthook.yml`):
 
-1. Runs `sync-scripts` if anything under `skill-scripts/**` is staged, then re-stages the vendored copies.
+1. Runs `sync` if anything under `skill-scripts/**` is staged, then re-stages the vendored copies.
 2. Auto-formats staged files with `oxfmt` and re-stages.
 3. Lints staged JS/TS with `oxlint`.
 4. Runs `skill-toolkit lint --severity error` if any skill or skill-script source is staged.
-5. Always runs `sync-scripts --check` to catch hand-edits to vendored copies.
+5. Always runs `sync --check` to catch hand-edits to vendored copies.
 
 Skip ad-hoc with `LEFTHOOK=0 git commit ...`. Avoid `--no-verify` outside of emergencies.
 

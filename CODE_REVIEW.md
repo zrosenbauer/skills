@@ -6,8 +6,8 @@ Goal: simplify `packages/skill-toolkit/` and remove what isn't load-bearing. Thi
 
 - **Source LOC:** ~1880 non-test, ~2070 with tests, ~3954 with `.turbo/` logs included.
 - **Runtime deps:** `@inkjs/ui`, `@kidd-cli/core`, `es-toolkit`, `ink`, `react`, `ts-pattern`, `zod`.
-- **Commands:** 6 — `view`, `lint`, `sync-scripts`, `refresh-provider-docs`, `benchmark`, `eval`.
-- **Lib modules:** `workspace.ts`, `schemas.ts`, `sync-scripts.ts`, `lint/` (5 files), `grading.ts`, `result.ts`.
+- **Commands:** 6 — `view`, `lint`, `sync`, `refresh-provider-docs`, `benchmark`, `eval`.
+- **Lib modules:** `workspace.ts`, `schemas.ts`, `sync.ts`, `lint/` (5 files), `grading.ts`, `result.ts`.
 - **TUI:** `App.tsx`, `SkillList.tsx`, `IterationList.tsx`, `ScenarioList.tsx`, `editor.ts`.
 
 ## Load-bearing entry points
@@ -16,8 +16,8 @@ These are wired into automation and can't be silently dropped without rewriting 
 
 | Entry                   | Caller                                         | Notes                                                                                              |
 | ----------------------- | ---------------------------------------------- | -------------------------------------------------------------------------------------------------- |
-| `sync-scripts`          | Lefthook pre-commit (job 1)                    | Vendors `skill-scripts/<name>/` into each consuming skill                                          |
-| `sync-scripts --check`  | Lefthook pre-commit (job 5)                    | Fails commit on vendored drift                                                                     |
+| `sync`                  | Lefthook pre-commit (job 1)                    | Vendors `skill-scripts/<name>/` into each consuming skill                                          |
+| `sync --check`          | Lefthook pre-commit (job 5)                    | Fails commit on vendored drift                                                                     |
 | `lint --severity error` | Lefthook pre-commit (job 4)                    | Blocks bad skills from landing                                                                     |
 | `lint`                  | `/skill-creator` step 6 (self-lint)            | Authoring loop                                                                                     |
 | `eval`                  | `/skill-eval` step 4                           | Grades transcripts                                                                                 |
@@ -58,7 +58,7 @@ Each concern: what it is → why it exists → cost → recommendation. Mark a b
 - **What:** HTTP-fetches `docUrls` listed in `skills/skill-portability/scripts/providers.mjs`, strips HTML, writes a snapshot per provider into `skills/skill-portability/references/providers/<id>.md`.
 - **File:** `commands/refresh-provider-docs.ts` (206 LOC).
 - **Used by:** one skill (skill-portability), one cadence (quarterly), one invocation pattern (manual).
-- **Cost vs. value:** this is a CLI-shaped script masquerading as a skill-toolkit command. It imports `findRepoRoot` from sync-scripts, but otherwise has zero dependency on the rest of skill-toolkit. The HTML-strip logic is bespoke regex chains.
+- **Cost vs. value:** this is a CLI-shaped script masquerading as a skill-toolkit command. It imports `findRepoRoot` from sync, but otherwise has zero dependency on the rest of skill-toolkit. The HTML-strip logic is bespoke regex chains.
 - **Where it belongs:** alongside `providers.mjs` itself, since they share the schema. `skills/skill-portability/scripts/refresh.mjs` would be self-contained.
 
 **Recommendation: MOVE OUT.**
@@ -116,7 +116,7 @@ Each concern: what it is → why it exists → cost → recommendation. Mark a b
 - **Alternative:** `yaml` (well-maintained, ~1MB) or `js-yaml` — `yaml.parse(fmText)` becomes a single line. Tradeoff: +1 dep, -75 LOC.
 - **Other concerns in this file:**
   - `readWorkspace` / `readIteration` / `readVariant` (~90 LOC) only used by `view` (C1) and `benchmark` (C7). If C1 dies, this can move into benchmark.
-  - `findRepoRoot` is re-exported through `sync-scripts.ts` — slightly weird; lives in workspace.ts but everyone imports from sync-scripts.
+  - `findRepoRoot` is re-exported through `sync.ts` — slightly weird; lives in workspace.ts but everyone imports from sync.
 
 **Recommendation: SIMPLIFY (pending C1, C7 decisions).**
 
@@ -174,14 +174,14 @@ Each concern: what it is → why it exists → cost → recommendation. Mark a b
 
 ---
 
-### C8. `sync-scripts.ts` — keep, but inspect
+### C8. `sync.ts` — keep, but inspect
 
 - **What:** the vendoring engine. Reads `skills/<x>/scripts.json` → walks `skill-scripts/<name>/` (or its `package.json` `files` allowlist) → copies into `skills/<x>/scripts/<name>/`, hash-compares for drift.
-- **File:** `lib/sync-scripts.ts` (277 LOC).
+- **File:** `lib/sync.ts` (277 LOC).
 - **Used by:** Lefthook pre-commit (two jobs). Truly load-bearing.
 - **Internal structure that could be tighter:**
   - `manifestVendorablePaths` (39 LOC) + `listVendorableFiles` (17 LOC) + `isVendorable` (9 LOC) are three paths for "what files to copy." Could probably be one walker with a single policy function, but it's not on fire.
-  - `syncAll` export at bottom (271-275) is unused — `commands/sync-scripts.ts` calls `planSync` + `applySync` directly.
+  - `syncAll` export at bottom (271-275) is unused — `commands/sync.ts` calls `planSync` + `applySync` directly.
   - Re-exporting `findRepoRoot` from this module (277) is the odd convention noted in C5.
 
 **Recommendation: KEEP, minor cleanups optional.**
@@ -232,7 +232,7 @@ Each concern: what it is → why it exists → cost → recommendation. Mark a b
 ### C10. `commands/lint.ts` ANSI color escape codes
 
 - **What:** Bare `\x1b[31m` / `\x1b[0m` strings instead of a tiny color helper.
-- **Files:** lint.ts, sync-scripts command, refresh-provider-docs all do this.
+- **Files:** lint.ts, sync command, refresh-provider-docs all do this.
 - **Cost vs. value:** none — this is fine. Not worth adding a `chalk` dep or extracting a helper.
 
 **Recommendation: LEAVE.**
@@ -259,7 +259,7 @@ Each concern: what it is → why it exists → cost → recommendation. Mark a b
 
 **Skills deleted:** `skill-eval` (entire skill).
 **Skill-tools commands deleted:** `view`, `refresh-provider-docs`, `eval`, `benchmark` (4 of 6).
-**Skill-tools commands remaining:** `lint`, `sync-scripts` (2).
+**Skill-tools commands remaining:** `lint`, `sync` (2).
 
 ---
 
@@ -270,11 +270,11 @@ Use this section to record the actual decisions as we make them. Format: `decisi
 - **DELETE** C1 (TUI) — 2026-05-17 — confirmed unused; one-liner replacement is fine. **Landed: `b6a1d80`.**
 - **DELETE** C2 (refresh-provider-docs) — 2026-05-17 — over-engineered for quarterly cadence; ad-hoc curl + paste when refresh is needed. Snapshots themselves stay (load-bearing for skill-portability). **Landed: `b6a1d80`.**
 - **DELETE** C3 (result.ts) — 2026-05-17 — fully covered by massaman. **Landed: `b6a1d80`.**
-- **DELETE** C4 (schemas trim) — 2026-05-17 — died with C7. Write-side eval schemas removed wholesale; `skillFrontmatterSchema` inlined into `lib/skills.ts`, `scriptsManifestSchema` inlined into `lib/sync-scripts.ts`. **Landed: `b31f63c`** (as part of evals wipe).
+- **DELETE** C4 (schemas trim) — 2026-05-17 — died with C7. Write-side eval schemas removed wholesale; `skillFrontmatterSchema` inlined into `lib/skills.ts`, `scriptsManifestSchema` inlined into `lib/sync.ts`. **Landed: `b31f63c`** (as part of evals wipe).
 - **DELETE** C5 (workspace.ts as shared module) — 2026-05-17 — split into `lib/skills.ts` (60 LOC) + `lib/repo-root.ts` (10 LOC) + `lib/iterations.ts` (90 LOC, later deleted with C7). **Landed: `b6a1d80`.** 278 LOC → ~70 LOC.
 - **DEFER** C6 (lint flatten) — 2026-05-17 — large change; the only remaining structural item. Now scoped: `src/lint/` is 5 files (helpers, index, linter, rules, types) totaling ~600 LOC; could collapse to ~250 LOC in one file. Lower priority now that the package is much smaller.
 - **DELETE** C7 (eval/benchmark) — 2026-05-17 — full wipe of the evals concept. ~365 LOC of grading/benchmark/iterations + the `/skill-eval` skill + 15 `evals.json` files + 3 reference docs + 4 lint rules + heavy rewrites of skill-creator and skill-reviewer. Inspired by `zwbao/skill-creator-pro` but used exactly once; viteval is the right tool if real eval grading is ever needed. **Landed: `b31f63c`** (source) + `75faaab` (install refresh).
-- **TRIM** C8 (sync-scripts hygiene) — 2026-05-17 — `syncAll` + `findManifests` dead exports removed; `findRepoRoot` re-export migrated. **Landed: `b6a1d80`.**
+- **TRIM** C8 (sync hygiene) — 2026-05-17 — `syncAll` + `findManifests` dead exports removed; `findRepoRoot` re-export migrated. **Landed: `b6a1d80`.**
 - **SWAP** C9 (ts-pattern → massaman) — 2026-05-17 — replaced direct `ts-pattern` import with `massaman` (which re-exports it). Direct dep dropped. **Landed: `b6a1d80`.**
 - **LEAVE** C10 (ANSI colors) — 2026-05-17 — fine as-is, not worth a `chalk` dep or extracted helper.
 - **SWAP** C11 (es-toolkit → massaman) — 2026-05-17 — `groupBy` + `isEmpty` swapped to massaman; direct `es-toolkit` dep dropped. **Landed: `b6a1d80`.**
@@ -332,9 +332,9 @@ Tie-in with `skill-portability`: that skill already maintains a provider matrix 
 
 ```
 packages/skill-toolkit/src/
-├── commands/              # 2 thin CLI dispatch files (lint, sync-scripts)
+├── commands/              # 2 thin CLI dispatch files (lint, sync)
 ├── lint/                  # rules + helpers + runner + tests (6 files, ~600 LOC)
-├── lib/                   # skills, repo-root, sync-scripts (~270 LOC)
+├── lib/                   # skills, repo-root, sync (~270 LOC)
 ├── index.ts
 └── kidd.config.ts
 ```
@@ -344,7 +344,7 @@ packages/skill-toolkit/src/
 - typecheck clean
 - 21/21 vitest pass
 - `pnpm skill-toolkit lint` — 0 error / 0 warn / 0 info across 13 skills
-- `pnpm skill-toolkit sync-scripts --check` — 0 drift
+- `pnpm skill-toolkit sync --check` — 0 drift
 - Zero textual references to `evals.json` / `/skill-eval` / `RED→GREEN` / `pressure-scenarios` / `tdd-for-skills` anywhere in source paths
 
 ### Skills before/after

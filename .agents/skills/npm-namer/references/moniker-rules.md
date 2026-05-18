@@ -203,7 +203,7 @@ Socket.dev's production typosquat detector ([socket.dev/alerts/didYouMean](https
 
 ### Limitations
 
-- The corpus is a snapshot. Refresh by running `node skill-scripts/npm-namer/refresh-popular-names.mjs --top 15000` then `pnpm skill-toolkit sync-scripts`. Cadence: monthly.
+- The corpus is a snapshot. Refresh by running `node skill-scripts/npm-namer/refresh-popular-names.mjs --top 15000` then `pnpm skill-toolkit sync`. Cadence: monthly.
 - The default Damerau-Levenshtein algorithm doesn't account for homoglyphs (`rn` vs `m`, `l` vs `1`, Unicode look-alikes) or keyboard-adjacency. Socket's newer **TypoSmart** ([arxiv 2502.20528](https://arxiv.org/abs/2502.20528)) uses learned embeddings — that's a future direction, not implemented here.
 - Scoped names are still checked against the unscoped corpus. `@me/lodahs` would warn about `lodash`. This is intentional: scoped or not, a confusable name is a UX risk.
 

@@ -1,6 +1,6 @@
 # `skill-scripts/npm-namer`
 
-Workspace package + shipping artifacts for the `npm-namer` skill. Source lives in `src/`, builds to `dist/check.mjs` via tsdown. The `package.json` `files` allowlist controls what `skill-toolkit sync-scripts` vendors into `skills/npm-namer/scripts/npm-namer/`.
+Workspace package + shipping artifacts for the `npm-namer` skill. Source lives in `src/`, builds to `dist/check.mjs` via tsdown. The `package.json` `files` allowlist controls what `skill-toolkit sync` vendors into `skills/npm-namer/scripts/npm-namer/`.
 
 ## Layout
 
@@ -28,7 +28,7 @@ skill-scripts/npm-namer/
 ```bash
 pnpm --filter @zrosenbauer/skill-scripts-npm-namer build       # tsdown → dist/check.mjs
 pnpm --filter @zrosenbauer/skill-scripts-npm-namer test        # node --test src/*.test.mjs
-pnpm skill-toolkit sync-scripts                                   # vendor to skills/npm-namer/scripts/npm-namer/
+pnpm skill-toolkit sync                                   # vendor to skills/npm-namer/scripts/npm-namer/
 ```
 
 The build runs `tsdown` which produces a self-contained ESM bundle. Production deps (`validate-npm-package-name`, `damerau-levenshtein`) are bundled in. `popular-names.json` is loaded at runtime from a sibling path.
@@ -39,7 +39,7 @@ The build runs `tsdown` which produces a self-contained ESM bundle. Production d
 
 ```bash
 node skill-scripts/npm-namer/refresh-popular-names.mjs              # defaults to --top 15000
-pnpm skill-toolkit sync-scripts
+pnpm skill-toolkit sync
 git add skill-scripts/npm-namer/popular-names.json skills/npm-namer/scripts/npm-namer/popular-names.json
 git commit -m "chore(npm-namer): refresh popular-names corpus"
 ```

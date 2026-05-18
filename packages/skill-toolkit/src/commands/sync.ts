@@ -1,8 +1,8 @@
 import { command } from '@kidd-cli/core'
 import { z } from 'zod'
 
-import { applySync, planSync, type SyncReport } from '../lib/scripts/index.js'
 import { findRepoRoot } from '../lib/skills/index.js'
+import { type SyncReport, applySync, planSync } from '../lib/sync/index.js'
 
 const options = z.object({
   check: z
@@ -21,13 +21,13 @@ const YELLOW = '\x1b[33m'
 export default command({
   options,
   description:
-    'Vendor canonical scripts from skill-scripts/<name>/ into each consuming skill per its scripts.json manifest. Pass --check to fail on drift without writing.',
+    'Vendor canonical assets (scripts, references, ...) from their source roots into each consuming skill per its skill.json manifest. Pass --check to fail on drift without writing.',
   handler: (ctx) => {
     const repoRoot = findRepoRoot(process.cwd())
     const reports = planSync(repoRoot)
 
     if (reports.length === 0) {
-      ctx.log.info('No skill declares a scripts.json manifest. Nothing to sync.')
+      ctx.log.info('No skill declares a vendorable asset in skill.json. Nothing to sync.')
       process.exit(0)
     }
 
@@ -37,11 +37,9 @@ export default command({
     const lines: string[] = []
 
     for (const report of reports) {
-      if (report.missingScript) {
+      if (report.missingAsset) {
         missingCount += 1
-        lines.push(
-          `${BOLD}${report.skill}${RESET} ${DIM}→${RESET} ${RED}MISSING${RESET} ${report.scriptName} ${DIM}(no skill-scripts/${report.scriptName}/ found)${RESET}`
-        )
+        lines.push(renderMissing(report))
         continue
       }
 
@@ -53,9 +51,7 @@ export default command({
           syncedCount += 1
         }
       } else {
-        lines.push(
-          `${BOLD}${report.skill}${RESET} ${DIM}→${RESET} ${GREEN}clean${RESET} ${report.scriptName} ${DIM}(${report.files.length} file${report.files.length === 1 ? '' : 's'})${RESET}`
-        )
+        lines.push(renderClean(report))
       }
     }
 
@@ -75,14 +71,20 @@ export default command({
   },
 })
 
-/**
- * Render the drift block for one report: the headline plus one line per
- * vendored file that diverges from its source.
- *
- * @private
- */
+function renderClean(report: SyncReport): string {
+  const tag = `${DIM}[${report.assetKind}]${RESET}`
+  const fileCount = `${report.files.length} file${report.files.length === 1 ? '' : 's'}`
+  return `${BOLD}${report.skill}${RESET} ${DIM}→${RESET} ${GREEN}clean${RESET} ${tag} ${report.assetName} ${DIM}(${fileCount})${RESET}`
+}
+
 function renderDrift(report: SyncReport): string {
-  const head = `${BOLD}${report.skill}${RESET} ${DIM}→${RESET} ${YELLOW}drift${RESET} ${report.scriptName}`
+  const tag = `${DIM}[${report.assetKind}]${RESET}`
+  const head = `${BOLD}${report.skill}${RESET} ${DIM}→${RESET} ${YELLOW}drift${RESET} ${tag} ${report.assetName}`
   const items = report.drift.map((d) => `    ${DIM}~${RESET} ${d.relative}`).join('\n')
   return `${head}\n${items}`
+}
+
+function renderMissing(report: SyncReport): string {
+  const tag = `${DIM}[${report.assetKind}]${RESET}`
+  return `${BOLD}${report.skill}${RESET} ${DIM}→${RESET} ${RED}MISSING${RESET} ${tag} ${report.assetName} ${DIM}(no source dir found)${RESET}`
 }

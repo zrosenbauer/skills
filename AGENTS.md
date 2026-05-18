@@ -18,7 +18,7 @@ A personal monorepo for [agent skills](https://skills.sh) authored by Zac Rosenb
 ├── .agents/skills/      # INSTALL DESTINATION — where `npx skills add` puts installed skills
 ├── skills-lock.json     # tracks installed skills (source, sourceType, skillPath, hash)
 ├── skill-scripts/       # canonical source for shared scripts (e.g. prompt-shield)
-│   └── <name>/          # vendored into `<skill>/scripts/<name>/` via `skill-toolkit sync-scripts`
+│   └── <name>/          # vendored into `<skill>/scripts/<name>/` via `skill-toolkit sync`
 ├── packages/
 │   └── skill-toolkit/     # CLI for linting skills
 ├── contributing/        # supplementary contributor docs (e.g. prompt-injection.md)
@@ -38,9 +38,9 @@ All skills under `skills/` are public by design — every skill ships through `n
 
 ### Sharing scripts between skills
 
-Helpers needed by more than one skill (e.g. `prompt-shield` for indirect-prompt-injection mitigation) live in `skill-scripts/<name>/` as the canonical source. Each consuming skill declares it in `<skill>/skill.json` (`{ "scripts": ["prompt-shield"] }`) and `pnpm skill-toolkit sync-scripts` vendors a byte-identical copy into `<skill>/scripts/<name>/`. Vendored copies are committed so skills stay self-contained when shipped.
+Helpers needed by more than one skill (e.g. `prompt-shield` for indirect-prompt-injection mitigation) live in `skill-scripts/<name>/` as the canonical source. Each consuming skill declares it in `<skill>/skill.json` (`{ "scripts": ["prompt-shield"] }`) and `pnpm skill-toolkit sync` vendors a byte-identical copy into `<skill>/scripts/<name>/`. Vendored copies are committed so skills stay self-contained when shipped.
 
-**Never edit a vendored copy.** Edit `skill-scripts/<name>/` and let the sync run (Lefthook does this automatically on pre-commit). The drift check (`pnpm skill-toolkit sync-scripts --check`, also pre-commit) fails if any vendored copy diverges from source. See [`contributing/prompt-injection.md`](contributing/prompt-injection.md) for the threat model and the prompt-shield consumption examples.
+**Never edit a vendored copy.** Edit `skill-scripts/<name>/` and let the sync run (Lefthook does this automatically on pre-commit). The drift check (`pnpm skill-toolkit sync --check`, also pre-commit) fails if any vendored copy diverges from source. See [`contributing/prompt-injection.md`](contributing/prompt-injection.md) for the threat model and the prompt-shield consumption examples.
 
 ## Skill format
 
@@ -85,8 +85,8 @@ pnpm test                              # turbo run test
 pnpm test:scripts                      # node --test across skills/*/scripts and skill-scripts/*
 pnpm skill-toolkit lint                  # lint every skill against the three-tier rule set
 pnpm skill-toolkit lint <name>           # lint one skill
-pnpm skill-toolkit sync-scripts          # vendor canonical scripts into each consuming skill
-pnpm skill-toolkit sync-scripts --check  # fail if any vendored copy drifts from source
+pnpm skill-toolkit sync          # vendor canonical scripts into each consuming skill
+pnpm skill-toolkit sync --check  # fail if any vendored copy drifts from source
 pnpm audit:skills                      # snyk-agent-scan on public skills (needs SNYK_TOKEN)
 ```
 

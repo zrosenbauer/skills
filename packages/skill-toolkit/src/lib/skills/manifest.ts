@@ -47,6 +47,18 @@ export const SkillManifestSchema = z
       .min(1, { message: 'skill.json `scripts` must list at least one script' })
       .optional()
       .describe('Names of shared scripts to vendor — each entry resolves to skill-scripts/<name>/'),
+    references: z
+      .array(
+        z
+          .string()
+          .regex(KEBAB_RE, { message: 'reference name must be kebab-case' })
+          .describe('Kebab-case name of a canonical reference under skill-references/<name>/')
+      )
+      .min(1, { message: 'skill.json `references` must list at least one reference' })
+      .optional()
+      .describe(
+        'Names of shared reference docs to vendor — each entry resolves to skill-references/<name>/'
+      ),
     lint: z
       .record(
         z

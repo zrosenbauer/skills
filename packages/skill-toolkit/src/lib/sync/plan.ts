@@ -6,62 +6,72 @@ import { readManifest } from '../skills/manifest.js'
 import type { SkillRecord } from '../skills/types.js'
 import { listVendorableFiles, manifestVendorablePaths } from './discovery.js'
 import { filesMatch } from './hash.js'
-import { SKILL_SCRIPTS_DIR, type SyncReport, type VendoredFile } from './types.js'
+import { VENDOR_SOURCES, type VendorSource } from './registry.js'
+import type { SyncReport, VendoredFile } from './types.js'
 
 /**
  * Read all skill manifests in the repo and return one report per
- * (skill, declared-script) pair. Pure — never writes.
+ * (skill, asset-kind, asset-name) triple. Iterates the
+ * `VENDOR_SOURCES` registry so every supported asset kind gets
+ * planned in a single pass. Pure — never writes.
  */
 export function planSync(repoRoot: string): SyncReport[] {
   const skills = findSkills(repoRoot)
   const reports: SyncReport[] = []
   for (const skill of skills) {
     const manifest = readManifest(skill)
-    if (!manifest?.scripts) continue
-    for (const scriptName of manifest.scripts) {
-      reports.push(buildReport({ repoRoot, skill, scriptName }))
+    if (!manifest) continue
+    for (const source of VENDOR_SOURCES) {
+      const names = source.readNames(manifest)
+      if (!names) continue
+      for (const assetName of names) {
+        reports.push(buildReport({ repoRoot, skill, source, assetName }))
+      }
     }
   }
   return reports
 }
 
-/**
- * Inputs to `buildReport`. Bundled into an object so the call site
- * reads as `buildReport({ repoRoot, skill, scriptName })`.
- */
 interface BuildReportParams {
   /**
-   * Absolute path to the monorepo root — used to resolve
-   * `skill-scripts/<name>/` source directories.
+   * Absolute path to the monorepo root — used to resolve the
+   * asset's source directory under `<source.sourceRoot>/<assetName>/`.
    */
   repoRoot: string
   /**
-   * The skill consuming the script. Provides the target directory
-   * (`<skill.dir>/scripts/<scriptName>/`).
+   * The skill consuming the asset.
    */
   skill: SkillRecord
   /**
-   * One entry from the consuming skill's `skill.json.scripts` list.
+   * Vendor-source descriptor: where the asset lives and where copies
+   * go.
    */
-  scriptName: string
+  source: VendorSource
+  /**
+   * One entry from the consuming skill's matching manifest array
+   * (e.g. `skill.json.scripts[i]` or `skill.json.references[i]`).
+   */
+  assetName: string
 }
 
 /**
- * Build the sync report for one (skill, script) pair. Compares source files
- * against the vendored copies via hash, and flags any vendored-side extras as
- * drift so files added directly to the target dir don't silently linger.
+ * Build the sync report for one (skill, asset) pair. Compares source
+ * files against the vendored copies via hash, and flags any
+ * vendored-side extras as drift so files added directly to the target
+ * dir don't silently linger.
  */
-function buildReport({ repoRoot, skill, scriptName }: BuildReportParams): SyncReport {
-  const sourceDir = path.join(repoRoot, SKILL_SCRIPTS_DIR, scriptName)
-  const targetDir = path.join(skill.location.dir, 'scripts', scriptName)
+function buildReport({ repoRoot, skill, source, assetName }: BuildReportParams): SyncReport {
+  const sourceDir = path.join(repoRoot, source.sourceRoot, assetName)
+  const targetDir = path.join(skill.location.dir, source.targetSubdir, assetName)
   if (!existsSync(sourceDir)) {
     return {
       skill: skill.location.name,
-      scriptName,
+      assetKind: source.kind,
+      assetName,
       targetDir,
       files: [],
       drift: [],
-      missingScript: true,
+      missingAsset: true,
     }
   }
 
@@ -72,9 +82,6 @@ function buildReport({ repoRoot, skill, scriptName }: BuildReportParams): SyncRe
     target: path.join(targetDir, rel),
   }))
 
-  // After enumerating source files, also check for any extra files in the
-  // vendored target dir that don't exist in the source — those are drift too
-  // (someone added a file directly to the vendored copy).
   const targetExtras = existsSync(targetDir)
     ? listVendorableFiles(targetDir).filter((rel) => !files.some((f) => f.relative === rel))
     : []
@@ -89,10 +96,11 @@ function buildReport({ repoRoot, skill, scriptName }: BuildReportParams): SyncRe
 
   return {
     skill: skill.location.name,
-    scriptName,
+    assetKind: source.kind,
+    assetName,
     targetDir,
     files,
     drift,
-    missingScript: false,
+    missingAsset: false,
   }
 }
