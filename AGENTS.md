@@ -82,7 +82,7 @@ Optional companions: `LICENSE`, `README.md`, `references/<topic>.md`, `templates
 
 - **pnpm** for installs (`packageManager` is pinned in root `package.json`)
 - **turbo** for running tasks across workspace packages
-- **Node ≥ 20**
+- **Node ≥ 24**
 
 Common commands:
 

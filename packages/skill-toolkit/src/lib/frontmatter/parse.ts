@@ -1,6 +1,6 @@
 import { attempt } from 'massaman'
 import { parse as parseYaml } from 'yaml'
-import type { z } from 'zod'
+import { type z, ZodError } from 'zod'
 
 import type { FrontmatterParseResult } from './types.js'
 
@@ -43,6 +43,27 @@ export function createFrontmatterParser<T extends z.ZodTypeAny>(
     if (result.ok) {
       return { body, frontmatter: result.value as z.infer<T>, error: null }
     }
-    return { body, frontmatter: null, error: result.error.message }
+    return { body, frontmatter: null, error: formatParseError(result.error) }
   }
+}
+
+/**
+ * Render parse errors as a single readable line. Zod's
+ * `error.message` is a JSON dump of every issue — readable in a
+ * debugger but ugly in lint output. Extract the issue list and
+ * format as `field.path: message; field.path: message`. Non-zod
+ * errors (e.g. YAML syntax errors from the `yaml` package) fall
+ * through to their own `.message`.
+ */
+function formatParseError(err: unknown): string {
+  if (err instanceof ZodError) {
+    return err.issues
+      .map((issue) => {
+        const path = issue.path.join('.') || '(root)'
+        return `${path}: ${issue.message}`
+      })
+      .join('; ')
+  }
+  if (err instanceof Error) return err.message
+  return String(err)
 }

@@ -111,8 +111,7 @@ function setup() {
   }
 
   console.log('When done:\n')
-  console.log('  pnpm lint-demo:cleanup')
-  console.log('  # or: node scripts/lint-demo.mjs teardown\n')
+  console.log('  node scripts/lint-demo.mjs teardown\n')
 }
 
 function teardown() {
