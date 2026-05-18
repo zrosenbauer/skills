@@ -1,4 +1,4 @@
-import { match, P } from 'massaman'
+import { match } from 'massaman'
 
 import { defineRule, defineRuleset, fail, pass } from '../../rule.js'
 
@@ -39,18 +39,42 @@ export default defineRuleset({
       id: 'body-todo',
       severity: 'error',
       description: 'body must not contain TODO/FIXME/XXX placeholders',
-      check: (_skill, body) => {
+      check: (skill, body) => {
         const filtered = body
           .replace(/`[^`]*?(?:TODO|FIXME|XXX)[^`]*?`/g, '')
           .replace(/```[\s\S]*?```/g, '')
-        return match(filtered.match(/\b(TODO|FIXME|XXX)\b/))
-          .with(P.nullish, () => pass())
-          .otherwise((m) =>
-            fail({
-              message: `body contains "${m[0]}" placeholder`,
-              fix: 'Resolve or remove the placeholder before shipping',
-            })
-          )
+        const matchResult = filtered.match(/\b(TODO|FIXME|XXX)\b/)
+        if (matchResult === null) return pass()
+
+        const placeholder = matchResult[0]
+        const placeholderRe = new RegExp(`\\b${placeholder}\\b`)
+        const bodyLines = body.split('\n')
+        const lineIndex = bodyLines.findIndex((line) => placeholderRe.test(line))
+        const offendingLine = bodyLines[lineIndex] ?? ''
+        const column = offendingLine.search(placeholderRe) + 1
+
+        // Body sits after the frontmatter fence; figure out the file-line
+        // by counting frontmatter lines (raw + 2 fence markers) when
+        // present, otherwise start at line 1.
+        const frontmatterLines =
+          skill.frontmatterRaw === null ? 0 : skill.frontmatterRaw.split('\n').length + 2
+        const fileLine = frontmatterLines + lineIndex + 1
+
+        return fail({
+          message: `body contains "${placeholder}" placeholder`,
+          fix: 'Resolve or remove the placeholder before shipping',
+          frame: {
+            filePath: `${skill.location.name}/SKILL.md`,
+            lines: [offendingLine],
+            startLine: fileLine,
+            annotation: {
+              line: fileLine,
+              column,
+              length: placeholder.length,
+              message: `${placeholder} placeholder`,
+            },
+          },
+        })
       },
     }),
     defineRule({

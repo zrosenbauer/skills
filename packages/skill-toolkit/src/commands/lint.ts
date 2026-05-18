@@ -181,6 +181,7 @@ function emitTarget({ ctx, name, kind, findings, maxOrder, showFix }: EmitTarget
       rule: f.id,
       message: f.message,
       ...(showFix && f.fix !== undefined && { help: f.fix }),
+      ...(f.frame !== undefined && { frame: f.frame }),
     })
   }
 }

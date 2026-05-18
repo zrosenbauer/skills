@@ -101,6 +101,7 @@ function produceSkillFinding({
     severity,
     message: result.message,
     ...(result.fix !== undefined && { fix: result.fix }),
+    ...(result.frame !== undefined && { frame: result.frame }),
   }
 }
 
@@ -124,6 +125,7 @@ function produceAgentFinding({ rule, id, agent }: ProduceAgentFindingParams): Fi
     severity: result.severity ?? rule.severity,
     message: result.message,
     ...(result.fix !== undefined && { fix: result.fix }),
+    ...(result.frame !== undefined && { frame: result.frame }),
   }
 }
 

@@ -1,5 +1,6 @@
 import type { AgentRecord } from '../agents/types.js'
 import type { SkillRecord } from '../skills/types.js'
+import type { CheckFrame } from './rule.js'
 
 /**
  * Lint severity tier. `error` blocks publication; `warn` is a quality
@@ -32,6 +33,13 @@ export interface Finding {
    * Optional remediation hint, copied from the check's `CheckResult.fix`.
    */
   fix?: string
+  /**
+   * Optional code-frame context, copied from the check's
+   * `CheckResult.frame`. Drives `ctx.report.finding({ frame })`
+   * rendering in pretty mode and the `frame` field in
+   * json/yaml output.
+   */
+  frame?: CheckFrame
 }
 
 /**

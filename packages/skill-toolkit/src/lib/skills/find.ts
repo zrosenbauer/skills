@@ -44,12 +44,13 @@ export function findSkills(repoRoot: string): SkillRecord[] {
  */
 function readSkill(location: SkillLocation): SkillRecord {
   const skillMd = readFileSync(path.join(location.dir, 'SKILL.md'), 'utf8')
-  const { body, frontmatter, error } = parseSkillFrontmatter(skillMd)
+  const { body, raw, frontmatter, error } = parseSkillFrontmatter(skillMd)
 
   return {
     location,
     frontmatter: frontmatter ?? { name: location.name, description: '' },
     frontmatterParseError: error,
+    frontmatterRaw: raw,
     bodyLineCount: body.split('\n').length,
     hasReadme: existsSync(path.join(location.dir, 'README.md')),
     hasLicense: existsSync(path.join(location.dir, 'LICENSE')),

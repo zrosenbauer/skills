@@ -49,12 +49,13 @@ export function findAgents(repoRoot: string): AgentRecord[] {
  */
 function readAgent(location: AgentLocation): AgentRecord {
   const md = readFileSync(location.file, 'utf8')
-  const { body, frontmatter, error } = parseAgentFrontmatter(md)
+  const { body, raw, frontmatter, error } = parseAgentFrontmatter(md)
 
   return {
     location,
     frontmatter: frontmatter ?? { name: location.name, description: '' },
     frontmatterParseError: error,
+    frontmatterRaw: raw,
     bodyLineCount: body.split('\n').length,
   }
 }

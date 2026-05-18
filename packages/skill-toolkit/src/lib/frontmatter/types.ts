@@ -12,6 +12,12 @@ export interface FrontmatterParseResult<T> {
    */
   body: string
   /**
+   * Raw YAML body extracted from between the `---` fence markers.
+   * Null when no fence was found. Used by rules that emit code
+   * frames so they can render the offending YAML.
+   */
+  raw: string | null
+  /**
    * The typed, validated frontmatter object — populated only when
    * the YAML parses and matches the schema. Null when the parse
    * failed or no fence was found.

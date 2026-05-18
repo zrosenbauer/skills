@@ -1,5 +1,6 @@
 import { isEmpty, match, P } from 'massaman'
 
+import { buildFrontmatterFrame } from '../../../frontmatter/index.js'
 import { defineRule, defineRuleset, fail, pass } from '../../rule.js'
 
 const NAMING_RE = /^[a-z][a-z0-9-]+[a-z0-9]$/
@@ -29,10 +30,21 @@ export default defineRuleset({
       id: 'fm-parse-failed',
       severity: 'error',
       description: 'frontmatter must parse against the schema',
-      check: ({ frontmatterParseError }) =>
+      check: ({ frontmatterParseError, frontmatterRaw, location }) =>
         match(frontmatterParseError)
           .with(P.nullish, () => pass())
-          .otherwise((err) => fail({ message: `frontmatter failed schema validation: ${err}` })),
+          .otherwise((err) =>
+            fail({
+              message: `frontmatter failed schema validation: ${err}`,
+              ...(frontmatterRaw !== null && {
+                frame: buildFrontmatterFrame({
+                  filePath: `${location.name}/SKILL.md`,
+                  raw: frontmatterRaw,
+                  err,
+                }),
+              }),
+            })
+          ),
     }),
     defineRule({
       id: 'fm-missing-name',

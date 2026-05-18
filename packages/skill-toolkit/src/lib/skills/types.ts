@@ -41,6 +41,12 @@ export interface SkillRecord {
    */
   frontmatterParseError: string | null
   /**
+   * Raw YAML body of the frontmatter fence (the string between the
+   * `---` markers). Used by rules that emit code frames pointing at
+   * the bad field. `null` when no fence was found in the source.
+   */
+  frontmatterRaw: string | null
+  /**
    * Number of lines in the body (frontmatter stripped). Drives the
    * BODY_TOO_LONG rule.
    */

@@ -3,6 +3,7 @@ export { defineRule, defineRuleset, fail, pass, scopedId } from './rule.js'
 export type {
   AgentRule,
   AgentRuleset,
+  CheckFrame,
   CheckResult,
   CheckResultFail,
   CheckResultPass,

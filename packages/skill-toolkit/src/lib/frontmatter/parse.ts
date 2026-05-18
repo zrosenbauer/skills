@@ -36,14 +36,15 @@ export function createFrontmatterParser<T extends z.ZodTypeAny>(
     const body = input.replace(FRONTMATTER_RE, '')
 
     if (!match) {
-      return { body, frontmatter: null, error: null }
+      return { body, raw: null, frontmatter: null, error: null }
     }
 
-    const result = attempt(() => schema.parse(parseYaml(match[1] ?? '')))
+    const raw = match[1] ?? ''
+    const result = attempt(() => schema.parse(parseYaml(raw)))
     if (result.ok) {
-      return { body, frontmatter: result.value as z.infer<T>, error: null }
+      return { body, raw, frontmatter: result.value as z.infer<T>, error: null }
     }
-    return { body, frontmatter: null, error: formatParseError(result.error) }
+    return { body, raw, frontmatter: null, error: formatParseError(result.error) }
   }
 }
 

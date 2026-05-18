@@ -1,5 +1,3 @@
-import { match, P } from 'massaman'
-
 import type { AgentRecord } from '../agents/types.js'
 import type { SkillRecord } from '../skills/types.js'
 import type { Severity } from './types.js'
@@ -40,6 +38,46 @@ export interface CheckResultFail {
    * runner uses the rule's default severity.
    */
   severity?: Severity
+  /**
+   * Optional code-frame context — the source snippet and a
+   * single-line annotation marking the bad span. The runner passes
+   * this through to `ctx.report.finding({ frame })` so the pretty
+   * output can render the offending code inline.
+   */
+  frame?: CheckFrame
+}
+
+/**
+ * Code-frame attachment for a finding. Independent of kidd's
+ * `CodeFrameInput` so the rule API doesn't churn when kidd does — the
+ * runner maps this to kidd's shape at emit time.
+ */
+export interface CheckFrame {
+  /**
+   * Path shown above the frame (display only). Project-relative
+   * reads cleaner than absolute.
+   */
+  filePath: string
+  /**
+   * Source lines to display. Each entry is one line of the snippet
+   * (no trailing newline).
+   */
+  lines: string[]
+  /**
+   * 1-based line number in the source file of `lines[0]`. The
+   * renderer numbers subsequent lines by incrementing from here.
+   */
+  startLine: number
+  /**
+   * Single-line annotation marking the bad span. `line` is 1-based
+   * in the source file (same coordinate system as `startLine`).
+   */
+  annotation: {
+    line: number
+    column: number
+    length: number
+    message: string
+  }
 }
 
 /**
@@ -59,20 +97,25 @@ export function pass(): CheckResultPass {
 }
 
 /**
- * Build a failing CheckResult. Matches on `fix` so the result is
- * constructed without conditional spreads under
- * `exactOptionalPropertyTypes: true`.
+ * Build a failing CheckResult. Conditionally adds optional fields so
+ * the result type stays clean under `exactOptionalPropertyTypes:
+ * true` — undefined-spread would still fail the strict check.
  */
 export function fail({
   message,
   fix,
+  frame,
 }: {
   message: string
   fix?: string | undefined
+  frame?: CheckFrame | undefined
 }): CheckResultFail {
-  return match(fix)
-    .with(P.string, (f) => ({ status: 'fail' as const, message, fix: f }))
-    .otherwise(() => ({ status: 'fail' as const, message }))
+  return {
+    status: 'fail' as const,
+    message,
+    ...(fix !== undefined && { fix }),
+    ...(frame !== undefined && { frame }),
+  }
 }
 
 /**
