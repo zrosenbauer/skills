@@ -20,7 +20,6 @@ description: >-
 # --- Claude Code extensions (ignored by other agents) ---
 argument-hint: '[<file|dir|diff|staged>]'
 user-invocable: true
-model-invocable: true
 ---
 
 # code-reviewer

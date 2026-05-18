@@ -14,7 +14,6 @@ description: >-
 # --- Claude Code extensions (ignored by other agents) ---
 argument-hint: '[<skill-path-or-name>]'
 user-invocable: true
-model-invocable: true
 ---
 
 # skill-portability
@@ -179,7 +178,7 @@ node skills/skill-portability/scripts/providers.mjs --check
 <input>"is my code-reviewer skill cross-provider safe? it's at skills/code-reviewer/"</input>
 <output>
 1. Resolve: read `skills/code-reviewer/SKILL.md` → frontmatter has `name`,
-   `description`, `argument-hint`, `user-invocable`, `model-invocable`. Body
+   `description`, `argument-hint`, `user-invocable`. Body
    uses `<example>` blocks and references `AskUserQuestion`, `gh pr diff`,
    and a sibling `scripts/detect-clis.mjs`.
 2. Load providers: `node skills/skill-portability/scripts/providers.mjs --pretty`

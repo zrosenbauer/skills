@@ -59,9 +59,8 @@ export const providers = [
     optionalFrontmatter: [
       'argument-hint',
       'user-invocable',
-      'model-invocable',
+      'disable-model-invocation',
       'allowed-tools',
-      'metadata',
     ],
     ignoredFrontmatter: [],
     forbiddenFrontmatter: [],

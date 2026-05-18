@@ -18,7 +18,6 @@ description: >-
 # --- Claude Code extensions (ignored by other agents) ---
 argument-hint: '[<seeds-or-names>]'
 user-invocable: true
-model-invocable: true
 ---
 
 # npm-namer
