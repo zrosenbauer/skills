@@ -21,7 +21,7 @@ See [`SKILL.md`](SKILL.md) for the verbatim trigger phrases.
 ```
 skills/npm-namer/
 ├── SKILL.md                              # the skill body
-├── scripts.json                          # declares { "scripts": ["npm-namer"] }
+├── skill.json                            # declares vendor: [{ src: "skill-scripts/npm-namer", dest: "scripts/npm-namer" }]
 ├── README.md                             # this file
 ├── LICENSE                               # MIT
 ├── references/

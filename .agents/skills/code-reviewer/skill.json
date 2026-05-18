@@ -1,3 +1,13 @@
 {
-  "scripts": ["prompt-shield", "secret-shield"]
+  "$schema": "https://raw.githubusercontent.com/zrosenbauer/skills/main/schemas/skill.json",
+  "vendor": [
+    {
+      "src": "skill-scripts/prompt-shield",
+      "dest": "scripts/prompt-shield"
+    },
+    {
+      "src": "skill-scripts/secret-shield",
+      "dest": "scripts/secret-shield"
+    }
+  ]
 }

@@ -5,25 +5,25 @@
       "source": "zrosenbauer/skills",
       "sourceType": "github",
       "skillPath": "skills/code-reviewer/SKILL.md",
-      "computedHash": "e3d980d620c1e950a29a4140b823a9ace57165e767d237642ae572517db04eaf"
+      "computedHash": "4b10fe2c38258da6269a41e63077e9bff80edf3eaff2341f14a934adeefba831"
     },
     "npm-namer": {
       "source": "zrosenbauer/skills",
       "sourceType": "github",
       "skillPath": "skills/npm-namer/SKILL.md",
-      "computedHash": "f4b7e5be2fd8572537abb6900a0041977a46dad51d3cd7a65aa8937d52f28775"
+      "computedHash": "28d572f96d7cb4f65cb445eefa38b216127e8ddd6f5b7faa58e54e1daf131b4f"
     },
     "skill-creator": {
       "source": "zrosenbauer/skills",
       "sourceType": "github",
       "skillPath": "skills/skill-creator/SKILL.md",
-      "computedHash": "6d014a9492290168032d7312c30cbd4a7ef5b33e96fc1e31b591dfeb5c0442e3"
+      "computedHash": "779a9563eae58ab238f219f5932374ade13c015d513beca610e5fbd2b52b5801"
     },
     "skill-portability": {
       "source": "zrosenbauer/skills",
       "sourceType": "github",
       "skillPath": "skills/skill-portability/SKILL.md",
-      "computedHash": "4cd7b1e63ecdb9b6ca7610b7a85b08c8e9b73032b70b74dc0d7d1394fd5c2c92"
+      "computedHash": "604a7e6e7135808568b93166d1ab36e97b276759a20ec14542f067f4e6abdecf"
     },
     "ts-best-practices": {
       "source": "zrosenbauer/skills",
