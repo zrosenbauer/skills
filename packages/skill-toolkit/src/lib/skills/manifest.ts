@@ -37,27 +37,35 @@ export const LintRuleConfigSchema = z
  */
 export const SkillManifestSchema = z
   .object({
-    scripts: z
+    vendor: z
       .array(
         z
-          .string()
-          .regex(KEBAB_RE, { message: 'script name must be kebab-case' })
-          .describe('Kebab-case name of a canonical script under skill-scripts/<name>/')
+          .object({
+            kind: z
+              .string()
+              .min(1)
+              .describe(
+                'Free-form label for this asset (e.g. `scripts`, `references`, `templates`). Surfaced in CLI output; not dispatched on by the engine.'
+              ),
+            src: z
+              .string()
+              .min(1)
+              .describe(
+                'Repo-root-relative path to the canonical source directory (e.g. `skill-scripts/prompt-shield`).'
+              ),
+            output: z
+              .string()
+              .min(1)
+              .describe(
+                'Skill-dir-relative path where the vendored copy lands (e.g. `scripts/prompt-shield`).'
+              ),
+          })
+          .describe('One vendor directive — what to copy and where to put it.')
       )
-      .min(1, { message: 'skill.json `scripts` must list at least one script' })
-      .optional()
-      .describe('Names of shared scripts to vendor — each entry resolves to skill-scripts/<name>/'),
-    references: z
-      .array(
-        z
-          .string()
-          .regex(KEBAB_RE, { message: 'reference name must be kebab-case' })
-          .describe('Kebab-case name of a canonical reference under skill-references/<name>/')
-      )
-      .min(1, { message: 'skill.json `references` must list at least one reference' })
+      .min(1, { message: 'skill.json `vendor` must declare at least one entry when present' })
       .optional()
       .describe(
-        'Names of shared reference docs to vendor — each entry resolves to skill-references/<name>/'
+        'Vendor directives — each entry declares an (src → output) copy that `skill-toolkit sync` executes byte-identical.'
       ),
     lint: z
       .record(

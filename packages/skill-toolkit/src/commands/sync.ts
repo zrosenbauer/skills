@@ -72,19 +72,19 @@ export default command({
 })
 
 function renderClean(report: SyncReport): string {
-  const tag = `${DIM}[${report.assetKind}]${RESET}`
+  const tag = `${DIM}[${report.kind}]${RESET}`
   const fileCount = `${report.files.length} file${report.files.length === 1 ? '' : 's'}`
   return `${BOLD}${report.skill}${RESET} ${DIM}→${RESET} ${GREEN}clean${RESET} ${tag} ${report.assetName} ${DIM}(${fileCount})${RESET}`
 }
 
 function renderDrift(report: SyncReport): string {
-  const tag = `${DIM}[${report.assetKind}]${RESET}`
+  const tag = `${DIM}[${report.kind}]${RESET}`
   const head = `${BOLD}${report.skill}${RESET} ${DIM}→${RESET} ${YELLOW}drift${RESET} ${tag} ${report.assetName}`
   const items = report.drift.map((d) => `    ${DIM}~${RESET} ${d.relative}`).join('\n')
   return `${head}\n${items}`
 }
 
 function renderMissing(report: SyncReport): string {
-  const tag = `${DIM}[${report.assetKind}]${RESET}`
+  const tag = `${DIM}[${report.kind}]${RESET}`
   return `${BOLD}${report.skill}${RESET} ${DIM}→${RESET} ${RED}MISSING${RESET} ${tag} ${report.assetName} ${DIM}(no source dir found)${RESET}`
 }

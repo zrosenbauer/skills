@@ -1,3 +1,9 @@
 {
-  "scripts": ["npm-namer"]
+  "vendor": [
+    {
+      "kind": "scripts",
+      "src": "skill-scripts/npm-namer",
+      "output": "scripts/npm-namer"
+    }
+  ]
 }

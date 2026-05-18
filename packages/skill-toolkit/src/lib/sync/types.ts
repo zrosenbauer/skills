@@ -1,12 +1,4 @@
 /**
- * Kind of asset being vendored. Each kind maps to one canonical
- * source root and one target subdirectory under the consuming skill.
- * Add a new kind here + an entry in `VENDOR_SOURCES` (registry.ts) to
- * extend sync to a new asset type.
- */
-export type AssetKind = 'scripts' | 'references'
-
-/**
  * One file copied from a canonical source into a consuming skill's
  * vendored subdirectory. Carries both ends of the copy so the planner
  * and applier can reuse the same record.
@@ -18,41 +10,46 @@ export interface VendoredFile {
    */
   relative: string
   /**
-   * Absolute path to the canonical source file under the asset's
-   * source root (e.g. `skill-scripts/<name>/...`).
+   * Absolute path to the canonical source file (under the directive's
+   * `src` root).
    */
   source: string
   /**
-   * Absolute path to the vendored copy under the consuming skill
-   * (e.g. `<skill>/scripts/<name>/...`).
+   * Absolute path to the vendored copy (under the directive's
+   * `output` root inside the consuming skill).
    */
   target: string
 }
 
 /**
- * Result of one sync attempt: the files copied (or that would be
- * copied in --check mode), and any drift detected when comparing
- * target hashes to source hashes.
+ * Result of one sync attempt — produced per vendor directive in
+ * `skill.json`. Carries enough context to render output, decide
+ * drift, and apply the copy.
  */
 export interface SyncReport {
   /**
-   * Skill that owns the consuming `skill.json` manifest entry.
+   * Skill that owns the consuming `skill.json` directive.
    */
   skill: string
   /**
-   * Which kind of asset this report covers (`scripts`,
-   * `references`, ...). Drives the source-root + target-subdir
-   * lookup and gets surfaced in the CLI output so consumers can
-   * grep by type.
+   * Free-form label from the directive's `kind` field (e.g.
+   * `scripts`, `references`). Surfaced in CLI output so consumers
+   * can grep by type; not dispatched on.
    */
-  assetKind: AssetKind
+  kind: string
   /**
-   * Canonical asset name being vendored (the entry from the
-   * matching manifest array, e.g. `skill.json.scripts[i]`).
+   * Display name for this directive — derived from the basename of
+   * `output`. Used in CLI output (`code-reviewer [scripts] prompt-shield`).
    */
   assetName: string
   /**
-   * Top-level vendored directory for this asset under the skill.
+   * Absolute path to the directive's source directory (resolved from
+   * the manifest's `src` relative to repo root).
+   */
+  sourceDir: string
+  /**
+   * Absolute path to the directive's target directory (resolved from
+   * the manifest's `output` relative to the consuming skill's dir).
    * Used by `applySync` to wholesale-replace the directory so files
    * removed from the source allowlist also disappear from the
    * vendored copy.
@@ -70,9 +67,9 @@ export interface SyncReport {
    */
   drift: VendoredFile[]
   /**
-   * True when the asset's canonical source directory doesn't exist
-   * (e.g. `skill-scripts/<assetName>/` is missing). Treated as an
-   * error in the CLI so misconfigured manifests don't sync silently.
+   * True when the directive's source directory doesn't exist. Treated
+   * as an error in the CLI so misconfigured manifests don't sync
+   * silently.
    */
   missingAsset: boolean
 }

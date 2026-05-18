@@ -3,30 +3,28 @@ import path from 'node:path'
 
 import { findSkills } from '../skills/find.js'
 import { readManifest } from '../skills/manifest.js'
+import type { SkillManifest } from '../skills/manifest.js'
 import type { SkillRecord } from '../skills/types.js'
 import { listVendorableFiles, manifestVendorablePaths } from './discovery.js'
 import { filesMatch } from './hash.js'
-import { VENDOR_SOURCES, type VendorSource } from './registry.js'
 import type { SyncReport, VendoredFile } from './types.js'
+
+type VendorDirective = NonNullable<SkillManifest['vendor']>[number]
 
 /**
  * Read all skill manifests in the repo and return one report per
- * (skill, asset-kind, asset-name) triple. Iterates the
- * `VENDOR_SOURCES` registry so every supported asset kind gets
- * planned in a single pass. Pure — never writes.
+ * vendor directive (skill × `skill.json.vendor[i]`). Each report
+ * resolves `src` against the repo root and `output` against the
+ * consuming skill's directory. Pure — never writes.
  */
 export function planSync(repoRoot: string): SyncReport[] {
   const skills = findSkills(repoRoot)
   const reports: SyncReport[] = []
   for (const skill of skills) {
     const manifest = readManifest(skill)
-    if (!manifest) continue
-    for (const source of VENDOR_SOURCES) {
-      const names = source.readNames(manifest)
-      if (!names) continue
-      for (const assetName of names) {
-        reports.push(buildReport({ repoRoot, skill, source, assetName }))
-      }
+    if (!manifest?.vendor) continue
+    for (const directive of manifest.vendor) {
+      reports.push(buildReport({ repoRoot, skill, directive }))
     }
   }
   return reports
@@ -35,39 +33,37 @@ export function planSync(repoRoot: string): SyncReport[] {
 interface BuildReportParams {
   /**
    * Absolute path to the monorepo root — used to resolve the
-   * asset's source directory under `<source.sourceRoot>/<assetName>/`.
+   * directive's `src`.
    */
   repoRoot: string
   /**
-   * The skill consuming the asset.
+   * The skill consuming the directive. Provides the base for
+   * resolving `output`.
    */
   skill: SkillRecord
   /**
-   * Vendor-source descriptor: where the asset lives and where copies
-   * go.
+   * The vendor directive being planned.
    */
-  source: VendorSource
-  /**
-   * One entry from the consuming skill's matching manifest array
-   * (e.g. `skill.json.scripts[i]` or `skill.json.references[i]`).
-   */
-  assetName: string
+  directive: VendorDirective
 }
 
 /**
- * Build the sync report for one (skill, asset) pair. Compares source
- * files against the vendored copies via hash, and flags any
- * vendored-side extras as drift so files added directly to the target
- * dir don't silently linger.
+ * Build the sync report for one (skill, directive) pair. Compares
+ * source files against the vendored copies via hash, and flags any
+ * vendored-side extras as drift so files added directly to the
+ * target dir don't silently linger.
  */
-function buildReport({ repoRoot, skill, source, assetName }: BuildReportParams): SyncReport {
-  const sourceDir = path.join(repoRoot, source.sourceRoot, assetName)
-  const targetDir = path.join(skill.location.dir, source.targetSubdir, assetName)
+function buildReport({ repoRoot, skill, directive }: BuildReportParams): SyncReport {
+  const sourceDir = path.join(repoRoot, directive.src)
+  const targetDir = path.join(skill.location.dir, directive.output)
+  const assetName = path.basename(directive.output)
+
   if (!existsSync(sourceDir)) {
     return {
       skill: skill.location.name,
-      assetKind: source.kind,
+      kind: directive.kind,
       assetName,
+      sourceDir,
       targetDir,
       files: [],
       drift: [],
@@ -96,8 +92,9 @@ function buildReport({ repoRoot, skill, source, assetName }: BuildReportParams):
 
   return {
     skill: skill.location.name,
-    assetKind: source.kind,
+    kind: directive.kind,
     assetName,
+    sourceDir,
     targetDir,
     files,
     drift,

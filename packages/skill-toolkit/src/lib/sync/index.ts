@@ -1,5 +1,3 @@
 export { applySync } from './apply.js'
 export { planSync } from './plan.js'
-export { VENDOR_SOURCES } from './registry.js'
-export type { VendorSource } from './registry.js'
-export type { AssetKind, SyncReport, VendoredFile } from './types.js'
+export type { SyncReport, VendoredFile } from './types.js'
