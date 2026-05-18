@@ -24,14 +24,13 @@ Run with `pnpm skill-toolkit lint <name>` (or `pnpm skill-toolkit lint` for all 
 
 ### Frontmatter
 
-| Code                         | Severity | What it checks                                                           |
-| ---------------------------- | -------- | ------------------------------------------------------------------------ |
-| `FM_MISSING_NAME`            | error    | Frontmatter has `name`                                                   |
-| `FM_NAME_MISMATCH`           | error    | `name` matches directory                                                 |
-| `FM_MISSING_DESCRIPTION`     | error    | Frontmatter has `description`                                            |
-| `FM_MISSING_ARGUMENT_HINT`   | info     | `argument-hint` set (Claude Code extension; recommended for cross-agent) |
-| `FM_MISSING_USER_INVOCABLE`  | info     | `user-invocable` set (Claude Code extension)                             |
-| `FM_MISSING_MODEL_INVOCABLE` | info     | `model-invocable` set (Claude Code extension)                            |
+| Code                        | Severity | What it checks                                                           |
+| --------------------------- | -------- | ------------------------------------------------------------------------ |
+| `FM_MISSING_NAME`           | error    | Frontmatter has `name`                                                   |
+| `FM_NAME_MISMATCH`          | error    | `name` matches directory                                                 |
+| `FM_MISSING_DESCRIPTION`    | error    | Frontmatter has `description`                                            |
+| `FM_MISSING_ARGUMENT_HINT`  | info     | `argument-hint` set (Claude Code extension; recommended for cross-agent) |
+| `FM_MISSING_USER_INVOCABLE` | info     | `user-invocable` set (Claude Code extension)                             |
 
 → See [`frontmatter.md`](frontmatter.md)
 

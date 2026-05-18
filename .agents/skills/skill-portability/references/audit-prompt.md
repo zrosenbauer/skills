@@ -91,7 +91,7 @@ BODY: <example> tags render as fenced code in Cursor's chat panel rather
       than being parsed as structure. Acceptable but not load-bearing.
 TOOLS: AskUserQuestion
 NOTES:
-- Frontmatter `argument-hint`, `user-invocable`, `model-invocable` are
+- Frontmatter `argument-hint`, `user-invocable`, `disable-model-invocation` are
   silently ignored by Cursor — harmless.
 - The "load on demand" persona-reference pattern doesn't survive the
   port. Inline at least one persona before shipping to Cursor users.

@@ -17,13 +17,13 @@
       "source": "zrosenbauer/skills",
       "sourceType": "github",
       "skillPath": "skills/skill-creator/SKILL.md",
-      "computedHash": "a0e68d44f1c5a59dd1cec86e993039629a2fd5d09c987316e28fc513e41ccf24"
+      "computedHash": "e7d6ee5d9e72e4d8fa4f3debb9acbe9978c0995897886f17cc9f0c5272a43efb"
     },
     "skill-portability": {
       "source": "zrosenbauer/skills",
       "sourceType": "github",
       "skillPath": "skills/skill-portability/SKILL.md",
-      "computedHash": "8a687e881362199cdb3c5830914f04f6678ac3b1ce1a4c22534b13f84196f092"
+      "computedHash": "5db5ad813a7a909aa2977c431fc4c835580388a7b166a020bef395a9cac8840f"
     },
     "ts-best-practices": {
       "source": "zrosenbauer/skills",

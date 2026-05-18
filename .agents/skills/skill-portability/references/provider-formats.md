@@ -10,7 +10,7 @@ The audit subagents use this to ground their verdicts. The structured data lives
 
 **Required frontmatter**: `name`, `description`. The `skills` CLI rejects skills missing either.
 
-**Optional frontmatter**: `argument-hint`, `user-invocable`, `model-invocable`, `allowed-tools`, `metadata`.
+**Optional frontmatter**: `argument-hint`, `user-invocable`, `disable-model-invocation`, `allowed-tools`. Fields like `model-invocable` and `metadata` are commonly written but NOT in the [official Claude Code skill spec](https://code.claude.com/docs/en/skills.md) — use `disable-model-invocation` (inverse semantics, defaults to false) instead of `model-invocable`.
 
 **Tool surface** (built-in tools the agent can call by name): `Read`, `Write`, `Edit`, `Bash`, `Glob`, `Grep`, `WebFetch`, `WebSearch`, `AskUserQuestion`, `TaskCreate`, `TaskUpdate`, `TaskList`, `TaskGet`, `Agent`, `Skill`, `NotebookEdit`, `ExitPlanMode`. Verify against the model version — the surface evolves.
 
