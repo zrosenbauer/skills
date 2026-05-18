@@ -4,6 +4,7 @@ import { defineRule, defineRuleset, fail, pass } from '../../rule.js'
 
 export default defineRuleset({
   name: 'files',
+  scope: 'skill',
   rules: [
     defineRule({
       id: 'no-readme',

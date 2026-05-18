@@ -118,21 +118,43 @@ export interface Rule<T = SkillRecord> {
 }
 
 /**
+ * Scope a ruleset belongs to — the namespace half of every rule's
+ * public id. Skills and agents have separate rule pools so the same
+ * `id` (e.g. `frontmatter`, `file-name`) can be used in both without
+ * collision.
+ */
+export type RuleScope = 'skill' | 'agent'
+
+/**
  * A named bundle of related rules — used for organization and grouped
  * output. Defaults to skill rules; agent rulesets bind `T = AgentRecord`.
  */
 export interface Ruleset<T = SkillRecord> {
   /**
-   * Category name (e.g. `frontmatter`, `body`, `agent-frontmatter`).
-   * The lookup key for `getRuleset`; should be unique across all
-   * rulesets.
+   * Category name within the scope (e.g. `frontmatter`, `body`).
+   * Unique within its scope; the same name can appear in both
+   * `skill` and `agent` scopes without conflict.
    */
   name: string
+  /**
+   * Which rule pool this ruleset belongs to — `skill` or `agent`.
+   * Every rule in the ruleset gets addressed as `@<scope>/<id>` in
+   * output and in manifest overrides.
+   */
+  scope: RuleScope
   /**
    * The rules in this category, in the order they should run /
    * display.
    */
   rules: Rule<T>[]
+}
+
+/**
+ * Build the public `@scope/id` form for a rule. The runner emits this
+ * as `Finding.id`, and `skill.json.lint` keys match this shape.
+ */
+export function scopedId(scope: RuleScope, ruleId: string): string {
+  return `@${scope}/${ruleId}`
 }
 
 const KEBAB_RE = /^[a-z][a-z0-9-]+[a-z0-9]$/

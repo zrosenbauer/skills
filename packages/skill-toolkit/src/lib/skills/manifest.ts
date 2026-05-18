@@ -10,7 +10,7 @@ import type { SkillRecord } from './types.js'
  */
 export const SKILL_MANIFEST_FILE = 'skill.json'
 
-const KEBAB_RE = /^[a-z][a-z0-9-]+[a-z0-9]$/
+const SCOPED_ID_RE = /^@(skill|agent)\/[a-z][a-z0-9-]+[a-z0-9]$/
 
 /**
  * Severity level for a lint-rule override, plus `'off'` to disable
@@ -65,8 +65,10 @@ export const SkillManifestSchema = z
       .record(
         z
           .string()
-          .regex(KEBAB_RE, { message: 'rule id must be kebab-case' })
-          .describe('Kebab-case rule id (e.g. `dir-name`, `body-too-long`)'),
+          .regex(SCOPED_ID_RE, {
+            message: 'rule id must be `@skill/<kebab>` or `@agent/<kebab>`',
+          })
+          .describe('Scoped rule id (e.g. `@skill/body-too-long`, `@agent/file-name`)'),
         LintRuleConfigSchema
       )
       .optional()

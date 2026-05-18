@@ -6,16 +6,18 @@ import { match } from 'massaman'
 import type { AgentRecord } from '../agents/types.js'
 import { type LintRuleConfig, readManifest } from '../skills/manifest.js'
 import type { SkillRecord } from '../skills/types.js'
-import type { Rule } from './rule.js'
-import { listAgentRules, listSkillRules } from './rules/index.js'
+import type { Rule, RuleScope } from './rule.js'
+import { scopedId } from './rule.js'
+import { listAgentRulesets } from './rules/agents/index.js'
+import { listSkillRulesets } from './rules/skills/index.js'
 import type { AgentLintResult, Finding, LintTotals, SkillLintResult } from './types.js'
 
 /**
  * Run every skill rule against one skill and collect its findings.
- * The runner — not the rule — attaches `id` and the default
- * `severity`, so a check can override severity per-finding without
- * restating its identity. Per-skill overrides come from
- * `skill.json.lint`.
+ * The runner — not the rule — attaches the public `@scope/id` and
+ * the default `severity`, so a check can override severity
+ * per-finding without restating its identity. Per-skill overrides
+ * come from `skill.json.lint` keyed by `@skill/<id>`.
  */
 export function lintSkill(skill: SkillRecord): SkillLintResult {
   const skillMd = readFileSync(path.join(skill.location.dir, 'SKILL.md'), 'utf8')
@@ -23,9 +25,18 @@ export function lintSkill(skill: SkillRecord): SkillLintResult {
   const overrides = readManifest(skill)?.lint ?? {}
 
   const findings: Finding[] = []
-  for (const rule of listSkillRules()) {
-    const finding = produceSkillFinding({ rule, override: overrides[rule.id], skill, body })
-    if (finding) findings.push(finding)
+  for (const ruleset of listSkillRulesets()) {
+    for (const rule of ruleset.rules) {
+      const id = scopedId(ruleset.scope, rule.id)
+      const finding = produceSkillFinding({
+        rule,
+        id,
+        override: overrides[id],
+        skill,
+        body,
+      })
+      if (finding) findings.push(finding)
+    }
   }
 
   return { skill, findings }
@@ -39,15 +50,23 @@ export function lintSkill(skill: SkillRecord): SkillLintResult {
  */
 export function lintAgent(agent: AgentRecord): AgentLintResult {
   const findings: Finding[] = []
-  for (const rule of listAgentRules()) {
-    const finding = produceAgentFinding({ rule, agent })
-    if (finding) findings.push(finding)
+  for (const ruleset of listAgentRulesets()) {
+    for (const rule of ruleset.rules) {
+      const id = scopedId(ruleset.scope, rule.id)
+      const finding = produceAgentFinding({ rule, id, agent })
+      if (finding) findings.push(finding)
+    }
   }
   return { agent, findings }
 }
 
 interface ProduceSkillFindingParams {
   rule: Rule<SkillRecord>
+  /**
+   * Public `@scope/id` form for the rule — used as the Finding id
+   * and the override-map lookup key.
+   */
+  id: string
   override: LintRuleConfig | undefined
   skill: SkillRecord
   body: string
@@ -60,6 +79,7 @@ interface ProduceSkillFindingParams {
  */
 function produceSkillFinding({
   rule,
+  id,
   override,
   skill,
   body,
@@ -76,7 +96,7 @@ function produceSkillFinding({
     .otherwise(() => result.severity ?? rule.severity)
 
   return {
-    id: rule.id,
+    id,
     severity,
     message: result.message,
     ...(result.fix !== undefined && { fix: result.fix }),
@@ -85,6 +105,7 @@ function produceSkillFinding({
 
 interface ProduceAgentFindingParams {
   rule: Rule<AgentRecord>
+  id: string
   agent: AgentRecord
 }
 
@@ -93,12 +114,12 @@ interface ProduceAgentFindingParams {
  * override layer yet — when agent manifests become a thing this grows
  * to match the skill version.
  */
-function produceAgentFinding({ rule, agent }: ProduceAgentFindingParams): Finding | null {
+function produceAgentFinding({ rule, id, agent }: ProduceAgentFindingParams): Finding | null {
   const result = rule.check(agent)
   if (result.status === 'pass') return null
 
   return {
-    id: rule.id,
+    id,
     severity: result.severity ?? rule.severity,
     message: result.message,
     ...(result.fix !== undefined && { fix: result.fix }),
@@ -131,3 +152,7 @@ export function summarize(results: { findings: Finding[] }[]): LintTotals {
   }
   return counts
 }
+
+// Re-export the type so consumers that imported it from this module
+// still get the right shape.
+export type { RuleScope }

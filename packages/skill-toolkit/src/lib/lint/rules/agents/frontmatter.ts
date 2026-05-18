@@ -11,14 +11,16 @@ const NAMING_RE = /^[a-z][a-z0-9-]+[a-z0-9]$/
  * `AgentRecord` shape — file basename instead of directory basename,
  * tools/model fields instead of Claude Code skill extensions.
  *
- * Rule ids prefix with `agent-` so they don't collide with skill rule
- * ids when both pools are listed together.
+ * Rule ids are unprefixed (`file-name`, `fm-parse-failed`, ...). The
+ * ruleset's `scope: 'agent'` produces the public `@agent/<id>` form
+ * for output and overrides.
  */
 export default defineRuleset<AgentRecord>({
-  name: 'agent-frontmatter',
+  name: 'frontmatter',
+  scope: 'agent',
   rules: [
     defineRule<AgentRecord>({
-      id: 'agent-file-name',
+      id: 'file-name',
       severity: 'error',
       description: 'Agent file basename must be kebab-case (^[a-z][a-z0-9-]+[a-z0-9]$)',
       check: ({ location }) =>
@@ -35,7 +37,7 @@ export default defineRuleset<AgentRecord>({
           ),
     }),
     defineRule<AgentRecord>({
-      id: 'agent-fm-parse-failed',
+      id: 'fm-parse-failed',
       severity: 'error',
       description: 'agent frontmatter must parse against the schema',
       check: ({ frontmatterParseError }) =>
@@ -44,7 +46,7 @@ export default defineRuleset<AgentRecord>({
           .otherwise((err) => fail({ message: `frontmatter failed schema validation: ${err}` })),
     }),
     defineRule<AgentRecord>({
-      id: 'agent-fm-missing-name',
+      id: 'fm-missing-name',
       severity: 'error',
       description: 'agent frontmatter must include `name`',
       check: ({ frontmatter }) =>
@@ -53,7 +55,7 @@ export default defineRuleset<AgentRecord>({
           .otherwise(() => pass()),
     }),
     defineRule<AgentRecord>({
-      id: 'agent-fm-name-mismatch',
+      id: 'fm-name-mismatch',
       severity: 'error',
       description: 'agent frontmatter `name` must match the file basename',
       check: ({ frontmatter, location }) =>
@@ -70,7 +72,7 @@ export default defineRuleset<AgentRecord>({
           ),
     }),
     defineRule<AgentRecord>({
-      id: 'agent-fm-missing-description',
+      id: 'fm-missing-description',
       severity: 'error',
       description: 'agent frontmatter must include `description`',
       check: ({ frontmatter }) =>

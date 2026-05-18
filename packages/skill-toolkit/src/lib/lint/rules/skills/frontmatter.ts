@@ -6,6 +6,7 @@ const NAMING_RE = /^[a-z][a-z0-9-]+[a-z0-9]$/
 
 export default defineRuleset({
   name: 'frontmatter',
+  scope: 'skill',
   rules: [
     defineRule({
       id: 'dir-name',

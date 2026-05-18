@@ -1,5 +1,5 @@
 export { lintAgent, lintSkill, summarize } from './lint.js'
-export { defineRule, defineRuleset, fail, pass } from './rule.js'
+export { defineRule, defineRuleset, fail, pass, scopedId } from './rule.js'
 export type {
   AgentRule,
   AgentRuleset,
@@ -8,6 +8,7 @@ export type {
   CheckResultPass,
   Rule,
   RuleCheck,
+  RuleScope,
   Ruleset,
 } from './rule.js'
 export type { AgentLintResult, Finding, LintTotals, Severity, SkillLintResult } from './types.js'

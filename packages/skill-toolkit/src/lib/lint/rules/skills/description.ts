@@ -7,6 +7,7 @@ const QUOTED_PHRASE_RE = /"[^"]+"/g
 
 export default defineRuleset({
   name: 'description',
+  scope: 'skill',
   rules: [
     defineRule({
       id: 'desc-too-short',
