@@ -29,9 +29,8 @@ export const PROVIDERS: Provider[] = [
       optionalFrontmatter: [
         'argument-hint',
         'user-invocable',
-        'model-invocable',
+        'disable-model-invocation',
         'allowed-tools',
-        'metadata',
       ],
     },
     agents: {

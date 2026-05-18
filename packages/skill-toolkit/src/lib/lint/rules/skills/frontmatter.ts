@@ -94,16 +94,5 @@ export default defineRuleset({
           )
           .otherwise(() => pass()),
     }),
-    defineRule({
-      id: 'fm-missing-model-invocable',
-      severity: 'info',
-      description: 'model-invocable is a Claude Code extension; recommended',
-      check: ({ frontmatter }) =>
-        match(frontmatter['model-invocable'])
-          .with(P.nullish, () =>
-            fail({ message: '`model-invocable` not set (Claude Code extension)' })
-          )
-          .otherwise(() => pass()),
-    }),
   ],
 })

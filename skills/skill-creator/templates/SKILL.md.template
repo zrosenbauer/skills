@@ -8,7 +8,8 @@ description: >-
 # --- Claude Code extensions (ignored by other agents) ---
 argument-hint: '[<{{ARG_NAME}}>]'
 user-invocable: true
-model-invocable: true
+# Optional, defaults to false:
+# disable-model-invocation: true  # set true to prevent Claude from auto-loading
 ---
 
 # {{SKILL_NAME}}

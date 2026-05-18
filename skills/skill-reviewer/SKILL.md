@@ -14,7 +14,6 @@ description: >-
 # --- Claude Code extensions (ignored by other agents) ---
 argument-hint: '[<skill-name>]'
 user-invocable: true
-model-invocable: true
 ---
 
 # skill-reviewer
@@ -73,7 +72,7 @@ Beyond the lint pass:
 - Triggers in description are realistic (a real user would say them) — not abstract teacher-ese
 - Description states what's distinctive ("Bakes in …") — not just what the skill does
 - Body does NOT contain `## When to use` / `## When NOT to use` sections — routing is the description's job, and dispatchers never read the body anyway; duplicating triggers wastes tokens and creates drift risk (warn if present)
-- Claude Code extension fields present (`argument-hint`, `user-invocable`, `model-invocable`) and fenced behind the `# --- Claude Code extensions` comment
+- Claude Code extension fields present where applicable (`argument-hint`, `user-invocable`, optionally `disable-model-invocation` and `allowed-tools`) and fenced behind the `# --- Claude Code extensions` comment. Flag any use of fabricated fields (`model-invocable`, `metadata`) — these aren't in the official Claude Code spec; see [skill-creator/references/frontmatter.md](../skill-creator/references/frontmatter.md).
 
 ### 5. Audit body
 
@@ -161,7 +160,7 @@ SUMMARY: 3 findings (0 error / 2 warn / 1 info) — discipline skill
 
 ## Clean
 - Description has Use-when phrase + 5 verbatim triggers in double quotes (description.md:38)
-- Frontmatter has all Claude Code extension fields (argument-hint, user-invocable, model-invocable)
+- Frontmatter has the documented Claude Code extension fields (argument-hint, user-invocable)
 - Body has 2 <example> blocks (xml-usage.md ≥ 1 required)
 - Rationalization table present — appropriate for a discipline skill (skill-creator step 6)
 - pnpm skill-toolkit lint ts-best-practices — 0 error / 0 warn / 0 info
@@ -189,7 +188,7 @@ SUMMARY: 0 findings (0 error / 0 warn / 0 info) — technique skill
 
 ## Clean
 - Description: 720 chars, has Use-when, 5 verbatim triggers, explicit Skip-when (description.md ✓)
-- Frontmatter: argument-hint, user-invocable, model-invocable all set
+- Frontmatter: argument-hint, user-invocable set; no fabricated fields
 - Body: ≥ 3 `## ` sections, ≥ 1 `<example>` block, no TODO/FIXME
 - Companions: README.md, LICENSE, references/, scripts/ all present
 - Single-source-of-truth in providers.mjs reflects the skill's own thesis

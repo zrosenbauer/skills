@@ -16,7 +16,6 @@ description: >-
 # --- Claude Code extensions (ignored by other agents) ---
 argument-hint: '[<asset-name>]'
 user-invocable: true
-model-invocable: true
 ---
 
 # svg-creator

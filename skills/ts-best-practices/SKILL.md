@@ -14,7 +14,6 @@ description: >-
 # --- Claude Code extensions (ignored by other agents) ---
 argument-hint: '[<file-or-dir>]'
 user-invocable: true
-model-invocable: true
 ---
 
 # ts-best-practices

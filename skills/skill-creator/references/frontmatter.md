@@ -11,24 +11,24 @@ Every `SKILL.md` in this monorepo starts with a YAML frontmatter block. The skil
 
 Both fields are required by the `skills` CLI for installation. `name` must match the directory name exactly.
 
-## Claude Code extensions (recommended, optional)
+## Claude Code extensions (optional)
 
-These fields are read by Claude Code. Other agents safely ignore them per the SKILL.md spec — keep them in for cross-agent compatibility without breaking anything elsewhere.
+These fields are read by Claude Code per the [official spec](https://code.claude.com/docs/en/skills.md). Other agents safely ignore them — keep them defensively for cross-agent compatibility.
 
-| Field             | Type    | Notes                                                                                          |
-| ----------------- | ------- | ---------------------------------------------------------------------------------------------- |
-| `argument-hint`   | string  | Single-line hint shown in slash-command picker, e.g., `'[<skill-name>]'`. Use `''` if no args. |
-| `user-invocable`  | boolean | `true` if invokable as `/<skill-name>`. Almost always `true`.                                  |
-| `model-invocable` | boolean | `true` if the dispatcher can route to it automatically. Almost always `true`.                  |
+| Field                      | Type    | Notes                                                                                                                                   |
+| -------------------------- | ------- | --------------------------------------------------------------------------------------------------------------------------------------- |
+| `argument-hint`            | string  | Hint shown during autocomplete to indicate expected arguments, e.g. `'[<skill-name>]'`. Use `''` when the skill takes no arguments.     |
+| `user-invocable`           | boolean | When `false`, hides the skill from the `/` slash-command menu (Claude can still invoke it). Defaults to `true`.                         |
+| `disable-model-invocation` | boolean | When `true`, prevents Claude from auto-loading the skill — only the user can invoke via `/`. Defaults to `false` (model can auto-load). |
+| `allowed-tools`            | string  | Space-separated tools Claude can use without asking permission when this skill is active, e.g. `'Bash(git:*) Read Edit'`.               |
 
-## Optional metadata
+**Fields that look like they should exist but don't:** there is no `model-invocable` or `metadata` field in Claude Code's spec. Use `disable-model-invocation` (inverse semantics) instead of `model-invocable`. There is no first-class metadata bag — author/version/tags belong in the description body or `README.md`.
 
-| Field              | Type   | Notes                                                                         |
-| ------------------ | ------ | ----------------------------------------------------------------------------- |
-| `license`          | string | SPDX identifier (`MIT`, `Apache-2.0`, etc.) if not inheriting from repo root. |
-| `metadata.author`  | string | Override the default author.                                                  |
-| `metadata.version` | string | Semver, e.g., `"0.1.0"`. Optional.                                            |
-| `metadata.tags`    | string | Space-separated tags for discovery. Optional.                                 |
+## License
+
+| Field     | Type   | Notes                                                                                      |
+| --------- | ------ | ------------------------------------------------------------------------------------------ |
+| `license` | string | SPDX identifier (`MIT`, `Apache-2.0`, etc.) if not inheriting from repo root. Cross-agent. |
 
 ## Canonical example
 
@@ -45,7 +45,8 @@ description: >-
 # --- Claude Code extensions (ignored by other agents) ---
 argument-hint: '[<file-path>]'
 user-invocable: true
-model-invocable: true
+# Optional, defaults to false:
+# disable-model-invocation: true  # set true to prevent Claude from auto-loading
 ---
 ```
 
@@ -55,4 +56,4 @@ model-invocable: true
 - Keep frontmatter minimal. Don't add fields no agent will use.
 - Don't quote field names. YAML doesn't require it.
 - Single-quote string values that contain colons or special chars (`'[<skill-name>]'`).
-- The Claude Code extensions are harmless to other agents — include them by default.
+- The Claude Code extensions are harmless to other agents — include them defensively.

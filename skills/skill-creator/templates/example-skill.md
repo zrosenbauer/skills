@@ -15,7 +15,6 @@ description: >-
 # --- Claude Code extensions (ignored by other agents) ---
 argument-hint: '[<file-path>]'
 user-invocable: true
-model-invocable: true
 ---
 
 # toml-config-parser

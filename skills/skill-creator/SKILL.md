@@ -13,7 +13,7 @@ description: >-
 # --- Claude Code extensions (ignored by other agents) ---
 argument-hint: '[<skill-name>]'
 user-invocable: true
-model-invocable: false # manual-only authoring workflow; the human drives the loop
+disable-model-invocation: true # manual-only authoring workflow; the human drives the loop
 ---
 
 # skill-creator
@@ -56,7 +56,8 @@ description: >-
 # --- Claude Code extensions (ignored by other agents) ---
 argument-hint: '[<optional-arg>]'
 user-invocable: true
-model-invocable: true
+# Optional, defaults to false:
+# disable-model-invocation: true  # set true to prevent the model from auto-loading this skill
 ---
 ```
 
