@@ -99,7 +99,7 @@ export const providers = [
     localDocPath: 'references/providers/cursor.md',
     requiredFrontmatter: ['description'],
     optionalFrontmatter: ['globs', 'alwaysApply'],
-    ignoredFrontmatter: ['name', 'argument-hint', 'user-invocable', 'model-invocable'],
+    ignoredFrontmatter: ['name', 'argument-hint', 'user-invocable', 'disable-model-invocation'],
     forbiddenFrontmatter: [],
     toolSurface: [
       'Read',
@@ -150,7 +150,7 @@ export const providers = [
     ignoredFrontmatter: [
       'argument-hint',
       'user-invocable',
-      'model-invocable',
+      'disable-model-invocation',
       'globs',
       'alwaysApply',
     ],

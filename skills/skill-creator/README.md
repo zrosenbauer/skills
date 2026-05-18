@@ -6,7 +6,7 @@ A meta-skill that bakes in the conventions every skill in `zrosenbauer/skills` f
 
 ## Use
 
-Invoke manually with `/skill-creator` (Claude Code) — `model-invocable: false` keeps the dispatcher from auto-routing to it.
+Invoke manually with `/skill-creator` (Claude Code) — `disable-model-invocation: true` keeps Claude from auto-routing to it; you drive the loop.
 
 ## What it does
 

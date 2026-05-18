@@ -67,7 +67,6 @@ description: >-
 # --- Claude Code extensions (ignored by other agents) ---
 argument-hint: '[<optional-arg>]'
 user-invocable: true
-model-invocable: true
 ---
 
 # <skill-name>
