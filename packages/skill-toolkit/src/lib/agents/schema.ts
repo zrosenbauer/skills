@@ -33,11 +33,3 @@ export const AgentSchema = z
  * `AgentSchema` so the two cannot drift.
  */
 export type AgentFrontmatter = z.infer<typeof AgentSchema>
-
-/**
- * Matches the YAML frontmatter fence at the start of an agent .md
- * file, with capture group 1 being the YAML body. Same shape as
- * SKILL.md — kept separate so future format divergence doesn't
- * couple them.
- */
-export const AGENT_FRONTMATTER_RE = /^---\n([\s\S]+?)\n---\n/

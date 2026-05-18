@@ -1,13 +1,13 @@
 import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs'
 import path from 'node:path'
 
-import { attempt } from 'massaman'
-import { parse as parseYaml } from 'yaml'
-
-import { FRONTMATTER_RE, SkillSchema, type SkillFrontmatter } from './schema.js'
+import { createFrontmatterParser } from '../frontmatter/index.js'
+import { SkillSchema } from './schema.js'
 import type { SkillLocation, SkillRecord } from './types.js'
 
 const SKILL_ROOTS = ['skills', '.agents/skills'] as const
+
+const parseSkillFrontmatter = createFrontmatterParser(SkillSchema)
 
 /**
  * Discover every skill under `skills/` (public) and `.agents/skills/` (private).
@@ -44,18 +44,12 @@ export function findSkills(repoRoot: string): SkillRecord[] {
  */
 function readSkill(location: SkillLocation): SkillRecord {
   const skillMd = readFileSync(path.join(location.dir, 'SKILL.md'), 'utf8')
-  const fmMatch = FRONTMATTER_RE.exec(skillMd)
-  const fmParse = fmMatch ? attempt(() => SkillSchema.parse(parseYaml(fmMatch[1] ?? ''))) : null
-  const frontmatter: SkillFrontmatter = fmParse?.ok
-    ? fmParse.value
-    : { name: location.name, description: '' }
-  const frontmatterParseError = fmParse && !fmParse.ok ? fmParse.error.message : null
-  const body = skillMd.replace(FRONTMATTER_RE, '')
+  const { body, frontmatter, error } = parseSkillFrontmatter(skillMd)
 
   return {
     location,
-    frontmatter,
-    frontmatterParseError,
+    frontmatter: frontmatter ?? { name: location.name, description: '' },
+    frontmatterParseError: error,
     bodyLineCount: body.split('\n').length,
     hasReadme: existsSync(path.join(location.dir, 'README.md')),
     hasLicense: existsSync(path.join(location.dir, 'LICENSE')),

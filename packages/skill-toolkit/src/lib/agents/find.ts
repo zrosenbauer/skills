@@ -1,12 +1,12 @@
 import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs'
 import path from 'node:path'
 
-import { attempt } from 'massaman'
-import { parse as parseYaml } from 'yaml'
-
+import { createFrontmatterParser } from '../frontmatter/index.js'
 import { listAgentProviders } from '../providers/index.js'
-import { AGENT_FRONTMATTER_RE, AgentSchema, type AgentFrontmatter } from './schema.js'
+import { AgentSchema } from './schema.js'
 import type { AgentLocation, AgentRecord } from './types.js'
+
+const parseAgentFrontmatter = createFrontmatterParser(AgentSchema)
 
 /**
  * Discover every sub-agent file across every provider that supports
@@ -49,18 +49,12 @@ export function findAgents(repoRoot: string): AgentRecord[] {
  */
 function readAgent(location: AgentLocation): AgentRecord {
   const md = readFileSync(location.file, 'utf8')
-  const fmMatch = AGENT_FRONTMATTER_RE.exec(md)
-  const fmParse = fmMatch ? attempt(() => AgentSchema.parse(parseYaml(fmMatch[1] ?? ''))) : null
-  const frontmatter: AgentFrontmatter = fmParse?.ok
-    ? fmParse.value
-    : { name: location.name, description: '' }
-  const frontmatterParseError = fmParse && !fmParse.ok ? fmParse.error.message : null
-  const body = md.replace(AGENT_FRONTMATTER_RE, '')
+  const { body, frontmatter, error } = parseAgentFrontmatter(md)
 
   return {
     location,
-    frontmatter,
-    frontmatterParseError,
+    frontmatter: frontmatter ?? { name: location.name, description: '' },
+    frontmatterParseError: error,
     bodyLineCount: body.split('\n').length,
   }
 }

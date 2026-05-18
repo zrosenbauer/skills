@@ -4,6 +4,7 @@ import path from 'node:path'
 import { match } from 'massaman'
 
 import type { AgentRecord } from '../agents/types.js'
+import { FRONTMATTER_RE } from '../frontmatter/index.js'
 import { type LintRuleConfig, readManifest } from '../skills/manifest.js'
 import type { SkillRecord } from '../skills/types.js'
 import type { Rule, RuleScope } from './rule.js'
@@ -21,7 +22,7 @@ import type { AgentLintResult, Finding, LintTotals, SkillLintResult } from './ty
  */
 export function lintSkill(skill: SkillRecord): SkillLintResult {
   const skillMd = readFileSync(path.join(skill.location.dir, 'SKILL.md'), 'utf8')
-  const body = skillMd.replace(/^---\n[\s\S]+?\n---\n/, '')
+  const body = skillMd.replace(FRONTMATTER_RE, '')
   const overrides = readManifest(skill)?.lint ?? {}
 
   const findings: Finding[] = []

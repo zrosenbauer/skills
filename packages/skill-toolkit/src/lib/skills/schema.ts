@@ -46,10 +46,3 @@ export const SkillSchema = z
  * `SkillSchema` so the two cannot drift.
  */
 export type SkillFrontmatter = z.infer<typeof SkillSchema>
-
-/**
- * Matches the YAML frontmatter fence at the start of a SKILL.md, with
- * capture group 1 being the YAML body. Multi-document YAML is not
- * supported — only the first fence is read.
- */
-export const FRONTMATTER_RE = /^---\n([\s\S]+?)\n---\n/
