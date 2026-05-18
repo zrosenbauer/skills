@@ -1,5 +1,5 @@
 {
-  "$schema": "../../schemas/skill.json",
+  "$schema": "https://raw.githubusercontent.com/zrosenbauer/skills/main/schemas/skill.json",
   "vendor": [
     {
       "src": "skill-scripts/npm-namer",
