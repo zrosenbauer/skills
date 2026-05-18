@@ -5,7 +5,7 @@ await cli({
   description: 'Authoring, linting, and evaluation tools for the skills monorepo',
   help: {
     header: 'skill-toolkit - work with the agent skills in this repo',
-    order: ['lint', 'sync', 'schema'],
+    order: ['lint', 'sync', 'schema', 'tokens'],
   },
   name: 'skill-toolkit',
   version: '0.0.0',
