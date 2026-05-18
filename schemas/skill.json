@@ -1,0 +1,63 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "properties": {
+    "vendor": {
+      "description": "Vendor directives — each entry declares an (src → dest) copy that `skill-toolkit sync` executes byte-identical.",
+      "minItems": 1,
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "src": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Repo-root-relative path to the canonical source directory (e.g. `skill-scripts/prompt-shield`)."
+          },
+          "dest": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Skill-dir-relative path where the vendored copy lands (e.g. `scripts/prompt-shield`). The first path segment is shown as the kind tag in CLI output."
+          }
+        },
+        "required": [
+          "src",
+          "dest"
+        ],
+        "additionalProperties": false,
+        "description": "One vendor directive — `src` is copied byte-identical to `dest`."
+      }
+    },
+    "lint": {
+      "description": "Per-rule overrides — disable or change severity for this skill",
+      "type": "object",
+      "propertyNames": {
+        "type": "string",
+        "pattern": "^@(skill|agent)\\/[a-z][a-z0-9-]+[a-z0-9]$",
+        "description": "Scoped rule id (e.g. `@skill/body-too-long`, `@agent/file-name`)"
+      },
+      "additionalProperties": {
+        "type": "object",
+        "properties": {
+          "level": {
+            "type": "string",
+            "enum": [
+              "error",
+              "warn",
+              "info",
+              "off"
+            ],
+            "description": "Severity to apply, or `off` to suppress findings for this skill"
+          }
+        },
+        "required": [
+          "level"
+        ],
+        "additionalProperties": false,
+        "description": "Override config for one rule — keyed by the rule id in the parent map"
+      }
+    }
+  },
+  "additionalProperties": false,
+  "description": "Validated shape of <skill>/skill.json — the per-skill manifest"
+}

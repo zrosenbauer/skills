@@ -42,11 +42,14 @@ Helpers needed by more than one skill (e.g. `prompt-shield` for indirect-prompt-
 
 ```json
 {
+  "$schema": "../../schemas/skill.json",
   "vendor": [{ "src": "skill-scripts/prompt-shield", "dest": "scripts/prompt-shield" }]
 }
 ```
 
 `pnpm skill-toolkit sync` reads every `vendor` directive, copies `src` (repo-root-relative) to `dest` (skill-dir-relative) byte-identical, and re-stages the result. The first segment of `dest` (`scripts`, `references`, `templates`, ...) is surfaced as a tag in CLI output — adding a new kind is just a new entry, no toolkit code change. Vendored copies are committed so skills stay self-contained when shipped.
+
+The `$schema` field points at the JSON Schema generated from the zod source via `pnpm skill-toolkit schema --write` and committed to `schemas/skill.json`. Editors that understand `$schema` (VS Code, JetBrains, Zed) autocomplete + validate inline. A pre-commit hook (`schema-check`) fails the commit if the committed schema drifts from zod.
 
 **Never edit a vendored copy.** Edit `skill-scripts/<name>/` and let the sync run (Lefthook does this automatically on pre-commit). The drift check (`pnpm skill-toolkit sync --check`, also pre-commit) fails if any vendored copy diverges from source. See [`contributing/prompt-injection.md`](contributing/prompt-injection.md) for the threat model and the prompt-shield consumption examples.
 

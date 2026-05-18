@@ -1,4 +1,5 @@
 {
+  "$schema": "../../schemas/skill.json",
   "vendor": [
     {
       "src": "skill-scripts/prompt-shield",
