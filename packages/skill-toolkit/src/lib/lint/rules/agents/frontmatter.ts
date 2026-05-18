@@ -44,6 +44,7 @@ export default defineRuleset<AgentRecord>({
       id: 'file-name',
       severity: 'error',
       description: 'Agent file basename must be kebab-case (^[a-z][a-z0-9-]+[a-z0-9]$)',
+      parsed: false,
       check: ({ location }) =>
         match(location.name)
           .when(
@@ -61,6 +62,7 @@ export default defineRuleset<AgentRecord>({
       id: 'fm-parse-failed',
       severity: 'error',
       description: 'agent frontmatter must parse against the schema',
+      parsed: false,
       check: (agent) =>
         match(agent.frontmatterParseError)
           .with(P.nullish, () => pass())

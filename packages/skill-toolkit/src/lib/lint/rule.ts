@@ -156,8 +156,24 @@ export interface Rule<T = SkillRecord> {
   /**
    * The actual predicate. Returns `pass()` when the rule is satisfied,
    * or `fail({ message, fix? })` describing the violation.
+   *
+   * Within a rule that has `parsed: true` (the default), the check
+   * can rely on `frontmatter` being validly parsed — the runner
+   * guarantees this by skipping the rule when parsing failed.
    */
   check: RuleCheck<T>
+  /**
+   * When true (default), this rule operates on parsed frontmatter
+   * content. The runner skips it when `frontmatterParseError` is
+   * set — running it would fire spuriously against the stubbed-out
+   * empty fields. The check can then assume `frontmatter` is valid.
+   *
+   * Set `false` for rules that:
+   *   • diagnose parse failure itself (`fm-parse-failed`)
+   *   • don't read frontmatter at all (`body-*`, `dir-name`,
+   *     `file-name`, file-companion rules like `no-readme`)
+   */
+  parsed?: boolean
 }
 
 /**

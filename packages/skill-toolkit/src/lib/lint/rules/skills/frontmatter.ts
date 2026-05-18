@@ -34,6 +34,7 @@ export default defineRuleset({
       id: 'dir-name',
       severity: 'error',
       description: 'Skill directory name must be kebab-case (^[a-z][a-z0-9-]+[a-z0-9]$)',
+      parsed: false,
       check: ({ location }) =>
         match(location.name)
           .when(
@@ -51,6 +52,7 @@ export default defineRuleset({
       id: 'fm-parse-failed',
       severity: 'error',
       description: 'frontmatter must parse against the schema',
+      parsed: false,
       check: (skill) =>
         match(skill.frontmatterParseError)
           .with(P.nullish, () => pass())

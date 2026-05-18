@@ -10,6 +10,7 @@ export default defineRuleset({
       id: 'body-too-long',
       severity: 'warn',
       description: 'body should be at most 500 lines',
+      parsed: false,
       check: ({ bodyLineCount }) =>
         match(bodyLineCount)
           .when(
@@ -27,6 +28,7 @@ export default defineRuleset({
       id: 'body-few-sections',
       severity: 'warn',
       description: 'body should have at least 3 `## ` sections',
+      parsed: false,
       check: (_skill, body) =>
         match((body.match(/^##\s/gm) ?? []).length)
           .when(
@@ -39,6 +41,7 @@ export default defineRuleset({
       id: 'body-todo',
       severity: 'error',
       description: 'body must not contain TODO/FIXME/XXX placeholders',
+      parsed: false,
       check: (skill, body) => {
         const filtered = body
           .replace(/`[^`]*?(?:TODO|FIXME|XXX)[^`]*?`/g, '')
@@ -81,6 +84,7 @@ export default defineRuleset({
       id: 'body-no-example',
       severity: 'warn',
       description: 'body should contain at least one <example> block',
+      parsed: false,
       check: (_skill, body) =>
         match(body)
           .when(
