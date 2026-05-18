@@ -41,31 +41,25 @@ export const SkillManifestSchema = z
       .array(
         z
           .object({
-            kind: z
-              .string()
-              .min(1)
-              .describe(
-                'Free-form label for this asset (e.g. `scripts`, `references`, `templates`). Surfaced in CLI output; not dispatched on by the engine.'
-              ),
             src: z
               .string()
               .min(1)
               .describe(
                 'Repo-root-relative path to the canonical source directory (e.g. `skill-scripts/prompt-shield`).'
               ),
-            output: z
+            dest: z
               .string()
               .min(1)
               .describe(
-                'Skill-dir-relative path where the vendored copy lands (e.g. `scripts/prompt-shield`).'
+                'Skill-dir-relative path where the vendored copy lands (e.g. `scripts/prompt-shield`). The first path segment is shown as the kind tag in CLI output.'
               ),
           })
-          .describe('One vendor directive — what to copy and where to put it.')
+          .describe('One vendor directive — `src` is copied byte-identical to `dest`.')
       )
       .min(1, { message: 'skill.json `vendor` must declare at least one entry when present' })
       .optional()
       .describe(
-        'Vendor directives — each entry declares an (src → output) copy that `skill-toolkit sync` executes byte-identical.'
+        'Vendor directives — each entry declares an (src → dest) copy that `skill-toolkit sync` executes byte-identical.'
       ),
     lint: z
       .record(

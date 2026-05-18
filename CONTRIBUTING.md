@@ -49,19 +49,16 @@ When more than one skill needs the same helper (e.g. `prompt-shield` for indirec
 
 ```json
 {
-  "vendor": [
-    { "kind": "scripts", "src": "skill-scripts/prompt-shield", "output": "scripts/prompt-shield" }
-  ]
+  "vendor": [{ "src": "skill-scripts/prompt-shield", "dest": "scripts/prompt-shield" }]
 }
 ```
 
-Each `vendor` entry is `{ kind, src, output }`:
+Each `vendor` entry is `{ src, dest }`:
 
-- `kind` — free-form label (`scripts`, `references`, `templates`, ...). Surfaced in CLI output; not dispatched on by the engine.
 - `src` — repo-root-relative path to the canonical source directory.
-- `output` — skill-dir-relative path where the vendored copy lands.
+- `dest` — skill-dir-relative path where the vendored copy lands. The first path segment (`scripts`, `references`, `templates`, ...) is surfaced as a tag in CLI output.
 
-`pnpm skill-toolkit sync` copies every declared `src` to its `output` byte-identical and re-stages the result. Vendored copies are committed so skills stay self-contained when shipped via `npx skills add`. Do not hand-edit vendored copies — Lefthook's pre-commit drift check (`pnpm skill-toolkit sync --check`) will fail. See [`contributing/prompt-injection.md`](./contributing/prompt-injection.md) for the prompt-shield example.
+`pnpm skill-toolkit sync` copies every declared `src` to its `dest` byte-identical and re-stages the result. Vendored copies are committed so skills stay self-contained when shipped via `npx skills add`. Do not hand-edit vendored copies — Lefthook's pre-commit drift check (`pnpm skill-toolkit sync --check`) will fail. See [`contributing/prompt-injection.md`](./contributing/prompt-injection.md) for the prompt-shield example.
 
 ## Authoring a skill
 

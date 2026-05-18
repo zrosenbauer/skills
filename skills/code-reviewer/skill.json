@@ -1,14 +1,12 @@
 {
   "vendor": [
     {
-      "kind": "scripts",
       "src": "skill-scripts/prompt-shield",
-      "output": "scripts/prompt-shield"
+      "dest": "scripts/prompt-shield"
     },
     {
-      "kind": "scripts",
       "src": "skill-scripts/secret-shield",
-      "output": "scripts/secret-shield"
+      "dest": "scripts/secret-shield"
     }
   ]
 }

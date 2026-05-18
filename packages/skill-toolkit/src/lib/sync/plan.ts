@@ -14,7 +14,7 @@ type VendorDirective = NonNullable<SkillManifest['vendor']>[number]
 /**
  * Read all skill manifests in the repo and return one report per
  * vendor directive (skill × `skill.json.vendor[i]`). Each report
- * resolves `src` against the repo root and `output` against the
+ * resolves `src` against the repo root and `dest` against the
  * consuming skill's directory. Pure — never writes.
  */
 export function planSync(repoRoot: string): SyncReport[] {
@@ -38,7 +38,7 @@ interface BuildReportParams {
   repoRoot: string
   /**
    * The skill consuming the directive. Provides the base for
-   * resolving `output`.
+   * resolving `dest`.
    */
   skill: SkillRecord
   /**
@@ -51,20 +51,22 @@ interface BuildReportParams {
  * Build the sync report for one (skill, directive) pair. Compares
  * source files against the vendored copies via hash, and flags any
  * vendored-side extras as drift so files added directly to the
- * target dir don't silently linger.
+ * dest dir don't silently linger.
  */
 function buildReport({ repoRoot, skill, directive }: BuildReportParams): SyncReport {
   const sourceDir = path.join(repoRoot, directive.src)
-  const targetDir = path.join(skill.location.dir, directive.output)
-  const assetName = path.basename(directive.output)
+  const destDir = path.join(skill.location.dir, directive.dest)
+  const segments = directive.dest.split('/').filter((s) => s.length > 0 && s !== '.')
+  const kind = segments[0] ?? 'vendor'
+  const assetName = path.basename(directive.dest)
 
   if (!existsSync(sourceDir)) {
     return {
       skill: skill.location.name,
-      kind: directive.kind,
+      kind,
       assetName,
       sourceDir,
-      targetDir,
+      destDir,
       files: [],
       drift: [],
       missingAsset: true,
@@ -75,27 +77,27 @@ function buildReport({ repoRoot, skill, directive }: BuildReportParams): SyncRep
   const files = relativePaths.map((rel) => ({
     relative: rel,
     source: path.join(sourceDir, rel),
-    target: path.join(targetDir, rel),
+    target: path.join(destDir, rel),
   }))
 
-  const targetExtras = existsSync(targetDir)
-    ? listVendorableFiles(targetDir).filter((rel) => !files.some((f) => f.relative === rel))
+  const targetExtras = existsSync(destDir)
+    ? listVendorableFiles(destDir).filter((rel) => !files.some((f) => f.relative === rel))
     : []
   const drift: VendoredFile[] = [
     ...files.filter((f) => !filesMatch(f.source, f.target)),
     ...targetExtras.map((rel) => ({
       relative: rel,
       source: path.join(sourceDir, rel),
-      target: path.join(targetDir, rel),
+      target: path.join(destDir, rel),
     })),
   ]
 
   return {
     skill: skill.location.name,
-    kind: directive.kind,
+    kind,
     assetName,
     sourceDir,
-    targetDir,
+    destDir,
     files,
     drift,
     missingAsset: false,

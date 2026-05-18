@@ -12,8 +12,8 @@ export function applySync(report: SyncReport): void {
   if (report.missingAsset) return
   if (report.files.length === 0) return
 
-  if (existsSync(report.targetDir)) rmSync(report.targetDir, { recursive: true, force: true })
-  mkdirSync(report.targetDir, { recursive: true })
+  if (existsSync(report.destDir)) rmSync(report.destDir, { recursive: true, force: true })
+  mkdirSync(report.destDir, { recursive: true })
 
   for (const file of report.files) {
     mkdirSync(path.dirname(file.target), { recursive: true })

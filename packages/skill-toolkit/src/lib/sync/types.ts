@@ -48,13 +48,13 @@ export interface SyncReport {
    */
   sourceDir: string
   /**
-   * Absolute path to the directive's target directory (resolved from
-   * the manifest's `output` relative to the consuming skill's dir).
+   * Absolute path to the directive's destination directory (resolved
+   * from the manifest's `dest` relative to the consuming skill's dir).
    * Used by `applySync` to wholesale-replace the directory so files
    * removed from the source allowlist also disappear from the
    * vendored copy.
    */
-  targetDir: string
+  destDir: string
   /**
    * Every file that should appear in the vendored copy, derived from
    * the source's `files` allowlist or convention-based discovery.
