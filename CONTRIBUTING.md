@@ -20,7 +20,7 @@ pnpm install
 ├── skills/              # AUTHORING SOURCE — skills authored here, published via `npx skills add`
 │   └── <name>/
 │       ├── SKILL.md     # the skill itself
-│       ├── skill.json   # optional manifest — `vendor` directives (src → output) and lint overrides
+│       ├── skill.json   # optional manifest — `vendor` directives (src → dest) and lint overrides
 │       ├── scripts/     # skill-local scripts + vendored shared script dirs
 │       ├── LICENSE
 │       └── README.md
