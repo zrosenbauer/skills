@@ -2,9 +2,29 @@ import { isEmpty, match, P } from 'massaman'
 
 import type { AgentRecord } from '../../../agents/types.js'
 import { buildFrontmatterFrame } from '../../../frontmatter/index.js'
+import type { CheckFrame } from '../../rule.js'
 import { defineRule, defineRuleset, fail, pass } from '../../rule.js'
 
 const NAMING_RE = /^[a-z][a-z0-9-]+[a-z0-9]$/
+
+/**
+ * Convenience for the most common pattern in this ruleset: render the
+ * agent's frontmatter as a frame, optionally pointing at a specific
+ * field. Returns `undefined` when no frontmatter is available — the
+ * rule then emits a frameless finding.
+ */
+function frame(
+  agent: AgentRecord,
+  { field, message }: { field?: string; message: string }
+): CheckFrame | undefined {
+  if (agent.frontmatterRaw === null) return undefined
+  return buildFrontmatterFrame({
+    filePath: `${agent.location.name}.md`,
+    raw: agent.frontmatterRaw,
+    ...(field !== undefined && { field }),
+    message,
+  })
+}
 
 /**
  * Frontmatter rules for sub-agents (`.claude/agents/<name>.md`).
@@ -41,45 +61,51 @@ export default defineRuleset<AgentRecord>({
       id: 'fm-parse-failed',
       severity: 'error',
       description: 'agent frontmatter must parse against the schema',
-      check: ({ frontmatterParseError, frontmatterRaw, location }) =>
-        match(frontmatterParseError)
+      check: (agent) =>
+        match(agent.frontmatterParseError)
           .with(P.nullish, () => pass())
-          .otherwise((err) =>
-            fail({
+          .otherwise((err) => {
+            const field = err.split(':')[0]?.trim() || undefined
+            return fail({
               message: `frontmatter failed schema validation: ${err}`,
-              ...(frontmatterRaw !== null && {
-                frame: buildFrontmatterFrame({
-                  filePath: `${location.name}.md`,
-                  raw: frontmatterRaw,
-                  err,
-                }),
-              }),
+              ...(field !== undefined
+                ? { frame: frame(agent, { field, message: err }) }
+                : { frame: frame(agent, { message: err }) }),
             })
-          ),
+          }),
     }),
     defineRule<AgentRecord>({
       id: 'fm-missing-name',
       severity: 'error',
       description: 'agent frontmatter must include `name`',
-      check: ({ frontmatter }) =>
-        match(frontmatter.name)
-          .when(isEmpty, () => fail({ message: 'Frontmatter is missing `name`' }))
+      check: (agent) =>
+        match(agent.frontmatter.name)
+          .when(isEmpty, () =>
+            fail({
+              message: 'Frontmatter is missing `name`',
+              frame: frame(agent, { message: 'add `name: <kebab-case-id>` here' }),
+            })
+          )
           .otherwise(() => pass()),
     }),
     defineRule<AgentRecord>({
       id: 'fm-name-mismatch',
       severity: 'error',
       description: 'agent frontmatter `name` must match the file basename',
-      check: ({ frontmatter, location }) =>
-        match(frontmatter.name)
+      check: (agent) =>
+        match(agent.frontmatter.name)
           .when(
-            (name) => name === location.name,
+            (name) => name === agent.location.name,
             () => pass()
           )
           .otherwise((name) =>
             fail({
-              message: `name="${name}" does not match file "${location.name}.md"`,
-              fix: `Set frontmatter \`name: ${location.name}\``,
+              message: `name="${name}" does not match file "${agent.location.name}.md"`,
+              fix: `Set frontmatter \`name: ${agent.location.name}\``,
+              frame: frame(agent, {
+                field: 'name',
+                message: `should be "${agent.location.name}"`,
+              }),
             })
           ),
     }),
@@ -87,9 +113,14 @@ export default defineRuleset<AgentRecord>({
       id: 'fm-missing-description',
       severity: 'error',
       description: 'agent frontmatter must include `description`',
-      check: ({ frontmatter }) =>
-        match(frontmatter.description)
-          .when(isEmpty, () => fail({ message: 'Frontmatter is missing `description`' }))
+      check: (agent) =>
+        match(agent.frontmatter.description)
+          .when(isEmpty, () =>
+            fail({
+              message: 'Frontmatter is missing `description`',
+              frame: frame(agent, { message: 'add `description: ...` here' }),
+            })
+          )
           .otherwise(() => pass()),
     }),
   ],

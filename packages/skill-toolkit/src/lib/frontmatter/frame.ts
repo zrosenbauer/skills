@@ -1,59 +1,68 @@
 import type { CheckFrame } from '../lint/rule.js'
 
 /**
- * Build a code-frame attachment for a frontmatter parse error.
+ * Build a code-frame attachment that renders the YAML frontmatter
+ * body with a single-line annotation. Two modes:
  *
- * The frontmatter fence sits at lines 1..N of the source file:
+ *   • field passed AND found in the YAML → annotate the `field:`
+ *     token (column-precise).
+ *   • field omitted, or passed but missing from the YAML → annotate
+ *     the first body line (whole line). Useful for "missing field"
+ *     findings where there's no specific span to point at.
  *
- *     1: ---
- *     2: name: foo
- *     3: description: bar
- *     4: ---
- *
- * So the YAML body's first line is line 2 of the file. We render the
- * YAML body verbatim and try to annotate the offending field by
- * grepping the raw YAML for the path prefix in the parser's error
- * message (e.g. `name: Invalid input...` → annotate the `name:` line).
- * Falls back to annotating line 2 when no specific field can be found.
+ * The frontmatter fence sits at lines 1..N of the source file —
+ * line 1 is the opening `---`, lines 2..N-1 are the YAML body, and
+ * line N is the closing `---`. We render the body verbatim with
+ * `startLine: 2` so the renderer prints the correct file-line numbers.
  */
 export function buildFrontmatterFrame({
   filePath,
   raw,
-  err,
+  field,
+  message,
 }: {
   filePath: string
   raw: string
-  err: string
+  field?: string
+  message: string
 }): CheckFrame {
   const lines = raw.split('\n')
-  const firstField = err.split(':')[0]?.trim()
-  const lineWithinBody = firstField ? findFieldLine({ lines, field: firstField }) : 0
-  const fileLine = 2 + lineWithinBody
 
+  if (field !== undefined) {
+    const re = new RegExp(`^(\\s*)(${escapeRegex(field)})(\\s*:)`)
+    for (let i = 0; i < lines.length; i++) {
+      const m = re.exec(lines[i] ?? '')
+      if (m) {
+        const indent = m[1]?.length ?? 0
+        const fieldLen = (m[2]?.length ?? 0) + (m[3]?.length ?? 0)
+        return {
+          filePath,
+          lines,
+          startLine: 2,
+          annotation: {
+            line: 2 + i,
+            column: indent + 1,
+            length: fieldLen,
+            message,
+          },
+        }
+      }
+    }
+  }
+
+  // Field omitted or not found → annotate the first body line. Reads as
+  // "the problem is somewhere in this frontmatter block".
   return {
     filePath,
     lines,
     startLine: 2,
     annotation: {
-      line: fileLine,
+      line: 2,
       column: 1,
-      length: lines[lineWithinBody]?.length ?? 1,
-      message: err,
+      length: lines[0]?.length ?? 1,
+      message,
     },
   }
-}
-
-/**
- * Find the 0-based line index where a YAML key appears at the root
- * level (matches `<field>:` at the start of a line, ignoring leading
- * whitespace). Returns 0 when the field can't be found.
- */
-function findFieldLine({ lines, field }: { lines: string[]; field: string }): number {
-  for (let i = 0; i < lines.length; i++) {
-    const line = lines[i] ?? ''
-    if (new RegExp(`^\\s*${escapeRegex(field)}\\s*:`).test(line)) return i
-  }
-  return 0
 }
 
 function escapeRegex(s: string): string {
