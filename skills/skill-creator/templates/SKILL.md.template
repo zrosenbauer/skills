@@ -15,18 +15,12 @@ model-invocable: true
 
 {{ONE_PARAGRAPH_OVERVIEW}}
 
-## When to use
-
-Verbatim trigger phrases:
-
-- "{{TRIGGER_PHRASE_1}}"
-- "{{TRIGGER_PHRASE_2}}"
-- "{{TRIGGER_PHRASE_3}}"
-
-## When NOT to use
-
-- {{ANTI_TRIGGER_1}}
-- {{ANTI_TRIGGER_2}}
+<!--
+  Routing signal (when to invoke, when to skip) lives in the frontmatter
+  `description` above — that's all dispatchers see before activation.
+  Body sections are for *executing* the skill once it's been loaded:
+  workflow, examples, edge cases. Don't restate triggers here.
+-->
 
 ## Workflow
 

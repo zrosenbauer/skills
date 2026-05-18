@@ -21,24 +21,6 @@ model-invocable: true
 
 Write, review, and refactor TypeScript code to follow battle-tested conventions: object-arg parameters, JSDoc on exports, discriminated unions for variants, branded types for IDs, ts-pattern for multi-branch logic, and exports-first file structure.
 
-## When to use
-
-Verbatim trigger phrases:
-
-- "follow ts best practices"
-- "review this typescript"
-- "fix the typescript style"
-- "make this idiomatic typescript"
-- "apply typescript conventions"
-- "audit this ts file"
-
-## When NOT to use
-
-- User wants functional-style refactors → use `ts-best-practices-functional`
-- User is writing framework components (React, Vue, Svelte) — different conventions apply
-- User is working in plain JavaScript without TypeScript
-- User is debugging a runtime error (best-practices is a code-shape concern, not a debug tool)
-
 ## Core conventions
 
 ### Naming

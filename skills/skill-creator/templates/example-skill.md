@@ -22,19 +22,6 @@ model-invocable: true
 
 Parse, validate, and convert TOML config files using `smol-toml` for parsing and `zod` for schema validation. Returns a `Result<Config, ParseError>` instead of throwing.
 
-## When to use
-
-- "parse this config.toml"
-- "validate the toml schema"
-- "convert toml to json"
-- "load my settings from a toml file"
-
-## When NOT to use
-
-- File is YAML or JSON (use those parsers directly)
-- Config is in environment variables (use `process.env`)
-- Schema is unknown / dynamic (validate-by-shape doesn't apply)
-
 ## Workflow
 
 ### 1. Detect
@@ -100,6 +87,6 @@ Always return `Result<Config, ParseError>`. Never throw.
 - **Naming**: `toml-config-parser` — kebab-case, ≤64 chars, descriptive
 - **Frontmatter**: all 4 required fields present, YAML valid
 - **Description**: 412 chars, contains "Use when", 4 verbatim trigger phrases, "Skip when" clause, no anti-shortcut words
-- **Body**: 5 sections, ≤500 lines, balanced XML, 1 `<example>` block
+- **Body**: 3 sections (Workflow, Examples, References) — execution-only, no routing duplication. ≤500 lines, balanced XML, 1 `<example>` block
 - **No TODOs**, no orphan tags
 ```

@@ -21,24 +21,6 @@ model-invocable: true
 
 Reviews an existing skill in this repo against authoring conventions. Produces a severity-tiered report (error / warn / info) plus a Clean section, and classifies the skill type.
 
-## When to use
-
-Verbatim trigger phrases:
-
-- "review the X skill"
-- "audit this skill"
-- "check skill X against repo conventions"
-- "is this skill any good?"
-- "second opinion on skill X"
-- "review skill X before publishing"
-- "sanity check skill X"
-
-## When NOT to use
-
-- Authoring a brand-new skill → use `/skill-creator`
-- Reviewing source code, diffs, or PRs → use `/code-reviewer`
-- Fixing the skill body — just edit `SKILL.md` directly
-
 ## Inputs
 
 `$ARGUMENTS` — one of:
@@ -67,7 +49,7 @@ Pick exactly one — this dictates which audit lens to apply:
 | -------------- | ------------------------------------------------------------- | ------------------------------------------------------------------------------------ |
 | **Discipline** | "always run the test", "never use `any`", "always use Result" | Rationalization table present? Body covers the realistic rationalizations?           |
 | **Technique**  | "use ts-pattern for branching", "use zod for parsing"         | Triggers cover phrasings? Workflow is concrete (not abstract)?                       |
-| **Pattern**    | "use \*Params for ≥2-arg fns", "kebab-case files"             | When-NOT-to-use covers counter-examples + recognition (when NOT to fire)?            |
+| **Pattern**    | "use \*Params for ≥2-arg fns", "kebab-case files"             | Description's `Skip when` covers counter-examples + recognition (when NOT to fire)?  |
 | **Reference**  | "API X works like…", "convention Y says…"                     | Declines questions outside its scope? Reference depth matches the surface it claims? |
 
 State the classification explicitly. If you can't classify it cleanly, that's itself a finding (the skill's purpose is fuzzy).
@@ -89,8 +71,8 @@ Beyond the lint pass:
 - Description has all 3+ verbatim triggers in **double quotes**
 - Description has an explicit `Skip when …` clause naming what the skill does NOT do
 - Triggers in description are realistic (a real user would say them) — not abstract teacher-ese
-- Trigger parity: same triggers in `description`, `## When to use`, and `README.md` (drift is a warn)
 - Description states what's distinctive ("Bakes in …") — not just what the skill does
+- Body does NOT contain `## When to use` / `## When NOT to use` sections — routing is the description's job, and dispatchers never read the body anyway; duplicating triggers wastes tokens and creates drift risk (warn if present)
 - Claude Code extension fields present (`argument-hint`, `user-invocable`, `model-invocable`) and fenced behind the `# --- Claude Code extensions` comment
 
 ### 5. Audit body

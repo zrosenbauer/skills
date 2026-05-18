@@ -20,25 +20,6 @@ model-invocable: true
 
 Refactor or author TypeScript using a functional doctrine: **factories** over classes, **Result<T,E>** over exceptions, **immutable state** via spread/map/filter, and **pure functions** composed in pipelines.
 
-## When to use
-
-Verbatim trigger phrases:
-
-- "make this functional"
-- "remove the class"
-- "use Result instead of throw"
-- "stop mutating this"
-- "refactor to factory function"
-- "compose these as pure functions"
-- "use immutable state"
-
-## When NOT to use
-
-- The class wraps a stateful external SDK (`PrismaClient`, `Octokit`, WebSocket connections) — keep it
-- Framework requires a class (legacy React class components, custom Error subclasses)
-- User wants general TS hygiene → use `ts-best-practices`
-- Working in plain JS without TypeScript
-
 ## Core principles
 
 | Prefer               | Over        | Why                                  |

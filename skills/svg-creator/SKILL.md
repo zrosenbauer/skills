@@ -26,22 +26,6 @@ every consumer (GitHub README, slide deck, web app, mobile email, social
 card). Each section explains the why so you can adapt — don't follow them
 mechanically.
 
-## When to use
-
-- "create an SVG for X"
-- "make me a banner"
-- "design an icon"
-- "draw a logo"
-- "fix the viewBox on this SVG"
-- "convert this SVG to PNG / JPEG / WebP / AVIF"
-- "preview this SVG so I can see how it'll look"
-
-## When NOT to use
-
-- The asset is purely raster (`.png` / `.jpg`) — there's no SVG source
-- You're only editing an existing PNG (use a raster image editor)
-- The user wants vector authoring with handles + Bézier curves (Figma / Inkscape)
-
 ## The viewBox rule (everything else hangs off this)
 
 ```svg

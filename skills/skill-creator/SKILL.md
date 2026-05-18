@@ -18,26 +18,7 @@ model-invocable: false # manual-only authoring workflow; the human drives the lo
 
 # skill-creator
 
-Build, validate, and iterate agent skills in this monorepo. Bakes in the conventions every skill here follows: kebab-case naming, "Use when" trigger phrases, and selective XML for example boundaries.
-
-## When to use
-
-Verbatim trigger phrases the user might say:
-
-- "build a skill for X"
-- "create a new skill"
-- "scaffold a skill"
-- "add a skill that does Y"
-- "make me a skill"
-- "audit this skill against our rules"
-- "refactor this skill to match repo conventions"
-
-## When NOT to use
-
-- User is modifying source code, not skills
-- User is debugging an existing skill (just edit it directly)
-- User wants to install a third-party skill (`npx skills add <repo>`)
-- User is writing non-skill markdown (docs, READMEs, etc.)
+Build, validate, and iterate agent skills in this monorepo. Bakes in the conventions every skill here follows: kebab-case naming, "Use when" trigger phrases in the description, and selective XML for example boundaries.
 
 ## Workflow
 
@@ -97,13 +78,13 @@ Markdown headings (`## ...`, `### ...`) for structure. XML _only_ inside these t
 - `<good>` / `<bad>` for contrast pairs
 - `<input>` / `<output>` for tool-call boundaries
 
-Typical body sections:
+Typical body sections (per the [agents-skills baseline spec](https://agentskills.io/specification): "Step-by-step instructions, Examples of inputs and outputs, Common edge cases"):
 
-- `## When to use` — verbatim trigger phrases
-- `## When NOT to use` — anti-triggers
 - `## Workflow` — numbered actions the agent takes
 - `## Examples` — at least one `<example>` block
 - `## References` — links to companion docs
+
+**Do not** add `## When to use` / `## When NOT to use` body sections. Routing signal (when to invoke, when to skip) lives **only** in the frontmatter `description` — that's all dispatchers see before activation. The body loads after activation and is for _executing_ the skill: workflow steps, examples, edge cases. Duplicating triggers in the body wastes tokens and creates drift risk.
 
 ### 5. Self-lint
 

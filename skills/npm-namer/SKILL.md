@@ -32,25 +32,6 @@ Finds available npm package names. Bundles a Node script ([`scripts/npm-namer/di
 
 The full rule set the script encodes is in [`references/moniker-rules.md`](references/moniker-rules.md) — load that when the user asks _why_ a name fails.
 
-## When to use
-
-Verbatim trigger phrases:
-
-- "find me an npm name for"
-- "is `<name>` available on npm"
-- "check if these package names are taken"
-- "brainstorm a name for my package"
-- "help me name this npm package"
-- "will `<name>` hit moniker collision"
-- "what npm names are available for"
-
-## When NOT to use
-
-- Naming for **other registries** (crates.io, RubyGems, PyPI, etc.) — the moniker rule is npm-specific. Tell the user we only do npm; future skills will cover other registries.
-- **Actually publishing** a package → `npm publish` (or `npm publish --dry-run` for a server-side moniker confirmation).
-- Renaming an **existing** package — npm doesn't support renames; the workflow is publish-new + deprecate-old, which this skill doesn't help with.
-- General brand / domain name research — this skill is npm-registry-aware only.
-
 ## Inputs
 
 `$ARGUMENTS` — one of:
