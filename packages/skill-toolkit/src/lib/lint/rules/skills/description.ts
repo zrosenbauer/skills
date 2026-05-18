@@ -1,11 +1,11 @@
 import { match, P } from 'massaman'
 
-import { defineRule, defineRuleset, fail, pass } from '../rule.js'
+import { defineRule, defineRuleset, fail, pass } from '../../rule.js'
 
 const ANTI_SHORTCUT_RE = /\b(then|next|step\s+1|process|first)\b/i
 const QUOTED_PHRASE_RE = /"[^"]+"/g
 
-export const descriptionRules = defineRuleset({
+export default defineRuleset({
   name: 'description',
   rules: [
     defineRule({

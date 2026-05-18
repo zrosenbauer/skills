@@ -1,10 +1,10 @@
 import { isEmpty, match, P } from 'massaman'
 
-import { defineRule, defineRuleset, fail, pass } from '../rule.js'
+import { defineRule, defineRuleset, fail, pass } from '../../rule.js'
 
 const NAMING_RE = /^[a-z][a-z0-9-]+[a-z0-9]$/
 
-export const frontmatterRules = defineRuleset({
+export default defineRuleset({
   name: 'frontmatter',
   rules: [
     defineRule({

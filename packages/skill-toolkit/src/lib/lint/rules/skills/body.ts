@@ -1,8 +1,8 @@
 import { match, P } from 'massaman'
 
-import { defineRule, defineRuleset, fail, pass } from '../rule.js'
+import { defineRule, defineRuleset, fail, pass } from '../../rule.js'
 
-export const bodyRules = defineRuleset({
+export default defineRuleset({
   name: 'body',
   rules: [
     defineRule({

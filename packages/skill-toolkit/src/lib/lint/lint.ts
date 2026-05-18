@@ -7,8 +7,7 @@ import type { AgentRecord } from '../agents/types.js'
 import { type LintRuleConfig, readManifest } from '../skills/manifest.js'
 import type { SkillRecord } from '../skills/types.js'
 import type { Rule } from './rule.js'
-import { listAgentRules } from './rules/agents/index.js'
-import { listSkillRules } from './rules/index.js'
+import { listAgentRules, listSkillRules } from './rules/index.js'
 import type { AgentLintResult, Finding, LintTotals, SkillLintResult } from './types.js'
 
 /**

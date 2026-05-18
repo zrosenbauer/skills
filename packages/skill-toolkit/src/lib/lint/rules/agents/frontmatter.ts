@@ -14,7 +14,7 @@ const NAMING_RE = /^[a-z][a-z0-9-]+[a-z0-9]$/
  * Rule ids prefix with `agent-` so they don't collide with skill rule
  * ids when both pools are listed together.
  */
-export const agentFrontmatterRules = defineRuleset<AgentRecord>({
+export default defineRuleset<AgentRecord>({
   name: 'agent-frontmatter',
   rules: [
     defineRule<AgentRecord>({

@@ -1,6 +1,6 @@
 import type { AgentRecord } from '../../../agents/types.js'
 import type { Rule, Ruleset } from '../../rule.js'
-import { agentFrontmatterRules } from './frontmatter.js'
+import agentFrontmatterRules from './frontmatter.js'
 
 const AGENT_RULESETS: Ruleset<AgentRecord>[] = [agentFrontmatterRules]
 
