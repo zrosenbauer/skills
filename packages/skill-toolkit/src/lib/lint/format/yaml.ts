@@ -8,7 +8,13 @@ import type { Formatter } from './types.js'
  * shape as `formatJson` so the two formats are wire-compatible —
  * `--format=json | yq -P` and `--format=yaml` produce equivalent data.
  */
-export const formatYaml: Formatter = ({ results, totals, minSeverity, showFix }) => {
-  const report = buildReport({ results, totals, minSeverity, showFix })
+export const formatYaml: Formatter = ({
+  skillResults,
+  agentResults,
+  totals,
+  minSeverity,
+  showFix,
+}) => {
+  const report = buildReport({ skillResults, agentResults, totals, minSeverity, showFix })
   return stringify(report)
 }

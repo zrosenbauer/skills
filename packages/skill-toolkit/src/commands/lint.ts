@@ -1,8 +1,16 @@
 import { command } from '@kidd-cli/core'
 import { z } from 'zod'
 
-import { formatResults, lintSkill, summarize } from '../lib/lint/index.js'
-import { findRepoRoot, findSkills, type SkillRecord } from '../lib/skills/index.js'
+import { findAgents } from '../lib/agents/index.js'
+import {
+  type AgentLintResult,
+  type SkillLintResult,
+  formatResults,
+  lintAgent,
+  lintSkill,
+  summarize,
+} from '../lib/lint/index.js'
+import { findRepoRoot, findSkills } from '../lib/skills/index.js'
 
 const options = z.object({
   severity: z
@@ -14,33 +22,45 @@ const options = z.object({
     .enum(['pretty', 'json', 'yaml'])
     .default('pretty')
     .describe('Output format: pretty (ANSI), json, or yaml'),
+  target: z
+    .enum(['skills', 'agents', 'all'])
+    .default('all')
+    .describe('What to lint: skills, agents, or both (default)'),
 })
 
 const positionals = z.object({
-  skill: z.string().optional().describe('Lint one specific skill by name; omit to lint all skills'),
+  name: z
+    .string()
+    .optional()
+    .describe('Lint one specific skill or agent by name; omit to lint everything in scope'),
 })
 
 export default command({
   options,
   positionals,
-  description: 'Lint skills against the three-tier rule set (error / warn / info)',
+  description: 'Lint skills and/or sub-agents against the three-tier rule set',
   handler: (ctx) => {
     const repoRoot = findRepoRoot(process.cwd())
-    const allSkills = findSkills(repoRoot)
-    const targets = resolveTargets(allSkills, ctx.args.skill)
+    const allSkills = ctx.args.target === 'agents' ? [] : findSkills(repoRoot)
+    const allAgents = ctx.args.target === 'skills' ? [] : findAgents(repoRoot)
+    const skillTargets = filterByName(allSkills, ctx.args.name, (s) => s.location.name)
+    const agentTargets = filterByName(allAgents, ctx.args.name, (a) => a.location.name)
 
-    if (targets.length === 0) {
-      const detail = ctx.args.skill ? ` matching "${ctx.args.skill}"` : ''
-      ctx.log.error(`No skills found${detail}`)
+    if (skillTargets.length === 0 && agentTargets.length === 0) {
+      const detail = ctx.args.name ? ` matching "${ctx.args.name}"` : ''
+      const scope = ctx.args.target === 'all' ? 'skills or agents' : ctx.args.target
+      ctx.log.error(`No ${scope} found${detail}`)
       process.exit(1)
     }
 
-    const results = targets.map(lintSkill)
-    const totals = summarize(results)
+    const skillResults: SkillLintResult[] = skillTargets.map(lintSkill)
+    const agentResults: AgentLintResult[] = agentTargets.map(lintAgent)
+    const totals = summarize([...skillResults, ...agentResults])
 
     process.stdout.write(
       formatResults(ctx.args.format, {
-        results,
+        skillResults,
+        agentResults,
         totals,
         minSeverity: ctx.args.severity,
         showFix: ctx.args.fix,
@@ -51,7 +71,7 @@ export default command({
   },
 })
 
-function resolveTargets(skills: SkillRecord[], skillName: string | undefined): SkillRecord[] {
-  if (!skillName) return skills
-  return skills.filter((s) => s.location.name === skillName)
+function filterByName<T>(items: T[], name: string | undefined, getName: (item: T) => string): T[] {
+  if (!name) return items
+  return items.filter((item) => getName(item) === name)
 }

@@ -1,3 +1,4 @@
+import type { AgentRecord } from '../agents/types.js'
 import type { SkillRecord } from '../skills/types.js'
 
 /**
@@ -51,9 +52,28 @@ export interface SkillLintResult {
 }
 
 /**
- * Per-severity totals across every linted skill. Produced by
- * `summarize()` and consumed by formatters and the CLI's exit-code
- * decision.
+ * The full lint output for one agent — the parsed agent record plus
+ * every finding produced by the agent rules. Parallel to
+ * `SkillLintResult` so formatters can render them with the same
+ * grouping logic.
+ */
+export interface AgentLintResult {
+  /**
+   * The agent that was linted, including its parsed frontmatter and
+   * filesystem location.
+   */
+  agent: AgentRecord
+  /**
+   * Findings in rule-declaration order. Renderers group by severity
+   * when displaying.
+   */
+  findings: Finding[]
+}
+
+/**
+ * Per-severity totals across every linted target (skills + agents
+ * combined). Produced by `summarize()` and consumed by formatters
+ * and the CLI's exit-code decision.
  */
 export interface LintTotals {
   errors: number

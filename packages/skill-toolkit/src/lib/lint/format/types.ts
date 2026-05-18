@@ -1,4 +1,4 @@
-import type { LintTotals, Severity, SkillLintResult } from '../types.js'
+import type { AgentLintResult, LintTotals, Severity, SkillLintResult } from '../types.js'
 
 /**
  * Output format for `skill-toolkit lint`. Selects which formatter
@@ -9,18 +9,24 @@ export type LintFormat = 'pretty' | 'json' | 'yaml'
 
 /**
  * Common inputs every formatter receives. Execution
- * (`lintSkill`/`summarize`) produces `results` and `totals`; the CLI
- * supplies the rendering knobs.
+ * (`lintSkill`/`lintAgent`/`summarize`) produces the results +
+ * totals; the CLI supplies the rendering knobs.
  */
 export interface FormatInput {
   /**
-   * Lint results from `targets.map(lintSkill)`, in target order.
+   * Skill lint results in target order. Empty array when the run
+   * scoped to `--target=agents`.
    */
-  results: SkillLintResult[]
+  skillResults: SkillLintResult[]
   /**
-   * Aggregate counts from `summarize(results)`. Always the *unfiltered*
-   * totals so the summary footer and exit code stay consistent
-   * regardless of `minSeverity`.
+   * Agent lint results in target order. Empty array when the run
+   * scoped to `--target=skills` or no agents were discovered.
+   */
+  agentResults: AgentLintResult[]
+  /**
+   * Aggregate counts across skill + agent findings combined. Always
+   * the *unfiltered* totals so the summary footer and exit code stay
+   * consistent regardless of `minSeverity`.
    */
   totals: LintTotals
   /**

@@ -1,4 +1,4 @@
-import type { Finding, Severity, SkillLintResult } from '../types.js'
+import type { AgentLintResult, Finding, Severity, SkillLintResult } from '../types.js'
 import type { Formatter } from './types.js'
 
 const SEVERITY_ORDER: Record<Severity, number> = { error: 0, warn: 1, info: 2 }
@@ -11,11 +11,19 @@ const SEVERITY_ORDER: Record<Severity, number> = { error: 0, warn: 1, info: 2 }
 interface SerializedLintReport {
   summary: { errors: number; warns: number; infos: number }
   skills: SerializedSkill[]
+  agents: SerializedAgent[]
 }
 
 interface SerializedSkill {
   name: string
   source: 'public' | 'private'
+  findings: SerializedFinding[]
+}
+
+interface SerializedAgent {
+  name: string
+  provider: string
+  source: string
   findings: SerializedFinding[]
 }
 
@@ -28,12 +36,18 @@ interface SerializedFinding {
 
 /**
  * Render lint results as pretty-printed JSON. Strips ANSI codes,
- * applies `minSeverity` filtering to per-skill findings, but always
- * emits the unfiltered `totals` so downstream tools see the full
+ * applies `minSeverity` filtering to per-target findings, but always
+ * emits the unfiltered `summary` so downstream tools see the full
  * picture.
  */
-export const formatJson: Formatter = ({ results, totals, minSeverity, showFix }) => {
-  const report = buildReport({ results, totals, minSeverity, showFix })
+export const formatJson: Formatter = ({
+  skillResults,
+  agentResults,
+  totals,
+  minSeverity,
+  showFix,
+}) => {
+  const report = buildReport({ skillResults, agentResults, totals, minSeverity, showFix })
   return JSON.stringify(report, null, 2) + '\n'
 }
 
@@ -41,12 +55,14 @@ export const formatJson: Formatter = ({ results, totals, minSeverity, showFix })
  * Shared report shape used by both JSON and YAML formatters.
  */
 export function buildReport({
-  results,
+  skillResults,
+  agentResults,
   totals,
   minSeverity,
   showFix,
 }: {
-  results: SkillLintResult[]
+  skillResults: SkillLintResult[]
+  agentResults: AgentLintResult[]
   totals: { errors: number; warns: number; infos: number }
   minSeverity: Severity | undefined
   showFix: boolean
@@ -54,9 +70,17 @@ export function buildReport({
   const minOrder = SEVERITY_ORDER[minSeverity ?? 'info']
   return {
     summary: totals,
-    skills: results.map((r) => ({
+    skills: skillResults.map((r) => ({
       name: r.skill.location.name,
       source: r.skill.location.source,
+      findings: r.findings
+        .filter((f) => SEVERITY_ORDER[f.severity] <= minOrder)
+        .map((f) => serializeFinding(f, showFix)),
+    })),
+    agents: agentResults.map((r) => ({
+      name: r.agent.location.name,
+      provider: r.agent.location.provider,
+      source: r.agent.location.source,
       findings: r.findings
         .filter((f) => SEVERITY_ORDER[f.severity] <= minOrder)
         .map((f) => serializeFinding(f, showFix)),

@@ -1,5 +1,6 @@
 import { match, P } from 'massaman'
 
+import type { AgentRecord } from '../agents/types.js'
 import type { SkillRecord } from '../skills/types.js'
 import type { Severity } from './types.js'
 
@@ -75,18 +76,23 @@ export function fail({
 }
 
 /**
- * Signature every rule's `check` field conforms to. Receives the
- * parsed skill record and the body text (frontmatter stripped) so
- * checks don't each re-do the split.
+ * Targets a rule may operate on. Skills get the body string as the
+ * second arg so body-shape checks don't each re-do the frontmatter
+ * split; agents don't (their bodies aren't structurally constrained
+ * yet — extend the signature when we add body rules).
  */
-export type RuleCheck = (skill: SkillRecord, body: string) => CheckResult
+export type RuleCheck<T> = T extends SkillRecord
+  ? (skill: SkillRecord, body: string) => CheckResult
+  : (record: T) => CheckResult
 
 /**
- * One lint rule. The `check` function is invoked once per skill; its
- * return value is converted into a Finding by the runner, which
- * attaches `id` and the default `severity`.
+ * One lint rule, parameterized by the record shape it inspects.
+ * `Rule<SkillRecord>` covers the skill ruleset; `Rule<AgentRecord>`
+ * covers the agent ruleset. The default of `SkillRecord` keeps the
+ * existing skill-rule call sites working without a generic
+ * annotation.
  */
-export interface Rule {
+export interface Rule<T = SkillRecord> {
   /**
    * Kebab-case identifier for the rule (e.g. `dir-name`,
    * `body-too-long`). Surfaces in the lint output, is the lookup key
@@ -108,24 +114,25 @@ export interface Rule {
    * The actual predicate. Returns `pass()` when the rule is satisfied,
    * or `fail({ message, fix? })` describing the violation.
    */
-  check: RuleCheck
+  check: RuleCheck<T>
 }
 
 /**
  * A named bundle of related rules — used for organization and grouped
- * output. The runner flattens rulesets to a single `Rule[]`.
+ * output. Defaults to skill rules; agent rulesets bind `T = AgentRecord`.
  */
-export interface Ruleset {
+export interface Ruleset<T = SkillRecord> {
   /**
-   * Category name (e.g. `frontmatter`, `body`). The lookup key for
-   * `getRuleset`; should be unique across all rulesets.
+   * Category name (e.g. `frontmatter`, `body`, `agent-frontmatter`).
+   * The lookup key for `getRuleset`; should be unique across all
+   * rulesets.
    */
   name: string
   /**
    * The rules in this category, in the order they should run /
    * display.
    */
-  rules: Rule[]
+  rules: Rule<T>[]
 }
 
 const KEBAB_RE = /^[a-z][a-z0-9-]+[a-z0-9]$/
@@ -133,9 +140,10 @@ const KEBAB_RE = /^[a-z][a-z0-9-]+[a-z0-9]$/
 /**
  * Identity helper for declaring a rule. Validates the id is
  * kebab-case at boot — fail-fast so a typo doesn't ship a rule users
- * can't reference in `skill.json.lint`.
+ * can't reference in `skill.json.lint`. Generic so the same factory
+ * builds both skill and agent rules.
  */
-export function defineRule(rule: Rule): Rule {
+export function defineRule<T = SkillRecord>(rule: Rule<T>): Rule<T> {
   if (!KEBAB_RE.test(rule.id)) {
     throw new Error(`Rule id "${rule.id}" must be kebab-case (matches ${KEBAB_RE.source})`)
   }
@@ -143,11 +151,10 @@ export function defineRule(rule: Rule): Rule {
 }
 
 /**
- * Group related rules under a category name. The runner flattens to
- * `Rule[]`; the grouping is preserved for tooling that wants to
- * render findings by category.
+ * Group related rules under a category name. Generic so it handles
+ * both `Ruleset<SkillRecord>` (default) and `Ruleset<AgentRecord>`.
  */
-export function defineRuleset(ruleset: Ruleset): Ruleset {
+export function defineRuleset<T = SkillRecord>(ruleset: Ruleset<T>): Ruleset<T> {
   if (!KEBAB_RE.test(ruleset.name)) {
     throw new Error(
       `Ruleset name "${ruleset.name}" must be kebab-case (matches ${KEBAB_RE.source})`
@@ -155,3 +162,11 @@ export function defineRuleset(ruleset: Ruleset): Ruleset {
   }
   return ruleset
 }
+
+/**
+ * Convenience alias for agent rules. Use at agent-ruleset declaration
+ * sites so the `defineRule<AgentRecord>({...})` ceremony doesn't
+ * leak into every rule definition.
+ */
+export type AgentRule = Rule<AgentRecord>
+export type AgentRuleset = Ruleset<AgentRecord>
