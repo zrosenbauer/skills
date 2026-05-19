@@ -21,8 +21,12 @@ export interface SkillLocation {
 }
 
 /**
- * One discovered skill — its location plus the parsed `SKILL.md`
- * contents the lint rules operate on.
+ * One discovered skill — its location plus the loosely-parsed
+ * `SKILL.md` contents the lint rules operate on. Frontmatter is
+ * `Partial<SkillFrontmatter>` because the parser does a plain YAML
+ * read — every rule narrows the fields it cares about, so missing or
+ * wrong-typed fields surface as proper lint findings instead of
+ * silent parse failures.
  */
 export interface SkillRecord {
   /**
@@ -30,16 +34,19 @@ export interface SkillRecord {
    */
   location: SkillLocation
   /**
-   * Parsed frontmatter object. When parsing fails this is a stub with
-   * the directory name as `name` and an empty description, so rules can
-   * still operate; the failure surfaces via `frontmatterParseError`.
+   * Parsed frontmatter as a loose object. Always present (empty
+   * object when no fence was found or the YAML produced a non-object).
+   * Rules must narrow each field they read — values may be `undefined`
+   * or the wrong type.
    */
-  frontmatter: SkillFrontmatter
+  frontmatter: Partial<SkillFrontmatter>
   /**
-   * Schema-validation error message when frontmatter parsing failed,
-   * `null` otherwise. Surfaced by the FM_PARSE_FAILED rule.
+   * YAML syntax error message when the body between `---` fences
+   * couldn't be parsed at all, `null` otherwise. Drives the
+   * `fm-invalid-yaml` rule. Missing/wrong-typed fields do NOT land
+   * here — that's each rule's responsibility.
    */
-  frontmatterParseError: string | null
+  frontmatterYamlError: string | null
   /**
    * Raw YAML body of the frontmatter fence (the string between the
    * `---` markers). Used by rules that emit code frames pointing at

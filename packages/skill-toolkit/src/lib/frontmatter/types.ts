@@ -1,8 +1,9 @@
 /**
  * Result of parsing a markdown document's YAML frontmatter via
- * `createFrontmatterParser`. Failures don't throw — they surface as
- * `error`, with `frontmatter: null`, so callers can stub data or
- * report the failure as a lint finding.
+ * `parseFrontmatter`. The linter doesn't validate the parsed shape —
+ * each rule narrows the fields it cares about. Only YAML-syntax
+ * failures surface as `error`; missing/wrong-typed fields are the
+ * rules' job to diagnose.
  */
 export interface FrontmatterParseResult<T> {
   /**
@@ -18,15 +19,17 @@ export interface FrontmatterParseResult<T> {
    */
   raw: string | null
   /**
-   * The typed, validated frontmatter object — populated only when
-   * the YAML parses and matches the schema. Null when the parse
-   * failed or no fence was found.
+   * Parsed YAML object, loosely typed as `Partial<T>` so consumers
+   * can read expected fields by name. The runtime shape is whatever
+   * the YAML produced — fields may be missing or the wrong type.
+   * Rules narrow each field they touch. Null when the YAML itself
+   * failed to parse or no fence was found.
    */
-  frontmatter: T | null
+  frontmatter: Partial<T> | null
   /**
-   * Schema validation error message when parsing failed; null
-   * otherwise (including the case where no frontmatter fence
-   * exists).
+   * YAML syntax error when the body between fences couldn't parse.
+   * Null otherwise — including the case where fields are missing or
+   * the wrong type (that's not a parser concern).
    */
   error: string | null
 }

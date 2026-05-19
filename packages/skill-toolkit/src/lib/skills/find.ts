@@ -1,18 +1,16 @@
 import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs'
 import path from 'node:path'
 
-import { createFrontmatterParser } from '../frontmatter/index.js'
-import { SkillSchema } from './schema.js'
+import { parseFrontmatter } from '../frontmatter/index.js'
+import type { SkillFrontmatter } from './schema.js'
 import type { SkillLocation, SkillRecord } from './types.js'
 
 const SKILL_ROOTS = ['skills', '.agents/skills'] as const
 
-const parseSkillFrontmatter = createFrontmatterParser(SkillSchema)
-
 /**
  * Discover every skill under `skills/` (public) and `.agents/skills/` (private).
- * Failures don't throw — they surface as `frontmatterParseError` so the lint
- * can report them.
+ * Frontmatter is parsed loosely — fields aren't validated here; each lint rule
+ * narrows what it reads.
  */
 export function findSkills(repoRoot: string): SkillRecord[] {
   const records: SkillRecord[] = []
@@ -39,17 +37,17 @@ export function findSkills(repoRoot: string): SkillRecord[] {
 }
 
 /**
- * Read one skill's `SKILL.md` and produce a record. Frontmatter parse errors
- * are captured (not thrown) so the lint can surface them as findings.
+ * Read one skill's `SKILL.md` and produce a record. Loose parse —
+ * missing/wrong-typed fields stay missing/wrong so rules can fire.
  */
 function readSkill(location: SkillLocation): SkillRecord {
   const skillMd = readFileSync(path.join(location.dir, 'SKILL.md'), 'utf8')
-  const { body, raw, frontmatter, error } = parseSkillFrontmatter(skillMd)
+  const { body, raw, frontmatter, error } = parseFrontmatter<SkillFrontmatter>(skillMd)
 
   return {
     location,
-    frontmatter: frontmatter ?? { name: location.name, description: '' },
-    frontmatterParseError: error,
+    frontmatter: frontmatter ?? {},
+    frontmatterYamlError: error,
     frontmatterRaw: raw,
     bodyLineCount: body.split('\n').length,
     hasReadme: existsSync(path.join(location.dir, 'README.md')),

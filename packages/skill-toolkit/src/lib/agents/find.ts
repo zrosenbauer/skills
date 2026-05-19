@@ -1,19 +1,16 @@
 import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs'
 import path from 'node:path'
 
-import { createFrontmatterParser } from '../frontmatter/index.js'
+import { parseFrontmatter } from '../frontmatter/index.js'
 import { listAgentProviders } from '../providers/index.js'
-import { AgentSchema } from './schema.js'
+import type { AgentFrontmatter } from './schema.js'
 import type { AgentLocation, AgentRecord } from './types.js'
-
-const parseAgentFrontmatter = createFrontmatterParser(AgentSchema)
 
 /**
  * Discover every sub-agent file across every provider that supports
  * sub-agents. Walks each provider's `agents.searchPaths` (relative to
- * `repoRoot`), reads any `.md` files it finds, and parses frontmatter.
- * Failures don't throw — they surface as `frontmatterParseError` so
- * the lint can report them.
+ * `repoRoot`), reads any `.md` files it finds, and parses frontmatter
+ * loosely — field-level validation is the lint rules' job.
  */
 export function findAgents(repoRoot: string): AgentRecord[] {
   const records: AgentRecord[] = []
@@ -43,18 +40,17 @@ export function findAgents(repoRoot: string): AgentRecord[] {
 }
 
 /**
- * Read one agent `.md` file and produce a record. Frontmatter parse
- * errors are captured (not thrown) so the lint can surface them as
- * findings.
+ * Read one agent `.md` file and produce a record. Loose parse —
+ * missing/wrong-typed fields stay missing so rules fire.
  */
 function readAgent(location: AgentLocation): AgentRecord {
   const md = readFileSync(location.file, 'utf8')
-  const { body, raw, frontmatter, error } = parseAgentFrontmatter(md)
+  const { body, raw, frontmatter, error } = parseFrontmatter<AgentFrontmatter>(md)
 
   return {
     location,
-    frontmatter: frontmatter ?? { name: location.name, description: '' },
-    frontmatterParseError: error,
+    frontmatter: frontmatter ?? {},
+    frontmatterYamlError: error,
     frontmatterRaw: raw,
     bodyLineCount: body.split('\n').length,
   }

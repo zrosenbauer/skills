@@ -86,10 +86,6 @@ function produceSkillFinding({
   body,
 }: ProduceSkillFindingParams): Finding | null {
   if (override?.level === 'off') return null
-  // Skip parsed-frontmatter rules when parsing failed — they'd fire
-  // spuriously against the stubbed empty fields. `fm-parse-failed`
-  // (parsed: false) reports the structural issue separately.
-  if (rule.parsed !== false && skill.frontmatterParseError !== null) return null
 
   const result = rule.check(skill, body)
   if (result.status === 'pass') return null
@@ -121,9 +117,6 @@ interface ProduceAgentFindingParams {
  * to match the skill version.
  */
 function produceAgentFinding({ rule, id, agent }: ProduceAgentFindingParams): Finding | null {
-  // Same parsed-frontmatter gate as produceSkillFinding.
-  if (rule.parsed !== false && agent.frontmatterParseError !== null) return null
-
   const result = rule.check(agent)
   if (result.status === 'pass') return null
 

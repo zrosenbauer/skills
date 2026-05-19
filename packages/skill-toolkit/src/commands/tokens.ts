@@ -105,7 +105,8 @@ function tokensOf(text: string): number {
 function buildSkillReport(skill: SkillRecord): TokenReport {
   const md = readFileSync(`${skill.location.dir}/SKILL.md`, 'utf8')
   const body = md.replace(FRONTMATTER_RE, '')
-  const description = skill.frontmatter.description
+  const description =
+    typeof skill.frontmatter.description === 'string' ? skill.frontmatter.description : ''
   const descTokens = tokensOf(description)
   const bodyTokens = tokensOf(body)
   return {
@@ -123,7 +124,8 @@ function buildSkillReport(skill: SkillRecord): TokenReport {
 function buildAgentReport(agent: AgentRecord): TokenReport {
   const md = readFileSync(agent.location.file, 'utf8')
   const body = md.replace(FRONTMATTER_RE, '')
-  const description = agent.frontmatter.description
+  const description =
+    typeof agent.frontmatter.description === 'string' ? agent.frontmatter.description : ''
   const descTokens = tokensOf(description)
   const bodyTokens = tokensOf(body)
   return {

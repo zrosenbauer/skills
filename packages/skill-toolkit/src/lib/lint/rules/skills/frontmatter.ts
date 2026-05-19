@@ -34,7 +34,6 @@ export default defineRuleset({
       id: 'dir-name',
       severity: 'error',
       description: 'Skill directory name must be kebab-case (^[a-z][a-z0-9-]+[a-z0-9]$)',
-      parsed: false,
       check: ({ location }) =>
         match(location.name)
           .when(
@@ -49,71 +48,71 @@ export default defineRuleset({
           ),
     }),
     defineRule({
-      id: 'fm-parse-failed',
+      id: 'fm-invalid-yaml',
       severity: 'error',
-      description: 'frontmatter must parse against the schema',
-      parsed: false,
+      description: 'frontmatter YAML must parse (syntax-valid)',
       check: (skill) =>
-        match(skill.frontmatterParseError)
+        match(skill.frontmatterYamlError)
           .with(P.nullish, () => pass())
-          .otherwise((err) => {
-            const field = err.split(':')[0]?.trim() || undefined
-            return fail({
-              message: `frontmatter failed schema validation: ${err}`,
-              ...(field !== undefined
-                ? { frame: frame(skill, { field, message: err }) }
-                : { frame: frame(skill, { message: err }) }),
+          .otherwise((err) =>
+            fail({
+              message: `frontmatter YAML failed to parse: ${err}`,
+              frame: frame(skill, { message: err }),
             })
-          }),
+          ),
     }),
     defineRule({
       id: 'fm-missing-name',
       severity: 'error',
-      description: 'Frontmatter must include `name`',
+      description: 'Frontmatter must include `name` as a non-empty string',
       check: (skill) =>
         match(skill.frontmatter.name)
-          .when(isEmpty, () =>
+          .when(
+            (v) => typeof v === 'string' && !isEmpty(v),
+            () => pass()
+          )
+          .otherwise(() =>
             fail({
               message: 'Frontmatter is missing `name`',
               frame: frame(skill, { message: 'add `name: <kebab-case-id>` here' }),
             })
-          )
-          .otherwise(() => pass()),
+          ),
     }),
     defineRule({
       id: 'fm-name-mismatch',
       severity: 'error',
       description: 'Frontmatter `name` must match directory basename',
-      check: (skill) =>
-        match(skill.frontmatter.name)
-          .when(
-            (name) => name === skill.location.name,
-            () => pass()
-          )
-          .otherwise((name) =>
-            fail({
-              message: `name="${name}" does not match directory "${skill.location.name}"`,
-              fix: `Set frontmatter \`name: ${skill.location.name}\``,
-              frame: frame(skill, {
-                field: 'name',
-                message: `should be "${skill.location.name}"`,
-              }),
-            })
-          ),
+      check: (skill) => {
+        const name = skill.frontmatter.name
+        // fm-missing-name owns the "not a string" case; don't double-fire.
+        if (typeof name !== 'string') return pass()
+        if (name === skill.location.name) return pass()
+        return fail({
+          message: `name="${name}" does not match directory "${skill.location.name}"`,
+          fix: `Set frontmatter \`name: ${skill.location.name}\``,
+          frame: frame(skill, {
+            field: 'name',
+            message: `should be "${skill.location.name}"`,
+          }),
+        })
+      },
     }),
     defineRule({
       id: 'fm-missing-description',
       severity: 'error',
-      description: 'Frontmatter must include `description`',
+      description: 'Frontmatter must include `description` as a non-empty string',
       check: (skill) =>
         match(skill.frontmatter.description)
-          .when(isEmpty, () =>
+          .when(
+            (v) => typeof v === 'string' && !isEmpty(v),
+            () => pass()
+          )
+          .otherwise(() =>
             fail({
               message: 'Frontmatter is missing `description`',
               frame: frame(skill, { message: 'add `description: ...` here' }),
             })
-          )
-          .otherwise(() => pass()),
+          ),
     }),
     defineRule({
       id: 'fm-missing-argument-hint',

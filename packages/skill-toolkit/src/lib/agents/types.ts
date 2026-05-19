@@ -27,8 +27,10 @@ export interface AgentLocation {
 }
 
 /**
- * One discovered agent — its location plus the parsed frontmatter
- * the lint rules operate on.
+ * One discovered agent — its location plus the loosely-parsed
+ * frontmatter the lint rules operate on. Mirrors `SkillRecord` —
+ * frontmatter is `Partial<AgentFrontmatter>` so rules narrow each
+ * field they read.
  */
 export interface AgentRecord {
   /**
@@ -36,16 +38,18 @@ export interface AgentRecord {
    */
   location: AgentLocation
   /**
-   * Parsed frontmatter object. When parsing fails this is a stub with
-   * the file basename as `name` and an empty description so rules can
-   * still operate; the failure surfaces via `frontmatterParseError`.
+   * Parsed frontmatter as a loose object. Always present (empty
+   * object when no fence was found or the YAML produced a non-object).
+   * Rules must narrow each field — values may be `undefined` or the
+   * wrong type.
    */
-  frontmatter: AgentFrontmatter
+  frontmatter: Partial<AgentFrontmatter>
   /**
-   * Schema-validation error message when frontmatter parsing failed,
-   * `null` otherwise.
+   * YAML syntax error message when the body between `---` fences
+   * couldn't be parsed at all, `null` otherwise. Drives the
+   * `fm-invalid-yaml` rule.
    */
-  frontmatterParseError: string | null
+  frontmatterYamlError: string | null
   /**
    * Raw YAML body of the frontmatter fence (the string between the
    * `---` markers). Used by rules that emit code frames pointing at

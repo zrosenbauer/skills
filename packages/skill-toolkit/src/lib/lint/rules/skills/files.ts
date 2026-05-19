@@ -10,7 +10,6 @@ export default defineRuleset({
       id: 'no-readme',
       severity: 'info',
       description: 'skill should ship a human-facing README.md',
-      parsed: false,
       check: (skill) =>
         match(skill)
           .with({ hasReadme: true }, () => pass())
@@ -20,7 +19,6 @@ export default defineRuleset({
       id: 'no-license',
       severity: 'info',
       description: 'skill should ship a LICENSE',
-      parsed: false,
       check: (skill) =>
         match(skill)
           .with({ hasLicense: true }, () => pass())
