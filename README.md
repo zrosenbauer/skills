@@ -30,6 +30,7 @@ The [`skills` CLI](https://www.npmjs.com/package/skills) handles discovery and p
 | 3   | [`ts-best-practices-functional`](./skills/ts-best-practices-functional) | Refactoring TS toward functional patterns — Result types, no mutation  |
 | 4   | [`skill-creator`](./skills/skill-creator)                               | Authoring a new skill with naming + description rules baked in         |
 | 5   | [`skill-portability`](./skills/skill-portability)                       | Checking whether a skill works across Claude Code, Cursor, Codex, etc. |
+| 6   | [`xquik-x-data`](./skills/xquik-x-data)                                 | Source-checked Xquik REST API and remote MCP workflows for X data       |
 
 Each skill ships its own `SKILL.md` under [`skills/<name>/`](./skills).
 
