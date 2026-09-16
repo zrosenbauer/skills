@@ -54,3 +54,6 @@ coverage/
 
 # kidd build artifacts
 .kidd/
+
+# serena
+.serena
