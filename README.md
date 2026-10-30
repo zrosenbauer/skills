@@ -25,7 +25,7 @@ The [`skills` CLI](https://www.npmjs.com/package/skills) handles discovery and p
 
 Every skill has a matching OpenCode command: `/code-reviewer`, `/npm-namer`,
 `/orca-doctor`, `/skill-creator`, `/skill-portability`, `/skill-reviewer`,
-`/svg-creator`, `/ts-best-practices`, and `/ts-best-practices-functional`.
+`/svg-creator`, `/ts-best-practices`, `/ts-best-practices-functional`, and `/persona`.
 Commands load the skill by ID and forward your arguments; they do not duplicate
 its instructions or pin an agent/model.
 
@@ -34,6 +34,7 @@ In this checkout, commands and skill discovery are already configured:
 ```text
 /code-reviewer staged changes
 /svg-creator a banner for this project
+/persona klingon intensity=3
 ```
 
 For other projects, install the skills with the CLI above, then run the helper
@@ -66,6 +67,7 @@ and stages them automatically.
 | 7   | [`npm-namer`](./skills/npm-namer)                                       | Finding available npm names and checking collisions                    |
 | 8   | [`svg-creator`](./skills/svg-creator)                                   | Creating, previewing, and converting SVG assets                        |
 | 9   | [`orca-doctor`](./skills/orca-doctor)                                   | Inspecting Orca worktrees and recovery candidates                      |
+| 10  | [`persona`](./skills/persona)                                           | Thirteen conversational voices, from Vulcan to consensual Roast        |
 
 Each skill ships its own `SKILL.md` under [`skills/<name>/`](./skills).
 
