@@ -67,7 +67,7 @@ and stages them automatically.
 | 7   | [`npm-namer`](./skills/npm-namer)                                       | Finding available npm names and checking collisions                    |
 | 8   | [`svg-creator`](./skills/svg-creator)                                   | Creating, previewing, and converting SVG assets                        |
 | 9   | [`orca-doctor`](./skills/orca-doctor)                                   | Inspecting Orca worktrees and recovery candidates                      |
-| 10  | [`persona`](./skills/persona)                                           | Thirteen conversational voices, from Vulcan to consensual Roast        |
+| 10  | [`persona`](./skills/persona)                                           | Fourteen conversational voices, from Vulcan to consensual Roast        |
 
 Each skill ships its own `SKILL.md` under [`skills/<name>/`](./skills).
 

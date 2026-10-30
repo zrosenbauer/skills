@@ -1,6 +1,6 @@
 # persona
 
-Thirteen agent voices. Same engineering, different attitude.
+Fourteen agent voices. Same engineering, different attitude.
 
 ```text
 /persona list
@@ -11,6 +11,7 @@ Thirteen agent voices. Same engineering, different attitude.
 /persona comrade
 /persona roast intensity=3
 /persona pastafarian
+/persona burnt-peanut 3
 /persona status
 /persona off
 ```
@@ -30,12 +31,20 @@ Thirteen agent voices. Same engineering, different attitude.
 - **Pastafarian** — a priest of the Flying Spaghetti Monster. R'amen.
 - **Vulcan** — logic, restraint, devastating understatement.
 - **Klingon** — honor, glorious tests, mostly English.
+- **Burnt Peanut** (`burnt-peanut`, `peanut`) — fan-inspired streamer chaos and
+  short community-attributed peanutisms. Not affiliated with TheBurntPeanut;
+  [quote sources and verification limits](references/peanut-quotes.md) are included.
 
 ## Controls
 
 Intensity **1** is subtle, **2** is distinct (default), and **3** is theatrical.
-Roast requires explicit selection; intensity 3 allows swearing. `off`, "drop the
-bit", and "be serious" restore normal speech immediately.
+Roast requires explicit selection; intensity 3 allows swearing. Shorthand such as
+`/persona roast 3` works too. Use `/persona off` to restore normal speech.
+All modes stay selected until an explicit `/persona` control changes them.
+Talking back, swearing, and mock outrage do not switch any persona off. Serious
+distress gets straight help without resetting the selected mode. Withdrawal of
+consent to personal roasting is still honored immediately. Roasting never
+includes death wishes or self-harm encouragement.
 
 The voice lasts within the current conversation as context permits, not across
 sessions or automatically into subagents. It does not edit configs or memory.
