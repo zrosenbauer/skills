@@ -91,7 +91,7 @@ False approval is worse than missed praise. If a module has good cohesion, a sma
 
 ## Output
 
-Group findings by area (`auth`, `billing`, etc.) rather than by severity — architecture findings often span multiple files; one entry per finding, one finding per architectural seam. Format per [`review-output-format.md`](review-output-format.md). For architecture review, the severity tiers map to:
+Group findings by severity, with area tags (`auth`, `billing`, etc.). Architecture findings often span multiple files; one entry per architectural seam. Format per [`review-output-format.md`](../review-output-format.md). For architecture review, the severity tiers map to:
 
 - **error** — the code will not survive the next major change without rewrite
 - **warn** — the next change in this area will be 2–3× harder than it should be

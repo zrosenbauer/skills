@@ -42,7 +42,8 @@ npx skills add zrosenbauer/skills --skill code-reviewer
 The skill probes for available AI CLIs at the start of every review. If at least one non-current-agent CLI is on `$PATH`, cross-model is the recommended mode — code review is an independence problem, and a second model surfaces issues the first one rationalizes past.
 
 ```bash
-node scripts/detect-clis.mjs --available-only --pretty
+# Replace <skill-dir> with the absolute installation directory; keep the repo as cwd.
+node "<skill-dir>/scripts/detect-clis.mjs" --available-only --pretty
 ```
 
 Then dispatches via `scripts/invoke-cli.mjs`, which runs a **secret-shield preflight** (refuses to forward known secret formats by default) and **prompt-shield salted-tag wrap** (anti-injection delimiter) before invoking the chosen CLI. See [`references/cross-model-handoff.md`](references/cross-model-handoff.md) for the full invocation pattern.

@@ -85,7 +85,7 @@ False approval is worse than missed praise. If you can't find a problem, the sil
 
 ## Output
 
-Group by category (Correctness / Security / Resource / Brittleness / Maintainability). Format per [`review-output-format.md`](review-output-format.md). For adversarial review, the severity tiers map to:
+Group by severity, with category tags (Correctness / Security / Resource / Brittleness / Maintainability). Format per [`review-output-format.md`](../review-output-format.md). For adversarial review, the severity tiers map to:
 
 - **error** — bug that produces wrong output, corrupts data, or leaks credentials in production
 - **warn** — bug that surfaces under realistic but non-default conditions (specific input, race timing, edge env)

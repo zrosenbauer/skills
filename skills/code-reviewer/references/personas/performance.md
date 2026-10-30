@@ -93,7 +93,7 @@ False approval is worse than missed praise. If you can't articulate a cost trigg
 
 ## Output
 
-Group by category (Algorithmic / I/O / Memory / Concurrency). Format per [`review-output-format.md`](review-output-format.md). For performance review, the severity tiers map to:
+Group by severity, with category tags (Algorithmic / I/O / Memory / Concurrency). Format per [`review-output-format.md`](../review-output-format.md). For performance review, the severity tiers map to:
 
 - **error** — observable production impact at current scale (slow page, failing requests)
 - **warn** — will become observable at the next 5–10× scale

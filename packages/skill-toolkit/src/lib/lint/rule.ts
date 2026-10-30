@@ -48,9 +48,9 @@ export interface CheckResultFail {
 }
 
 /**
- * Code-frame attachment for a finding. Independent of kidd's
- * `CodeFrameInput` so the rule API doesn't churn when kidd does — the
- * runner maps this to kidd's shape at emit time.
+ * Code-frame attachment for a finding. Independent of Maltty's
+ * `CodeFrameInput` so the rule API doesn't churn when Maltty does - the
+ * runner maps this to Maltty's shape at emit time.
  */
 export interface CheckFrame {
   /**

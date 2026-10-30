@@ -1,3 +1,12 @@
 packages:
   - 'packages/*'
   - 'skill-scripts/*'
+
+autoInstallPeers: true
+strictPeerDependencies: false
+
+allowBuilds:
+  lefthook: true
+
+overrides:
+  zod: 4.6.7

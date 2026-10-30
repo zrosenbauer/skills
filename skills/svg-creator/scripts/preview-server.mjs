@@ -5,7 +5,8 @@
 // clash with the usual dev servers), falls back to an OS-assigned port if all
 // pool ports are bound. Serves an HTML page with the SVG inlined directly
 // into the document (rather than served as a top-level image/svg+xml
-// response) so browsers never execute scripts inside the asset.
+// response). Active SVG content can execute here; run check-scripts.mjs and
+// obtain approval for flagged content before starting this preview.
 //
 // Designed to be navigable by the chrome-devtools MCP — the agent can spawn
 // this in background, navigate_page to the printed URL, then take_screenshot

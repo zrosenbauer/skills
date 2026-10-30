@@ -1,4 +1,4 @@
-import { defineConfig } from '@kidd-cli/core'
+import { defineConfig } from 'maltty/config'
 
 export default defineConfig({
   build: {

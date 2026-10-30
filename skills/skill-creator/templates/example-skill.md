@@ -33,6 +33,7 @@ Use `smol-toml`'s `parse()` wrapped in `attempt()` to convert thrown errors into
 
 ```ts
 import { parse } from 'smol-toml'
+
 import { attempt } from './utils'
 
 const result = attempt(() => parse(rawText))

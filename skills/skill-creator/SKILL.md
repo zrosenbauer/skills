@@ -91,7 +91,7 @@ Typical body sections (per the [agents-skills baseline spec](https://agentskills
 
 Run `pnpm skill-toolkit lint <name>`. All `error`-severity findings must clear; `warn` and `info` are advisory. If any rule fails, fix the SKILL.md and re-run.
 
-The full rule list lives in [`references/lint-checklist.md`](references/lint-checklist.md). The TS implementation in `packages/skill-toolkit/src/lint/rules.ts` is the enforcer.
+The full rule list lives in [`references/lint-checklist.md`](references/lint-checklist.md). In the authoring repository, `packages/skill-toolkit/src/lib/lint/rules/` is the enforcer; installed consumers use the bundled checklist.
 
 ### 6. Capture rationalizations (discipline skills only)
 

@@ -27,6 +27,10 @@ export interface VendoredFile {
  * drift, and apply the copy.
  */
 export interface SyncReport {
+  /** Repository root used to recheck containment before applying. */
+  repoRoot: string
+  /** Consuming skill directory; destinations must remain strictly below it. */
+  skillDir: string
   /**
    * Skill that owns the consuming `skill.json` directive.
    */

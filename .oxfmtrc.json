@@ -15,9 +15,10 @@
     "dist",
     "build",
     ".turbo",
-    ".kidd",
+    ".maltty",
     "**/.workspace",
     "coverage",
+    "schemas/skill.json",
     "**/*.d.ts",
     "pnpm-lock.yaml"
   ]

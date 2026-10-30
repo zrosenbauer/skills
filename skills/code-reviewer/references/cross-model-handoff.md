@@ -7,7 +7,7 @@ Load when the user has chosen the cross-model review mode. The job is to invoke 
 ## Step 1 — Detect available CLIs
 
 ```bash
-node scripts/detect-clis.mjs --available-only --pretty
+node "<skill-dir>/scripts/detect-clis.mjs" --available-only --pretty
 ```
 
 The script (~20 known agents) probes `$PATH` for binaries and emits JSON:
@@ -53,7 +53,7 @@ Keep the persona file complete — strip nothing. Keep the content complete too;
 - For diffs: pass the diff, not the whole files
 - For files > ~50KB: chunk and run the review per file, then concatenate findings
 
-See [`contributing/prompt-injection.md`](../../../contributing/prompt-injection.md) for the threat model, salted-tag wrap mechanics, and the secret-shield preflight.
+See [`threat-model.md`](threat-model.md) for the trust boundaries and limits of the salted-tag wrap and secret-shield preflight.
 
 ## Step 4 — Invoke the CLI
 
@@ -62,8 +62,8 @@ Use the bundled `invoke-cli.mjs` script. It handles the stdin-vs-argv choice, th
 For a `git diff --staged` review, the persona ref is already on disk and the diff streams from stdin — no temp files needed:
 
 ```bash
-git diff --staged | node scripts/invoke-cli.mjs <cli-id> \
-  --instructions skills/code-reviewer/references/personas/adversarial.md \
+git diff --staged | node "<skill-dir>/scripts/invoke-cli.mjs" <cli-id> \
+  --instructions "<skill-dir>/references/personas/adversarial.md" \
   --untrusted-content - \
   --secret-mode redact \
   --timeout 120
@@ -72,8 +72,8 @@ git diff --staged | node scripts/invoke-cli.mjs <cli-id> \
 For multi-file file-path scope (no diff, just raw files), concatenate to a temp file or use shell process substitution:
 
 ```bash
-node scripts/invoke-cli.mjs <cli-id> \
-  --instructions skills/code-reviewer/references/personas/adversarial.md \
+node "<skill-dir>/scripts/invoke-cli.mjs" <cli-id> \
+  --instructions "<skill-dir>/references/personas/adversarial.md" \
   --untrusted-content <(cat src/auth/*.ts) \
   --secret-mode redact
 ```
@@ -104,7 +104,7 @@ The script:
 For trusted-only prompts (no third-party content), you can still pipe the prompt verbatim — no wrapping is applied:
 
 ```bash
-echo "what does this regex match?" | node scripts/invoke-cli.mjs codex
+echo "what does this regex match?" | node "<skill-dir>/scripts/invoke-cli.mjs" codex
 ```
 
 Use this only when the entire prompt is content you wrote. The moment you concatenate file contents or diff output into the prompt, switch to the two-file form above so the secret-shield preflight + salted wrap apply.
@@ -114,8 +114,8 @@ Use this only when the entire prompt is content you wrote. The moment you concat
 If you're not sure the invocation will work, do a dry run first — prints the planned command without spawning the CLI:
 
 ```bash
-git diff --staged | node scripts/invoke-cli.mjs codex --dry-run \
-  --instructions skills/code-reviewer/references/personas/adversarial.md \
+git diff --staged | node "<skill-dir>/scripts/invoke-cli.mjs" codex --dry-run \
+  --instructions "<skill-dir>/references/personas/adversarial.md" \
   --untrusted-content - \
   --secret-mode redact
 # {

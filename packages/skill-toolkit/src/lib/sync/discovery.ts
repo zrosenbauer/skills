@@ -1,5 +1,7 @@
-import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs'
+import { existsSync, lstatSync, readFileSync, readdirSync, statSync } from 'node:fs'
 import path from 'node:path'
+
+import { assertPathWithin, assertRelativeVendorPath } from './paths.js'
 
 /**
  * If the source directory is a workspace package with a `files` array in
@@ -32,10 +34,11 @@ export function manifestVendorablePaths(sourceDir: string): string[] | null {
   }
   const walk = (absDir: string, relPrefix: string): void => {
     for (const entry of readdirSync(absDir)) {
-      if (entry.startsWith('.')) continue
+      if (entry.startsWith('.') || entry === 'node_modules') continue
       const abs = path.join(absDir, entry)
       const rel = relPrefix ? `${relPrefix}/${entry}` : entry
-      const st = statSync(abs)
+      const st = lstatSync(abs)
+      if (st.isSymbolicLink()) throw new Error(`Symlinks cannot be vendored: ${abs}`)
       if (st.isDirectory()) walk(abs, rel)
       else if (st.isFile()) add(rel)
     }
@@ -43,9 +46,10 @@ export function manifestVendorablePaths(sourceDir: string): string[] | null {
 
   for (const raw of manifest.files) {
     if (typeof raw !== 'string') continue
-    const entry = raw.replace(/^\/+/, '').replace(/\/+$/, '')
-    if (!entry || entry.startsWith('..')) continue
+    const entry = raw.replace(/\/+$/, '')
+    assertRelativeVendorPath(entry)
     const abs = path.join(sourceDir, entry)
+    assertPathWithin(sourceDir, abs)
     if (!existsSync(abs)) continue
     const st = statSync(abs)
     if (st.isFile()) add(entry)
@@ -64,10 +68,11 @@ export function listVendorableFiles(dir: string): string[] {
   const out: string[] = []
   const walk = (cur: string, prefix: string): void => {
     for (const entry of readdirSync(cur)) {
-      if (entry.startsWith('.')) continue
+      if (entry.startsWith('.') || entry === 'node_modules') continue
       const abs = path.join(cur, entry)
       const rel = prefix ? `${prefix}/${entry}` : entry
-      const st = statSync(abs)
+      const st = lstatSync(abs)
+      if (st.isSymbolicLink()) throw new Error(`Symlinks cannot be vendored: ${abs}`)
       if (st.isDirectory()) {
         walk(abs, rel)
       } else if (st.isFile() && isVendorable(rel)) {

@@ -65,18 +65,20 @@ Print the seed list so the user can edit it before you run the script. Don't try
 
 ### 3. Run the script
 
-The script lives at `skills/npm-namer/scripts/npm-namer/dist/check.mjs` in the skills authoring repo and at `.agents/skills/npm-namer/scripts/npm-namer/dist/check.mjs` in installed skills. Use whichever path resolves in the current project.
+Resolve `<skill-dir>` to the absolute directory containing this `SKILL.md`.
+Keep the user's project as the working directory. The bundled script needs
+no dependency install, regardless of where the skill is installed.
 
 ```bash
 # find mode (permute seeds, check candidates)
-node skills/npm-namer/scripts/npm-namer/dist/check.mjs <seed1> <seed2> ... --limit 50
+node "<skill-dir>/scripts/npm-namer/dist/check.mjs" <seed1> <seed2> ... --limit 50
 
 # check mode (no permutation, just verdicts on given names)
-node skills/npm-namer/scripts/npm-namer/dist/check.mjs --check <name1> <name2> ...
+node "<skill-dir>/scripts/npm-namer/dist/check.mjs" --check <name1> <name2> ...
 
 # from stdin or file
-node skills/npm-namer/scripts/npm-namer/dist/check.mjs --stdin
-node skills/npm-namer/scripts/npm-namer/dist/check.mjs --file ./candidates.txt
+node "<skill-dir>/scripts/npm-namer/dist/check.mjs" --stdin
+node "<skill-dir>/scripts/npm-namer/dist/check.mjs" --file ./candidates.txt
 ```
 
 Pass `--limit` for how many candidates to check (default 50; raise for thorough searches). Use `--scope @user` to generate scoped variants. Use `--json` if you need machine-parseable output for downstream steps.
@@ -126,7 +128,7 @@ Quote the moniker collisions explicitly if any of the user's own suggestions wer
 Mode: **find** (user gave seeds).
 
 ```bash
-node skills/npm-namer/scripts/npm-namer/dist/check.mjs tinylog microlog jslog picolog --limit 50
+node "<skill-dir>/scripts/npm-namer/dist/check.mjs" tinylog microlog jslog picolog --limit 50
 ```
 
 Output (abbreviated):
@@ -163,7 +165,7 @@ All four of your originals are taken (`picolog` collides under the moniker rule 
 Mode: **check** (user has a list, doesn't want brainstorming).
 
 ```bash
-node skills/npm-namer/scripts/npm-namer/dist/check.mjs --check querysmith bqterm sqlsage sqlforge
+node "<skill-dir>/scripts/npm-namer/dist/check.mjs" --check querysmith bqterm sqlsage sqlforge
 ```
 
 Read the verdicts, present them inline. No permutation. If all four are taken, then offer to brainstorm alternates — but don't preempt.

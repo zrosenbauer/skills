@@ -11,7 +11,7 @@ npx skills add zrosenbauer/skills --skill skill-portability
 ## What it does
 
 - Reads a skill's frontmatter and body (SKILL.md, .mdc, or AGENTS.md)
-- Loads the canonical provider list via `node scripts/providers.mjs`
+- Loads the canonical provider list via `node "<skill-dir>/scripts/providers.mjs"`
 - Spawns one agent per provider in **parallel**, each fetching the provider's authoritative llms.txt docs and grading the skill against three layers
 - Aggregates verdicts into a markdown matrix shown inline AND persisted to `COMPAT.md` next to the skill
 - Surfaces stale provider URLs so the audit doesn't silently grade against 404s
@@ -36,11 +36,12 @@ npx skills add zrosenbauer/skills --skill skill-portability
 ## The providers script
 
 ```bash
-node scripts/providers.mjs               # JSON to stdout (compact)
-node scripts/providers.mjs --pretty      # JSON pretty-printed
-node scripts/providers.mjs --table       # human-readable table
-node scripts/providers.mjs --check       # HEAD each docUrl, mark stale URLs
-node scripts/providers.mjs --ids         # one id per line
+# Replace <skill-dir> with the absolute installation directory; keep project cwd.
+node "<skill-dir>/scripts/providers.mjs"               # JSON to stdout (compact)
+node "<skill-dir>/scripts/providers.mjs" --pretty      # JSON pretty-printed
+node "<skill-dir>/scripts/providers.mjs" --table       # human-readable table
+node "<skill-dir>/scripts/providers.mjs" --check       # optional URL health check
+node "<skill-dir>/scripts/providers.mjs" --ids         # one id per line
 ```
 
 Zero dependencies. Pure ESM. Runs on stock Node ≥ 20 — macOS, Linux, Windows. Importable as a module too:

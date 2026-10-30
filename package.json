@@ -11,9 +11,10 @@
   },
   "scripts": {
     "build": "turbo run build",
+    "bundle": "turbo run bundle",
     "lint": "oxlint",
     "lint:fix": "oxlint --fix",
-    "format": "oxfmt",
+    "format": "oxfmt --check",
     "format:fix": "oxfmt --write",
     "test": "turbo run test",
     "test:scripts": "node --test 'skills/*/scripts/*.test.mjs' '.agents/skills/*/scripts/*.test.mjs' 'skill-scripts/*/*.test.mjs' 'skill-scripts/*/src/*.test.mjs'",
@@ -25,19 +26,14 @@
     "skill-toolkit": "node packages/skill-toolkit/dist/index.mjs"
   },
   "devDependencies": {
-    "lefthook": "^2.1.6",
-    "oxfmt": "^0.48.0",
-    "oxlint": "^1.63.0",
-    "turbo": "^2.8.20"
+    "lefthook": "^2.2.2",
+    "oxfmt": "^0.75.0",
+    "oxlint": "^1.90.0",
+    "turbo": "^2.11.10"
   },
   "engines": {
     "node": ">=24",
-    "pnpm": ">=10"
+    "pnpm": ">=12"
   },
-  "packageManager": "pnpm@10.33.0",
-  "pnpm": {
-    "onlyBuiltDependencies": [
-      "lefthook"
-    ]
-  }
+  "packageManager": "pnpm@12.16.1"
 }

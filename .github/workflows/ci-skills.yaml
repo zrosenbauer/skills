@@ -31,10 +31,10 @@ jobs:
     permissions:
       contents: read
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7.0.1
 
       - name: Set up uv (for uvx snyk-agent-scan)
-        uses: astral-sh/setup-uv@v3
+        uses: astral-sh/setup-uv@v10.3.3
 
       - name: Run snyk-agent-scan on public skills
         id: scan
@@ -52,7 +52,7 @@ jobs:
 
       - name: Upload audit report
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7.0.2
         with:
           name: snyk-agent-scan-report
           path: audit.json

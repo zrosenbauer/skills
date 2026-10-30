@@ -44,27 +44,30 @@ The shipped bundle is self-contained: the consumer runs `node dist/check.mjs` wi
 
 ## Usage
 
+Replace `<skill-dir>` with the absolute installation directory. Keep the
+project as the working directory; no install is needed to run the bundle.
+
 ```bash
 # permute + check
-node scripts/npm-namer/dist/check.mjs tiny log fast --limit 50
+node "<skill-dir>/scripts/npm-namer/dist/check.mjs" tiny log fast --limit 50
 
 # batch check (no permutation)
-node scripts/npm-namer/dist/check.mjs --check picolog microlog jslog
+node "<skill-dir>/scripts/npm-namer/dist/check.mjs" --check picolog microlog jslog
 
 # verify it catches typosquat shapes
-node scripts/npm-namer/dist/check.mjs --check extoolkit typescirpt
+node "<skill-dir>/scripts/npm-namer/dist/check.mjs" --check extoolkit typescirpt
 
 # JSON output for piping
-node scripts/npm-namer/dist/check.mjs tiny log --json
+node "<skill-dir>/scripts/npm-namer/dist/check.mjs" tiny log --json
 
 # scoped variants (bypass the moniker rule)
-node scripts/npm-namer/dist/check.mjs --scope @me logger fast
+node "<skill-dir>/scripts/npm-namer/dist/check.mjs" --scope @me logger fast
 
 # disable layers individually
-node scripts/npm-namer/dist/check.mjs --check foo --no-moniker --no-near-match
+node "<skill-dir>/scripts/npm-namer/dist/check.mjs" --check foo --no-moniker --no-near-match
 ```
 
-Run `node scripts/npm-namer/dist/check.mjs --help` for the full flag list.
+Run `node "<skill-dir>/scripts/npm-namer/dist/check.mjs" --help` for the full flag list.
 
 ## Refreshing the popular-names corpus
 

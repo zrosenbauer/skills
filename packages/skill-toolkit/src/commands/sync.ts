@@ -1,4 +1,4 @@
-import { command } from '@kidd-cli/core'
+import { command } from 'maltty'
 import { match } from 'massaman'
 import { stringify as stringifyYaml } from 'yaml'
 import { z } from 'zod'
@@ -7,6 +7,10 @@ import { findRepoRoot } from '../lib/skills/index.js'
 import { type SyncReport, applySync, planSync } from '../lib/sync/index.js'
 
 const options = z.object({
+  stage: z
+    .boolean()
+    .default(false)
+    .describe('Stage synchronized destinations for a pre-commit hook. Not valid with --check.'),
   check: z
     .boolean()
     .default(false)
@@ -31,6 +35,7 @@ export default command({
   description:
     'Vendor canonical assets (scripts, references, ...) from their source roots into each consuming skill per its skill.json manifest. Pass --check to fail on drift without writing.',
   handler: (ctx) => {
+    if (ctx.args.stage && ctx.args.check) throw new Error('--stage cannot be combined with --check')
     const repoRoot = findRepoRoot(process.cwd())
     const reports = planSync(repoRoot)
 
@@ -60,6 +65,16 @@ export default command({
         const applied = !ctx.args.check
         if (applied) {
           applySync(report)
+          if (ctx.args.stage) {
+            const result = spawnSync('git', ['add', '--', report.destDir], {
+              cwd: repoRoot,
+              stdio: 'inherit',
+              shell: false,
+            })
+            if (result.error) throw result.error
+            if (result.status !== 0)
+              throw new Error(`Could not stage synchronized destination: ${report.destDir}`)
+          }
           syncedCount += 1
         }
         results.push({ report, status: 'drift', applied })
@@ -177,3 +192,4 @@ function formatStructured({ format, results }: StructuredParams): string {
   }
   return format === 'json' ? JSON.stringify(envelope, null, 2) + '\n' : stringifyYaml(envelope)
 }
+import { spawnSync } from 'node:child_process'

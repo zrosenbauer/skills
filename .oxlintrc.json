@@ -29,7 +29,7 @@
     "dist",
     "build",
     ".turbo",
-    ".kidd",
+    ".maltty",
     ".claude",
     ".agents/skills",
     "**/.workspace",

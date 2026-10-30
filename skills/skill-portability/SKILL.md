@@ -35,7 +35,7 @@ The canonical provider list, required/forbidden frontmatter fields, and
 and [`references/providers/`](references/providers/). Provider docs are
 refreshed by hand on cadence (quarterly+) and committed — the audit never
 fetches at runtime, so per-provider verdicts are deterministic and
-offline-capable. See CONTRIBUTING.md for the refresh workflow.
+offline-capable. See [snapshot maintenance](references/maintenance.md) for refresh instructions. Model verdicts may vary between runs even against fixed snapshots.
 
 ## Inputs
 
@@ -49,6 +49,10 @@ offline-capable. See CONTRIBUTING.md for the refresh workflow.
 - Empty — discover via `ls skills/` and ask which to audit
 
 ## Workflow
+
+Resolve `<skill-dir>` to the absolute directory containing this `SKILL.md`.
+Keep the user's project as the working directory. Resolve `localDocPath`
+relative to `<skill-dir>`, not the working directory.
 
 ### 1. Resolve the input
 
@@ -71,7 +75,7 @@ Run the bundled ESM script — no shell required, works on macOS, Linux, and
 Windows:
 
 ```bash
-node skills/skill-portability/scripts/providers.mjs --pretty
+node "<skill-dir>/scripts/providers.mjs" --pretty
 ```
 
 Capture the JSON. Each entry has `id`, `name`, `fileFormat`, `fileLocation`,
@@ -159,7 +163,7 @@ truncated to a placeholder, surface this in the inline output:
 ```
 ⚠ Provider snapshot missing or sparse: `cursor` — references/providers/cursor.md
   is 503 bytes (likely SPA-rendered upstream). Verdict relies on the
-  `notes` field. Refresh the snapshot by hand (see CONTRIBUTING.md).
+  `notes` field. Refresh the snapshot by hand (see [maintenance](references/maintenance.md)).
 ```
 
 Don't silently fall back to WebFetch — that's exactly the runtime fetch
@@ -169,7 +173,7 @@ missing, treat it as `unknown` in the verdict rather than guessing.
 To verify URLs still resolve (HEAD requests, no body fetch):
 
 ```bash
-node skills/skill-portability/scripts/providers.mjs --check
+node "<skill-dir>/scripts/providers.mjs" --check
 ```
 
 ## Examples
@@ -181,7 +185,7 @@ node skills/skill-portability/scripts/providers.mjs --check
    `description`, `argument-hint`, `user-invocable`. Body
    uses `<example>` blocks and references `AskUserQuestion`, `gh pr diff`,
    and a sibling `scripts/detect-clis.mjs`.
-2. Load providers: `node skills/skill-portability/scripts/providers.mjs --pretty`
+2. Load providers: `node "<skill-dir>/scripts/providers.mjs" --pretty`
    → entries returned (currently 4).
 3. Fan out one parallel `Agent` call per provider — Claude Code, Cursor, Codex CLI, Agents-Skills Baseline.
 4. Aggregate verdicts:
@@ -221,7 +225,7 @@ node skills/skill-portability/scripts/providers.mjs --check
 
 <example>
 <good>
-Ran `node scripts/providers.mjs --pretty` once at step 2. For each provider,
+Ran `node "<skill-dir>/scripts/providers.mjs" --pretty` once at step 2. For each provider,
 Read its `localDocPath` snapshot and inlined the contents into the
 subagent prompt. Subagents evaluated against bundled docs — no runtime
 WebFetch.
@@ -235,7 +239,7 @@ provider's docs site staying up.
 
 The bad version reintroduces the runtime URL fetch the snapshot pattern
 exists to avoid. Snapshots are committed; refresh by hand on cadence
-(see CONTRIBUTING.md).
+(see [snapshot maintenance](references/maintenance.md)).
 </example>
 
 ## References
@@ -244,7 +248,7 @@ exists to avoid. Snapshots are committed; refresh by hand on cadence
   format requirements, `localDocPath` for each provider's bundled snapshot.
   Run `--check` to verify upstream URLs still resolve.
 - [`references/providers/`](references/providers/) — per-provider doc
-  snapshots (committed; refresh by hand on cadence — see CONTRIBUTING.md).
+  snapshots (committed; refresh by hand on cadence — see [maintenance](references/maintenance.md)).
 - [`references/provider-formats.md`](references/provider-formats.md) —
   per-provider deep dive: frontmatter shape, file location conventions,
   tool surface, common porting gotchas.

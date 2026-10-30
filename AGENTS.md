@@ -83,19 +83,22 @@ Optional companions: `LICENSE`, `README.md`, `references/<topic>.md`, `templates
 - **pnpm** for installs (`packageManager` is pinned in root `package.json`)
 - **turbo** for running tasks across workspace packages
 - **Node ≥ 24**
+- **Bun** for Maltty's compiled CLI binaries; **uv** for the optional security scan
 
 Common commands:
 
 ```bash
 pnpm install                           # install all workspace deps + lefthook hooks (via prepare)
-pnpm build                             # turbo run build (compiles skill-toolkit via kidd)
-pnpm lint                              # turbo run lint
+pnpm build                             # turbo run build (compiles skill-toolkit via Maltty)
+pnpm bundle                            # turbo run bundle (build shipping assets)
+pnpm lint                              # oxlint across the repository
 pnpm typecheck                         # turbo run typecheck
 pnpm test                              # turbo run test
 pnpm test:scripts                      # node --test across skills/*/scripts and skill-scripts/*
 pnpm skill-toolkit lint                  # lint every skill against the three-tier rule set
 pnpm skill-toolkit lint <name>           # lint one skill
 pnpm skill-toolkit sync          # vendor canonical scripts into each consuming skill
+pnpm skill-toolkit sync --stage  # sync and stage changed destinations (pre-commit)
 pnpm skill-toolkit sync --check  # fail if any vendored copy drifts from source
 pnpm audit:skills                      # snyk-agent-scan on public skills (needs SNYK_TOKEN)
 ```

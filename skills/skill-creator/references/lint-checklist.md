@@ -1,6 +1,6 @@
 # Self-lint checklist
 
-Run with `pnpm skill-toolkit lint <name>` (or `pnpm skill-toolkit lint` for all skills). The TS implementation in [`packages/skill-toolkit/src/lib/lint.ts`](../../../../packages/skill-toolkit/src/lib/lint.ts) is the enforcer; this doc is the human-readable reference.
+In the authoring repository, run `pnpm skill-toolkit lint <name>` (or `pnpm skill-toolkit lint` for all skills). The TS implementation in `packages/skill-toolkit/src/lib/lint/rules/` is the enforcer. This bundled checklist is the human-readable reference; installed consumers do not need the toolkit's source.
 
 ## Severity model
 

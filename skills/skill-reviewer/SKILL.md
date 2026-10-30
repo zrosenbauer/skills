@@ -57,9 +57,9 @@ State the classification explicitly. If you can't classify it cleanly, that's it
 
 Lint enforces frontmatter shape, naming, anti-shortcut words. Deep references cover what lint can't:
 
-- [`skill-creator/references/description.md`](../skill-creator/references/description.md) — description quality beyond char count
-- [`skill-creator/references/frontmatter.md`](../skill-creator/references/frontmatter.md) — frontmatter schema
-- [`skill-creator/references/xml-usage.md`](../skill-creator/references/xml-usage.md) — when to use `<example>` / `<good>` / `<bad>`
+- [`description.md`](references/authoring/description.md) — description quality beyond char count
+- [`frontmatter.md`](references/authoring/frontmatter.md) — frontmatter schema
+- [`xml-usage.md`](references/authoring/xml-usage.md) — when to use `<example>` / `<good>` / `<bad>`
 
 If you skip these and only cite `lint-checklist.md`, you're guessing at depth.
 
@@ -72,7 +72,7 @@ Beyond the lint pass:
 - Triggers in description are realistic (a real user would say them) — not abstract teacher-ese
 - Description states what's distinctive ("Bakes in …") — not just what the skill does
 - Body does NOT contain `## When to use` / `## When NOT to use` sections — routing is the description's job, and dispatchers never read the body anyway; duplicating triggers wastes tokens and creates drift risk (warn if present)
-- Claude Code extension fields present where applicable (`argument-hint`, `user-invocable`, optionally `disable-model-invocation` and `allowed-tools`) and fenced behind the `# --- Claude Code extensions` comment. Flag any use of fabricated fields (`model-invocable`, `metadata`) — these aren't in the official Claude Code spec; see [skill-creator/references/frontmatter.md](../skill-creator/references/frontmatter.md).
+- Claude Code extension fields present where applicable (`argument-hint`, `user-invocable`, optionally `disable-model-invocation` and `allowed-tools`) and fenced behind the `# --- Claude Code extensions` comment. Check supported fields against the bundled [frontmatter reference](references/authoring/frontmatter.md), distinguishing provider extensions from the portable core.
 
 ### 5. Audit body
 
@@ -80,7 +80,7 @@ Beyond the lint pass:
 - At least one `<example>` block
 - No `TODO` / `FIXME` / `XXX`
 - Workflow steps are numbered actions (not prose)
-- Discipline skills SHOULD have a `## Rationalization table` section (per [`skill-creator`](../skill-creator/SKILL.md) step 6) — its absence on a discipline skill is a `warn`
+- Discipline skills SHOULD have a `## Rationalization table` section — its absence on a discipline skill is a `warn`
 - Body ≤ 500 lines
 
 ### 6. Emit severity-tiered output (with Clean section, even on pass)
@@ -195,7 +195,7 @@ SUMMARY: 0 findings (0 error / 0 warn / 0 info) — technique skill
 - pnpm skill-toolkit lint skill-portability — 0/0/0
 ```
 
-Nothing manufactured. If you want depth beyond the structural review, run `node skills/skill-portability/scripts/providers.mjs --check` to confirm the docUrls are still 200 — that's the skill's own staleness check.
+Nothing manufactured. For provider compatibility, use `skill-portability` if installed. Its optional URL staleness check is separate from this structural review; do not assume that sibling skill is installed.
 
 </output>
 </example>
@@ -213,9 +213,10 @@ Captured from baseline transcripts where reviewers without this skill skipped ru
 
 ## References
 
-- [`skill-creator/SKILL.md`](../skill-creator/SKILL.md) — authoring workflow this reviewer audits against
-- [`skill-creator/references/description.md`](../skill-creator/references/description.md) — description quality rules
-- [`skill-creator/references/frontmatter.md`](../skill-creator/references/frontmatter.md) — frontmatter schema
-- [`skill-creator/references/lint-checklist.md`](../skill-creator/references/lint-checklist.md) — mechanical rules (the floor)
-- [`skill-creator/references/xml-usage.md`](../skill-creator/references/xml-usage.md) — `<example>` / `<good>` / `<bad>` boundaries
-- [`code-reviewer/references/review-output-format.md`](../code-reviewer/references/review-output-format.md) — three-tier output spec inspiration
+- [`description.md`](references/authoring/description.md) — description quality rules
+- [`frontmatter.md`](references/authoring/frontmatter.md) — frontmatter schema
+- [`lint-checklist.md`](references/authoring/lint-checklist.md) — mechanical rules (the floor)
+- [`xml-usage.md`](references/authoring/xml-usage.md) — `<example>` / `<good>` / `<bad>` boundaries
+
+These references are vendored from the authoring sources via `skill.json`;
+the reviewer does not require sibling skills to be installed.

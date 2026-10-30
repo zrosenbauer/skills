@@ -7,6 +7,7 @@ import type { SkillManifest } from '../skills/manifest.js'
 import type { SkillRecord } from '../skills/types.js'
 import { listVendorableFiles, manifestVendorablePaths } from './discovery.js'
 import { filesMatch } from './hash.js'
+import { assertPathWithin, assertRelativeVendorPath, assertSyncPaths } from './paths.js'
 import type { SyncReport, VendoredFile } from './types.js'
 
 type VendorDirective = NonNullable<SkillManifest['vendor']>[number]
@@ -54,14 +55,19 @@ interface BuildReportParams {
  * dest dir don't silently linger.
  */
 function buildReport({ repoRoot, skill, directive }: BuildReportParams): SyncReport {
+  assertRelativeVendorPath(directive.src)
+  assertRelativeVendorPath(directive.dest)
   const sourceDir = path.join(repoRoot, directive.src)
   const destDir = path.join(skill.location.dir, directive.dest)
+  const roots = { repoRoot, skillDir: skill.location.dir, sourceDir, destDir }
+  assertSyncPaths(roots)
   const segments = directive.dest.split('/').filter((s) => s.length > 0 && s !== '.')
   const kind = segments[0] ?? 'vendor'
   const assetName = path.basename(directive.dest)
 
   if (!existsSync(sourceDir)) {
     return {
+      ...roots,
       skill: skill.location.name,
       kind,
       assetName,
@@ -79,6 +85,10 @@ function buildReport({ repoRoot, skill, directive }: BuildReportParams): SyncRep
     source: path.join(sourceDir, rel),
     target: path.join(destDir, rel),
   }))
+  for (const file of files) {
+    assertPathWithin(sourceDir, file.source)
+    assertPathWithin(destDir, file.target)
+  }
 
   const targetExtras = existsSync(destDir)
     ? listVendorableFiles(destDir).filter((rel) => !files.some((f) => f.relative === rel))
@@ -93,6 +103,7 @@ function buildReport({ repoRoot, skill, directive }: BuildReportParams): SyncRep
   ]
 
   return {
+    ...roots,
     skill: skill.location.name,
     kind,
     assetName,

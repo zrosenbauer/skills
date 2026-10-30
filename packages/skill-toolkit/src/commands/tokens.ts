@@ -1,6 +1,6 @@
 import { readFileSync } from 'node:fs'
 
-import { command } from '@kidd-cli/core'
+import { command } from 'maltty'
 import { match } from 'massaman'
 import { stringify as stringifyYaml } from 'yaml'
 import { z } from 'zod'

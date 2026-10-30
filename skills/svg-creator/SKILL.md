@@ -47,10 +47,14 @@ window inside a larger viewBox.
 
 ## Workflow
 
+Resolve `<skill-dir>` to the absolute directory containing this `SKILL.md`.
+Run commands from the user's project directory, not the skill directory;
+asset paths and dependency lookup remain relative to the user's project.
+
 ### 1. Preflight (do this once per repo)
 
 ```bash
-node scripts/preflight.mjs
+node "<skill-dir>/scripts/preflight.mjs"
 ```
 
 Checks Node ≥ 20, that `sharp` is resolvable from cwd, and whether the
@@ -108,9 +112,9 @@ anti-patterns.
 ### 4. Lint the viewBox
 
 ```bash
-node scripts/lint-viewbox.mjs path/to/asset.svg
+node "<skill-dir>/scripts/lint-viewbox.mjs" path/to/asset.svg
 # or recursively over a directory:
-node scripts/lint-viewbox.mjs assets/
+node "<skill-dir>/scripts/lint-viewbox.mjs" assets/
 ```
 
 Checks: viewBox exists, is well-formed, starts with `0 0`, has positive
@@ -119,26 +123,47 @@ clean.
 
 ### 5. Preview in a browser (and screenshot via chrome-devtools MCP)
 
+Before starting the preview, check the exact asset:
+
 ```bash
-node scripts/preview-server.mjs path/to/asset.svg
+node "<skill-dir>/scripts/check-scripts.mjs" path/to/asset.svg
+```
+
+Exit 0 means no obvious active markup was detected; exit 1 reports script
+elements, event handlers, JavaScript URLs, or embedded HTML. Exit 2 is a
+check failure: report it and stop before previewing. This is a simple
+heuristic, not a sanitizer or proof of safety; encoded or unusual constructs
+can evade it, and comments can produce false positives.
+
+If flagged, show the finding kinds and line numbers, explain that inline
+preview can execute that content, and ask permission to preview this file
+unchanged. Do not start the server or open the page until approved. Never
+silently remove active content. Recheck and obtain renewed approval for
+flagged content after any file change.
+
+```bash
+node "<skill-dir>/scripts/preview-server.mjs" path/to/asset.svg
 ```
 
 Picks a free port from a small pool of uncommon defaults (`5879`, `6321`,
 `7843`, `8765`, `9876`, `31415`, `42420`, `47821`, `51234`, `61234`),
 falls back to OS-assigned if all bound. Serves an HTML page that renders
-the SVG via `<img src="/svg">` — the same path real consumers use, so
-what you see is what you'll ship. Endpoints: `/`, `/svg`, `/health`. Run
-in background so the agent can keep working.
+the SVG inline, preserving scripts, interactions, and element-level DOM
+inspection. This is not a sandbox and may differ from image-only consumers
+such as GitHub READMEs. Endpoints: `/`, `/health`. The server snapshots the
+file at startup; restart after edits. Run in background so the agent can
+keep working.
 
 If you have the chrome-devtools MCP, **don't write-and-stop**: navigate to
 the printed URL, take a screenshot, and inspect. Catching an off-by-one
 viewBox via screenshot is cheap; fixing it after the user notices is not.
 
 ```
-1. node scripts/preview-server.mjs path/to/asset.svg   (background)
-2. chrome-devtools MCP: navigate_page → http://localhost:<port>/
-3. chrome-devtools MCP: take_screenshot
-4. inspect — does it look right? clipping? wrong colors? phantom whitespace?
+1. node "<skill-dir>/scripts/check-scripts.mjs" path/to/asset.svg; ask approval if flagged
+2. node "<skill-dir>/scripts/preview-server.mjs" path/to/asset.svg   (background)
+3. chrome-devtools MCP: navigate_page → http://localhost:<port>/
+4. chrome-devtools MCP: take_screenshot
+5. inspect — does it look right? clipping? wrong colors? phantom whitespace?
 ```
 
 If you don't have chrome-devtools MCP, open the URL in a real browser
@@ -151,9 +176,9 @@ social cards). Don't auto-convert — ask the user whether they want a
 raster sibling, in which format, and at what dimensions.
 
 ```bash
-node scripts/convert.mjs path/to/asset.svg
-node scripts/convert.mjs path/to/asset.svg --format webp --width 800
-node scripts/convert.mjs path/to/asset.svg --format jpeg --quality 85 --out preview.jpg
+node "<skill-dir>/scripts/convert.mjs" path/to/asset.svg
+node "<skill-dir>/scripts/convert.mjs" path/to/asset.svg --format webp --width 800
+node "<skill-dir>/scripts/convert.mjs" path/to/asset.svg --format jpeg --quality 85 --out preview.jpg
 ```
 
 Defaults: PNG, sibling path, density 144 DPI for font crispness, native
@@ -176,7 +201,7 @@ success when only the SVG was written.
 1. Read the file before editing.
 2. Make the smallest possible edit.
 3. Re-run the lint.
-4. Re-preview (the server reads fresh on each request — no cache).
+4. Recheck active content, ask approval if flagged, and restart the preview server.
 5. Re-screenshot via chrome-devtools MCP if available.
 
 ## Examples
@@ -188,10 +213,10 @@ success when only the SVG was written.
 <output>
 1. Plan: 1280×256, file `banner-taskforge.svg`, target `assets/`.
 2. Author with `viewBox="0 0 1280 256"`, full-bleed gradient `<rect width="1280" height="256" fill="url(#bg)">`, hardcoded hex stops `#7268F0` → `#B667EF`, hardcoded font `Geist, system-ui, sans-serif`. (See `references/patterns.md` → "GitHub repo banner".)
-3. `node scripts/lint-viewbox.mjs assets/banner-taskforge.svg` → ✓ pass.
-4. `node scripts/preview-server.mjs assets/banner-taskforge.svg &` → http://localhost:5879/
+3. `node "<skill-dir>/scripts/lint-viewbox.mjs" assets/banner-taskforge.svg` → pass.
+4. Run `check-scripts.mjs` against the asset; ask approval if flagged. Then `node "<skill-dir>/scripts/preview-server.mjs" assets/banner-taskforge.svg` in background → http://localhost:5879/.
 5. chrome-devtools MCP: `navigate_page` then `take_screenshot` — confirm gradient covers full bounds, text doesn't clip.
-6. Ask user: "Want a PNG sibling for non-SVG-aware consumers?" If yes: `node scripts/convert.mjs assets/banner-taskforge.svg`.
+6. Ask user: "Want a PNG sibling for non-SVG-aware consumers?" If yes: `node "<skill-dir>/scripts/convert.mjs" assets/banner-taskforge.svg`.
 7. Confirm: "asset at `assets/banner-taskforge.svg`, preview at http://localhost:5879/, 1280×256."
 </output>
 </example>
@@ -229,6 +254,7 @@ child's coordinate by the offset and reset the viewBox to `0 0 660 420`.
 
 - `SKILL.md` — this file
 - `scripts/preflight.mjs` — runtime dependency check
+- `scripts/check-scripts.mjs` — simple active-content warning check, not a sanitizer
 - `scripts/preview-server.mjs` — local Node HTTP preview server
 - `scripts/convert.mjs` — sharp-based SVG → PNG / JPEG / WebP / AVIF converter
 - `scripts/lint-viewbox.mjs` — viewBox lint (enforces `0 0 W H`)

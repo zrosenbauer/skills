@@ -102,7 +102,7 @@ False approval is worse than missed praise. If there's no attacker scenario you 
 
 ## Output
 
-Group by category (Injection / Auth / AuthZ / Crypto / Data / DoS / Supply chain). Within a category, sort by severity. Format per [`review-output-format.md`](review-output-format.md). For security review, the severity tiers map to:
+Group by severity, with category tags (Injection / Auth / AuthZ / Crypto / Data / DoS / Supply chain). Format per [`review-output-format.md`](../review-output-format.md). For security review, the severity tiers map to:
 
 - **error** — exploitable in production
 - **warn** — exploitable under specific conditions (specific input, environment, attacker position)

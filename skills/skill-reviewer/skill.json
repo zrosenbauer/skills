@@ -1,0 +1,4 @@
+{
+  "$schema": "https://raw.githubusercontent.com/zrosenbauer/skills/main/schemas/skill.json",
+  "vendor": [{ "src": "skills/skill-creator/references", "dest": "references/authoring" }]
+}

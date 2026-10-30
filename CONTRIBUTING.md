@@ -4,8 +4,10 @@ Thanks for your interest in this repo. It's a personal monorepo, but issues and 
 
 ## Prerequisites
 
-- **Node** ≥ 20
-- **pnpm** ≥ 10 (the version is pinned via `packageManager` in the root `package.json`)
+- **Node** ≥ 24
+- **pnpm** ≥ 12 (the version is pinned via `packageManager` in the root `package.json`)
+- **Bun** for Maltty's compiled CLI binaries
+- **uv** for `pnpm audit:skills` (optional security scan)
 
 ```bash
 git clone https://github.com/zrosenbauer/skills.git
@@ -58,7 +60,7 @@ Each `vendor` entry is `{ src, dest }`:
 - `src` — repo-root-relative path to the canonical source directory.
 - `dest` — skill-dir-relative path where the vendored copy lands. The first path segment (`scripts`, `references`, `templates`, ...) is surfaced as a tag in CLI output.
 
-`pnpm skill-toolkit sync` copies every declared `src` to its `dest` byte-identical and re-stages the result. Vendored copies are committed so skills stay self-contained when shipped via `npx skills add`. Do not hand-edit vendored copies — Lefthook's pre-commit drift check (`pnpm skill-toolkit sync --check`) will fail. See [`contributing/prompt-injection.md`](./contributing/prompt-injection.md) for the prompt-shield example.
+`pnpm skill-toolkit sync` copies every declared `src` to its `dest` byte-identical. The pre-commit hook uses `--stage` to stage changed destinations. Vendored copies are committed so skills stay self-contained when shipped via `npx skills add`. Do not hand-edit vendored copies — Lefthook's pre-commit drift check (`pnpm skill-toolkit sync --check`) will fail. See [`contributing/prompt-injection.md`](./contributing/prompt-injection.md) for the prompt-shield example.
 
 ## Authoring a skill
 
@@ -101,13 +103,15 @@ Instructions for the agent when this skill is invoked.
 
 ## Scripts
 
-All `pnpm <task>` scripts are thin wrappers around `turbo run <task>`.
+Build, bundle, typecheck, and workspace tests run through Turbo. Lint and formatting run repository-wide through oxc.
 
 | Command          | Description                               |
 | ---------------- | ----------------------------------------- |
 | `pnpm install`   | Install workspace dependencies            |
 | `pnpm build`     | Run `build` across workspace packages     |
-| `pnpm lint`      | Run `lint` across workspace packages      |
+| `pnpm bundle`    | Build shipping assets through Turbo       |
+| `pnpm lint`      | Run oxlint across the repository          |
+| `pnpm format`    | Check formatting without modifying files  |
 | `pnpm typecheck` | Run `typecheck` across workspace packages |
 | `pnpm test`      | Run `test` across workspace packages      |
 | `pnpm clean`     | Clean build output and `node_modules`     |
@@ -134,13 +138,14 @@ The snapshots are committed alongside the skill — that's intentional.
 
 [Lefthook](https://lefthook.dev) is wired up via the `prepare` script — `pnpm install` runs `lefthook install` automatically. The `pre-commit` hook (defined in `lefthook.yml`):
 
-1. Runs `sync` if anything under `skill-scripts/**` is staged, then re-stages the vendored copies.
-2. Auto-formats staged files with `oxfmt` and re-stages.
-3. Lints staged JS/TS with `oxlint`.
-4. Runs `skill-toolkit lint --severity error` if any skill or skill-script source is staged.
-5. Always runs `sync --check` to catch hand-edits to vendored copies.
+1. Builds tooling and bundles shipping assets through Turbo; stages canonical bundles.
+2. Runs `sync --stage` and stages changed vendored destinations.
+3. Auto-formats staged files with `oxfmt` and re-stages.
+4. Lints staged JS/TS with `oxlint`.
+5. Runs `skill-toolkit lint --severity error` if any skill or skill-script source is staged.
+6. Checks vendor/schema drift and runs the sync safety tests.
 
-Skip ad-hoc with `LEFTHOOK=0 git commit ...`. Avoid `--no-verify` outside of emergencies.
+The hook runs sequentially and stops on failure. Fix the failure; do not bypass hooks.
 
 ## Adding a shared package
 

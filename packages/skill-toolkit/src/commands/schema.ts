@@ -1,7 +1,7 @@
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
 import path from 'node:path'
 
-import { command } from '@kidd-cli/core'
+import { command } from 'maltty'
 import { z } from 'zod'
 
 import { findRepoRoot } from '../lib/skills/index.js'

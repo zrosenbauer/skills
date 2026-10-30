@@ -1,4 +1,4 @@
-import { type CommandContext, command } from '@kidd-cli/core'
+import { type CommandContext, command } from 'maltty'
 import { match } from 'massaman'
 import { z } from 'zod'
 
@@ -92,7 +92,7 @@ function filterByName<T>(items: T[], name: string | undefined, getName: (item: T
 }
 
 /**
- * Render lint results via kidd's `ctx.report` API. Each skill/agent
+ * Render lint results via Maltty's `ctx.report` API. Each skill/agent
  * becomes a `check` row (pass when no visible findings, fail/warn
  * otherwise), each visible finding becomes a `finding`, and the
  * totals close out with an inline `summary` footer.
@@ -177,7 +177,7 @@ function emitTarget({ ctx, name, kind, findings, maxOrder, showFix }: EmitTarget
 
   for (const f of visible) {
     ctx.report.finding({
-      severity: severityToKidd(f.severity),
+      severity: severityToMaltty(f.severity),
       rule: f.id,
       message: f.message,
       ...(showFix && f.fix !== undefined && { help: f.fix }),
@@ -187,10 +187,10 @@ function emitTarget({ ctx, name, kind, findings, maxOrder, showFix }: EmitTarget
 }
 
 /**
- * Map our internal severity tier to kidd's FindingSeverity enum.
- * `info` collapses to `hint` (kidd's softest tier).
+ * Map our internal severity tier to Maltty's FindingSeverity enum.
+ * `info` collapses to `hint` (Maltty's softest tier).
  */
-function severityToKidd(severity: Severity): 'error' | 'warning' | 'hint' {
+function severityToMaltty(severity: Severity): 'error' | 'warning' | 'hint' {
   return match(severity)
     .with('error', () => 'error' as const)
     .with('warn', () => 'warning' as const)
