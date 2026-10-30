@@ -69,3 +69,7 @@ pre-commit:
     # 8. Exercise destructive-sync guardrails before accepting the commit.
     - name: sync-safety-tests
       run: pnpm --filter @zrosenbauer/skill-toolkit test
+
+    # Keep slash-command wrappers aligned with the authoring skill inventory.
+    - name: opencode-commands
+      run: pnpm commands:opencode && git add -- .opencode/commands

@@ -29,6 +29,7 @@ jobs:
           git diff --exit-code -- skill-scripts skills
           test -z "$(git ls-files --others --exclude-standard -- skill-scripts skills)"
       - run: pnpm check
+      - run: pnpm commands:opencode --check
       - run: pnpm skill-toolkit lint --severity error
       - run: pnpm skill-toolkit sync --check
       - run: pnpm skill-toolkit schema --check

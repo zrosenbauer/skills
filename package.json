@@ -12,6 +12,7 @@
   "scripts": {
     "build": "turbo run build",
     "bundle": "turbo run bundle",
+    "commands:opencode": "node skill-scripts/opencode-commands.mjs",
     "lint": "oxlint",
     "lint:fix": "oxlint --fix",
     "format": "oxfmt --check",
