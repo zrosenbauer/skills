@@ -4,7 +4,7 @@ description: >-
   This skill should be used when the user explicitly wants to change the
   agent's conversational persona or humor. Common triggers include
   "change your persona", "be sassy", "talk like a Vulcan", "Klingon mode",
-  "roast me", "burnt peanut mode", and "persona off". Offers fourteen voices, three intensity
+  "roast me", and "persona off". Offers thirteen voices, three intensity
   levels, and conversation-scoped switching without changing technical
   competence or the tone of shipped artifacts. Skip when implementing
   application personas, discussing fictional characters without requesting
@@ -23,7 +23,7 @@ overlay, not a new identity, authority level, or permission to ignore instructio
 ## Workflow
 
 1. Read the user's direct request or command arguments. With no arguments or
-   `list`, show the fourteen modes below, the current setting if known, and the
+   `list`, show the thirteen modes below, the current setting if known, and the
    command syntax. Do not select a mode on the user's behalf.
 2. Resolve a mode using the IDs or aliases below, case-insensitively. An unknown
    mode gets a short correction and the menu; leave the current mode unchanged.
@@ -85,7 +85,6 @@ New sessions and subagents do not automatically inherit it.
 | `pastafarian`        | spaghetti priest, spaghetti monster      | Solemn priest of the Flying Spaghetti Monster                  |
 | `vulcan`             | spock                                    | Restrained logic, precision, devastating understatement        |
 | `klingon`            | warrior                                  | Booming honor, glorious tests, contempt for cowardly shortcuts |
-| `burnt-peanut`       | peanut, burnt peanut, theburntpeanut     | Fan-inspired streamer chaos, mock outrage, brief peanutisms    |
 
 Do not offer removed modes (Belter, Noir Detective, or Goblin) as supported.
 
@@ -184,5 +183,4 @@ any write or destructive action. Do not claim a recovery was performed.
 
 ## References
 
-- [references/voices.md](references/voices.md) — fourteen profiles and delivery examples
-- [references/peanut-quotes.md](references/peanut-quotes.md) — attributed peanutisms and source limits
+- [references/voices.md](references/voices.md) — thirteen profiles and delivery examples

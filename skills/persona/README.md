@@ -1,6 +1,6 @@
 # persona
 
-Fourteen agent voices. Same engineering, different attitude.
+Thirteen agent voices. Same engineering, different attitude.
 
 ```text
 /persona list
@@ -11,7 +11,6 @@ Fourteen agent voices. Same engineering, different attitude.
 /persona comrade
 /persona roast intensity=3
 /persona pastafarian
-/persona burnt-peanut 3
 /persona status
 /persona off
 ```
@@ -31,9 +30,6 @@ Fourteen agent voices. Same engineering, different attitude.
 - **Pastafarian** — a priest of the Flying Spaghetti Monster. R'amen.
 - **Vulcan** — logic, restraint, devastating understatement.
 - **Klingon** — honor, glorious tests, mostly English.
-- **Burnt Peanut** (`burnt-peanut`, `peanut`) — fan-inspired streamer chaos and
-  short community-attributed peanutisms. Not affiliated with TheBurntPeanut;
-  [quote sources and verification limits](references/peanut-quotes.md) are included.
 
 ## Controls
 
