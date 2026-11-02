@@ -1,87 +1,64 @@
-# Provider formats — deep dive
+# Provider formats — interpretation notes
 
-The audit subagents use this to ground their verdicts. The structured data lives in [`../scripts/providers.mjs`](../scripts/providers.mjs); this doc explains the _why_ behind each entry. When a finding is ambiguous, defer to the live provider docs at the URLs in the script — those are authoritative.
+The registry in [providers.mjs](../scripts/providers.mjs) describes native Agent
+Skills, not each provider's unrelated rules or repository-instruction mechanisms.
+Use the bundled snapshots as dated evidence. Normal audits never fetch URLs;
+[maintenance](maintenance.md) is an authoring-time operation.
 
-## Claude Code (Anthropic)
+## Shared format
 
-**Format**: `SKILL.md` inside a directory.
+Claude Code, Cursor, and Codex support SKILL.md directories and progressively
+loaded companions. Require name and description for portable distribution, but
+distinguish that baseline contract from permissive individual loaders. This
+repository's trigger-count, description-length, and naming lint rules are
+house conventions, not universal provider constraints.
 
-**File location**: `.claude/skills/<name>/SKILL.md` (local) or `skills/<name>/SKILL.md` (when installed via `npx skills add zrosenbauer/skills`). The directory name MUST match the `name` field in frontmatter.
+## Claude Code
 
-**Required frontmatter**: `name`, `description`. The `skills` CLI rejects skills missing either.
-
-**Optional frontmatter**: `argument-hint`, `user-invocable`, `disable-model-invocation`, `allowed-tools`. Fields like `model-invocable` and `metadata` are commonly written but NOT in the [official Claude Code skill spec](https://code.claude.com/docs/en/skills.md) — use `disable-model-invocation` (inverse semantics, defaults to false) instead of `model-invocable`.
-
-**Tool surface** (built-in tools the agent can call by name): `Read`, `Write`, `Edit`, `Bash`, `Glob`, `Grep`, `WebFetch`, `WebSearch`, `AskUserQuestion`, `TaskCreate`, `TaskUpdate`, `TaskList`, `TaskGet`, `Agent`, `Skill`, `NotebookEdit`, `ExitPlanMode`. Verify against the model version — the surface evolves.
-
-**Common gotchas**:
-
-- The `name` field MUST be kebab-case and exactly match the directory name. Mismatch → `FM_NAME_MISMATCH` lint error in this monorepo.
-- Description must contain `"Use when"` or `"This skill should be used when"` plus ≥3 verbatim trigger phrases in double quotes.
-- XML tags inside markdown sections (`<example>`, `<good>`, `<bad>`) are first-class — Claude reads them. Other providers may strip or ignore them.
+Local discovery uses .claude/skills/<name>/SKILL.md in the project and home
+directory; plugin skills live in the plugin's skills/ directory. A repository
+skills/ authoring directory is not automatically discovered without integration.
+The native loader permits omitted name and description; portable distribution
+does not. Current documented fields include metadata, license, compatibility,
+paths, invocation controls, and other Claude-specific execution features.
+Supporting Markdown and scripts can be loaded on demand. Do not assume dynamic
+shell injection, substitutions, or allowed-tools grants transfer to other hosts.
 
 ## Cursor
 
-**Format**: `.mdc` rule file (single file, NOT a directory).
+Native Skills use SKILL.md with name and description, plus optional companions.
+Project roots include .agents/skills/ and .cursor/skills/; corresponding user
+locations and compatibility directories are documented in the snapshot.
+The paths field scopes Skills; legacy globs is a fallback. The documented
+optional fields include disable-model-invocation, icon, color, and metadata.
+Rules .mdc files and alwaysApply are a separate feature, not a required skill
+conversion. There is no evidence here that Cursor strips XML example tags or
+cannot load references. Local discovery does not guarantee cloud synchronization.
 
-**File location**: `.cursor/rules/<name>.mdc`. Companion files (`references/`, `templates/`, `scripts/`) sitting next to the rule do NOT load — Cursor only reads the single `.mdc` file. Skills with progressive-disclosure references will lose half their content when ported.
+## Codex
 
-**Required frontmatter**: `description`. (Cursor doesn't enforce `name` — the filename serves as the identifier.)
+Native Skills require name and description in SKILL.md. Project discovery walks
+.agents/skills from cwd up to the repository root; user skills live under
+~/.agents/skills. References, scripts, and assets are supported. Optional
+agents/openai.yaml supplies UI metadata, tool dependencies, and invocation policy:
+policy.allow_implicit_invocation controls implicit activation. Do not assume
+Claude-only frontmatter enforces manual invocation in Codex. AGENTS.md is a
+separate repository-instruction mechanism, not a skill conversion target.
 
-**Optional frontmatter**: `globs` (file-pattern triggers — rule loads when matching files are open), `alwaysApply` (boolean — load on every chat regardless of context).
+## Agent Skills baseline
 
-**Forbidden frontmatter**: none — unknown fields are ignored, but the loader won't honor them.
+The baseline specifies packaging and metadata, not a universal execution engine,
+installation path, exhaustive tool catalog, or subagent API. A format pass alone
+cannot establish that a workflow runs in every baseline-compatible agent. Report
+host-dependent capabilities as unknown unless the actual host is specified.
 
-**Tool surface**: `Read`, `Edit`, `codebase_search`, `grep_search`, `file_search`, `run_terminal_cmd`, `list_dir`, `edit_file`. Different naming convention from Claude Code (snake_case, no `Bash`/`Glob`/`Grep` exact matches).
+## Capability and evidence rules
 
-**Common gotchas**:
-
-- A SKILL.md with `references/foo.md` linked from the body will lose those references on port — inline the critical bits before renaming to `.mdc`.
-- `globs` is the canonical Cursor trigger mechanism — the description-based dispatcher matters less here.
-- XML inside markdown is rendered as code in the chat panel; not parsed.
-
-## OpenAI Codex CLI
-
-**Format**: `AGENTS.md` plain markdown.
-
-**File location**: `<repo-root>/AGENTS.md` (or nested `AGENTS.md` per directory — Codex reads the closest one walking up from the cwd).
-
-**Required frontmatter**: none. Codex treats AGENTS.md as plain markdown — frontmatter is silently ignored if present.
-
-**Optional frontmatter**: none honored. (Frontmatter is not part of the AGENTS.md spec.)
-
-**Tool surface**: `shell` (NOT `Bash`), `apply_patch` (NOT `Edit`), `web_search`, `read_file`. Tool names diverge significantly from Claude Code — a skill body that says "use `Bash` to run X" reads as gibberish to Codex.
-
-**Common gotchas**:
-
-- A SKILL.md with rich frontmatter (`argument-hint`, `user-invocable`, etc.) "ports" to AGENTS.md by inlining the description into the body and dropping all frontmatter — Codex ignores it anyway, but leaving it in adds noise.
-- The AGENTS.md spec is at <https://agents.md/> — provider-agnostic in principle, but Codex's tool surface is what determines behavior.
-- Multiple nested `AGENTS.md` files compose hierarchically — useful when porting a single skill into a multi-package repo.
-
-## Continue.dev
-
-**Format**: `.md` (rules) or `.yaml` (custom agents).
-
-**File location**: `.continue/rules/<name>.md` for rules; `.continue/agents/<name>.yaml` for custom agents with their own model + tool config.
-
-**Required frontmatter**: none.
-
-**Optional frontmatter**: `name`, `description`, `globs`. Other fields are silently ignored.
-
-**Tool surface**: `read_file`, `edit_file`, `run_terminal`, `search_codebase`. Smaller surface than Claude Code; no built-in `AskUserQuestion` equivalent — interactive questions need a custom agent.
-
-**Common gotchas**:
-
-- Rules and agents are different file types — most skills port to _rules_; only complex multi-step workflows justify the agent YAML.
-- `globs` works the same way as Cursor — file-pattern triggers.
-- XML tags inside markdown are passed to the model as-is; Continue doesn't pre-process them.
-
-## Cross-cutting porting checklist
-
-Before claiming a skill is "portable":
-
-1. **Frontmatter**: does it use only universally-required fields (`name`, `description`)?
-2. **Body**: does it avoid XML tags as load-bearing structure? (Use `<example>` for _display_, not for _parsing_.)
-3. **Tool names**: does it phrase actions in terms of _capabilities_ ("read the file", "ask the user") rather than tool names (`Read`, `AskUserQuestion`)?
-4. **References**: does it work as a single file? If not, the bits behind `references/` won't reach Cursor or single-file providers.
-5. **File location**: is the user expected to run `npx skills add` (Claude Code) vs hand-copy to `.cursor/rules/` (Cursor)? Document the install path.
+1. Registry tool names are illustrative and version-dependent, not complete lists.
+2. Map capabilities such as file reading, asking a question, spawning a worker,
+   and browser inspection to the actual harness; do not equate a spelling change
+   with missing functionality.
+3. Verify referenced resources exist and resolve relative to the installation.
+4. Distinguish unsupported execution semantics from ordinary Markdown examples.
+5. Missing or sparse evidence means unknown, not a model-memory guess.
+6. Ignored invocation or permission fields never enforce a security boundary.

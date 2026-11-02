@@ -3,13 +3,14 @@
 //
 // Verifies:
 //   - Node ≥ 20         (hard requirement — exit 1 if missing)
-//   - sharp resolvable  (required by convert.mjs — offer to install)
+//   - sharp resolvable  (required only with --raster — offer to install)
 //   - chrome-devtools MCP (optional — recommended for agent-driven
 //                          screenshot verification of the preview)
 //
 // Usage:
 //   node preflight.mjs              # check, print status
-//   node preflight.mjs --install    # install missing required deps
+//   node preflight.mjs --raster     # require sharp for conversion
+//   node preflight.mjs --raster --install # install missing conversion deps
 //   node preflight.mjs --yes        # skip confirmation prompts (use with --install)
 //
 // Exit codes: 0 = all required deps present, 1 = required missing, 2 = bad invocation.
@@ -29,8 +30,26 @@ import { resolveFromCwd } from './_resolve-from-cwd.mjs'
 // do not point convert.mjs at fully untrusted SVG input.
 
 const args = new Set(process.argv.slice(2))
+const allowed = new Set(['--raster', '--install', '--yes', '-y', '--help', '-h'])
+for (const arg of args) {
+  if (!allowed.has(arg)) {
+    console.error(`Unknown argument: ${arg}`)
+    process.exit(2)
+  }
+}
+if (args.has('--help') || args.has('-h')) {
+  console.log(
+    'Usage: preflight.mjs [--raster] [--install [--yes]]\nSVG-only checks need no dependencies. --raster requires sharp; --install requires --raster and user approval.'
+  )
+  process.exit(0)
+}
+const wantRaster = args.has('--raster')
 const wantInstall = args.has('--install')
 const skipConfirm = args.has('--yes') || args.has('-y')
+if ((wantInstall && !wantRaster) || (skipConfirm && !wantInstall)) {
+  console.error('--install requires --raster; --yes requires --install')
+  process.exit(2)
+}
 
 // Cap config-file reads at 256 KB. MCP configs are tiny; anything larger
 // is almost certainly not a real config and not worth full-scanning.
@@ -63,7 +82,7 @@ try {
 checks.push({
   name: 'sharp (SVG → PNG / JPEG / WebP / AVIF)',
   ok: sharpOk,
-  required: true,
+  required: wantRaster,
   detail: sharpOk ? 'resolvable from cwd' : 'not resolvable from cwd',
   fix: detectInstallCmd('sharp'),
   installable: true,
@@ -78,7 +97,7 @@ checks.push({
   ok: cdpHints.found,
   required: false,
   detail: cdpHints.detail,
-  fix: 'install via your agent harness (e.g., `claude plugins install chrome-devtools-mcp`) — see https://github.com/ChromeDevTools/chrome-devtools-mcp',
+  fix: 'configure through your harness; see https://github.com/ChromeDevTools/chrome-devtools-mcp (no install needed for SVG-only work)',
   installable: false,
 })
 
@@ -104,7 +123,9 @@ console.log(`\n${missingRequired.length} required dep(s) missing.`)
 // ---- Install path --------------------------------------------------------
 
 if (!wantInstall) {
-  console.log('\nrerun with `--install` to install them, or run the fix command(s) above manually.')
+  console.log(
+    '\nafter approval, rerun with `--raster --install`, or run the fix command(s) above manually.'
+  )
   process.exit(1)
 }
 
@@ -128,11 +149,11 @@ if (!skipConfirm) {
 const packageManager = detectPackageManager()
 let allOk = true
 for (const c of installable) {
-  const cmd = installCmdFor(packageManager, c.pkg)
+  const cmd = installCmdFor(packageManager, `${c.pkg}@latest`)
   console.log(`\n→ ${cmd.join(' ')}`)
   const result = spawnSync(cmd[0], cmd.slice(1), { stdio: 'inherit' })
   if (result.status !== 0) {
-    console.error(`✗ ${c.pkg} install failed (exit ${result.status})`)
+    console.error(`✗ ${c.pkg} install failed (${result.error?.message ?? `exit ${result.status}`})`)
     allOk = false
   }
 }

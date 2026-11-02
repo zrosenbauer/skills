@@ -7,7 +7,7 @@ description: >-
   "create an SVG", "make a banner", "design an icon", "draw a logo", "fix
   the viewBox", "convert SVG to PNG", and "preview this SVG". Bakes in
   edge-to-edge viewBox discipline (`viewBox="0 0 W H"` — no padding, no
-  offsets), hardcoded hex colors (SVG cannot read CSS variables), a Node-
+  offsets), hardcoded hex colors for standalone images, a Node-
   based local preview server for browser + chrome-devtools MCP screenshot
   verification, and sharp-based conversion to PNG / JPEG / WebP / AVIF.
   Skip when the asset is purely raster (no SVG source) or when only an
@@ -57,11 +57,11 @@ asset paths and dependency lookup remain relative to the user's project.
 node "<skill-dir>/scripts/preflight.mjs"
 ```
 
-Checks Node ≥ 20, that `sharp` is resolvable from cwd, and whether the
-chrome-devtools MCP is configured. Prints fix commands and exits 1 if any
-required dep is missing. Add `--install` (with optional `--yes` for
-non-interactive use) to install missing deps via the repo's package
-manager (auto-detects pnpm / yarn / bun / npm).
+Checks Node ≥ 20 and reports optional `sharp` and chrome-devtools MCP availability.
+SVG authoring and preview need no installed dependencies. For raster conversion,
+add `--raster` to require `sharp` from the user's project. After explicit approval
+to add that dependency, use `--raster --install` (optional `--yes` for an already
+approved non-interactive install). Never install dependencies just to author SVGs.
 
 The chrome-devtools MCP is **optional but recommended** — it lets the
 agent take screenshots of the preview to verify the asset before declaring
@@ -95,7 +95,8 @@ Three decisions before you write any SVG:
 
 Apply the viewBox rule above. Three craft notes:
 
-**Colors** — SVGs cannot read CSS variables. Hardcode hex values.
+**Colors** — standalone SVG images cannot inherit the consumer's CSS variables.
+Hardcode hex values for portable assets; inline SVG can use CSS variables.
 [`references/colors.md`](references/colors.md) is a starter palette;
 override per project.
 
@@ -117,9 +118,10 @@ node "<skill-dir>/scripts/lint-viewbox.mjs" path/to/asset.svg
 node "<skill-dir>/scripts/lint-viewbox.mjs" assets/
 ```
 
-Checks: viewBox exists, is well-formed, starts with `0 0`, has positive
-width/height. Exits 1 with a fix hint on failure. Edit and re-run until
-clean.
+Checks: viewBox exists, uses finite SVG numbers, starts with `0 0`, and has
+positive width/height. Exits 1 with a fix hint on failure. This is an attribute
+check, not a measurement of drawn geometry. Padding, clipping, and content bounds
+must be verified in the preview even when lint passes.
 
 ### 5. Preview in a browser (and screenshot via chrome-devtools MCP)
 
@@ -166,8 +168,10 @@ viewBox via screenshot is cheap; fixing it after the user notices is not.
 5. inspect — does it look right? clipping? wrong colors? phantom whitespace?
 ```
 
-If you don't have chrome-devtools MCP, open the URL in a real browser
-instead. Either way, **verify visually before declaring the asset done.**
+Use the host's approved browser integration (Orca's embedded browser inside an
+Orca workspace). Otherwise use chrome-devtools MCP or ask the user to inspect
+the URL. If no visual inspection is possible, report that limitation rather
+than claiming the asset is visually verified.
 
 ### 6. Convert to a raster format (optional — ask the user)
 
@@ -175,14 +179,18 @@ Most consumers eventually need a PNG fallback (READMEs, slide decks,
 social cards). Don't auto-convert — ask the user whether they want a
 raster sibling, in which format, and at what dimensions.
 
+Run `node "<skill-dir>/scripts/preflight.mjs" --raster` first; ask before
+installing `sharp` if it is missing.
+
 ```bash
 node "<skill-dir>/scripts/convert.mjs" path/to/asset.svg
 node "<skill-dir>/scripts/convert.mjs" path/to/asset.svg --format webp --width 800
 node "<skill-dir>/scripts/convert.mjs" path/to/asset.svg --format jpeg --quality 85 --out preview.jpg
 ```
 
-Defaults: PNG, sibling path, density 144 DPI for font crispness, native
-SVG dimensions. Supports `png`, `jpeg`, `webp`, `avif`.
+Defaults: PNG, sibling path, density 72 DPI (native SVG pixel dimensions).
+Use `--width` / `--height` for the agreed output size; raising `--density`
+without resizing increases raster dimensions. Supports `png`, `jpeg`, `webp`, `avif`.
 
 ### 7. Confirm
 

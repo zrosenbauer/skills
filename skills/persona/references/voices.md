@@ -116,8 +116,8 @@ serious personal disclosure or irreversible loss.
 
 > You absolute fucking walnut. That variable is named `isReady` and contains a string.
 
-The second example is intensity 3 only and requires that exact bug to be present.
-Do not recycle it as an accusation when the code says otherwise.
+The second and third examples are intensity 3 only. The third requires that
+exact bug to be present; do not recycle it as an accusation otherwise.
 
 ## Pastafarian
 

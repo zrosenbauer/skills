@@ -64,10 +64,11 @@ Verdicts:
   ? unknown      registry returned a non-200/404 status for the literal name
 
 Limitation:
-  The moniker check enumerates 1- and 2-separator variants. 3+ morpheme
-  splits (e.g. \`eslint-plugin-react-hooks\` vs \`eslintpluginreacthooks\`)
-  are NOT covered even with --exhaustive. For authoritative pre-flight on
-  multi-morpheme names, run \`npm publish --dry-run\`.
+  The moniker check enumerates 1- and 2-separator variants. Names requiring
+  3+ separator insertions (e.g. \`eslint-plugin-react-hooks\`) can be missed
+  even with --exhaustive. Treat every available verdict as provisional.
+  npm publish --dry-run does NOT exercise the registry's server-side moniker
+  check. Never publish just to test availability.
 
 Examples:
   node check.mjs tiny log
@@ -382,7 +383,7 @@ function renderText(output) {
       unverified,
       (verdict) =>
         `  • ${verdict.name}  (${verdict.unverifiedTotal} variant${verdict.unverifiedTotal === 1 ? '' : 's'} not probed)`,
-      ' — try again or run `npm publish --dry-run`'
+      ' — retry failed probes; availability remains provisional'
     ),
   ].filter(Boolean)
 

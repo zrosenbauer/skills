@@ -1,11 +1,9 @@
 #!/usr/bin/env node
 // Strict viewBox lint for SVG assets.
 //
-// Enforces the rule: the viewBox must start at "0 0" and equal the actual
-// content extents — no offsets, no padding. Padding baked into an asset
-// cannot be removed downstream; it fights `object-fit: contain`, breaks
-// alignment in any layout that consumes the asset, and makes the asset
-// unreusable at different sizes.
+// Checks the viewBox attribute: zero origin and finite positive dimensions.
+// This does not render geometry or measure padding/clipping. Verify actual
+// content extents in the browser preview before declaring the asset complete.
 //
 // Usage:
 //   node lint-viewbox.mjs <path>...                # check one or more SVG files
@@ -14,7 +12,7 @@
 //
 // Exit codes: 0 = all pass, 1 = at least one failure, 2 = bad invocation.
 
-import { readFileSync, readdirSync, statSync } from 'node:fs'
+import { readFileSync, readdirSync, statSync, lstatSync } from 'node:fs'
 import { resolve, join, extname, relative } from 'node:path'
 
 const rawArgs = process.argv.slice(2)
@@ -84,6 +82,7 @@ for (const path of targets) {
 const total = targets.length
 const passed = total - failures
 console.log(`\n${passed}/${total} passed${failures ? ` — ${failures} need fixing` : ''}`)
+console.log('Attribute checks only; verify content bounds, padding, and clipping in the preview.')
 process.exit(failures ? 1 : 0)
 
 // ---------------------------------------------------------------------------
@@ -102,10 +101,11 @@ function findSvgs(dir) {
     const full = join(dir, entry)
     let s
     try {
-      s = statSync(full)
+      s = lstatSync(full)
     } catch {
       continue
     }
+    if (s.isSymbolicLink()) continue
     if (s.isDirectory()) out.push(...findSvgs(full))
     else if (extname(entry).toLowerCase() === '.svg') out.push(full)
   }
@@ -140,7 +140,16 @@ function check(path) {
     .trim()
     .split(/[\s,]+/)
     .map(Number)
-  if (parts.length !== 4 || parts.some(Number.isNaN)) {
+  const svgNumber = /^[+-]?(?:\d+\.?\d*|\.\d+)(?:[eE][+-]?\d+)?$/
+  if (
+    parts.length !== 4 ||
+    /,\s*,|^\s*,|,\s*$/.test(vb[1]) ||
+    parts.some((part) => !Number.isFinite(part)) ||
+    vb[1]
+      .trim()
+      .split(/[\s,]+/)
+      .some((part) => !svgNumber.test(part))
+  ) {
     console.error(`✗ ${rel}: malformed viewBox "${vb[1]}"`)
     return false
   }

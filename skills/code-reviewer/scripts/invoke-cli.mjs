@@ -173,20 +173,27 @@ process.exit(result.status === 0 ? 0 : 2)
  * @returns {{ prompt: string, wrapped: boolean, salt: string | null, secretMode: string, secretsRedacted: number }}
  */
 function composePrompt(f) {
-  if (f.untrustedContent && !f.instructions) {
+  if (f.untrustedContent && f.instructions.length === 0) {
     process.stderr.write('--untrusted-content requires --instructions\n')
     process.exit(1)
   }
 
-  if (f.instructions === '-' && f.untrustedContent === '-') {
-    process.stderr.write("Cannot use '-' (stdin) for both --instructions and --untrusted-content\n")
+  if (
+    f.instructions.filter((source) => source === '-').length + Number(f.untrustedContent === '-') >
+    1
+  ) {
+    process.stderr.write(
+      "Cannot use '-' (stdin) more than once, including for both --instructions and --untrusted-content\n"
+    )
     process.exit(1)
   }
 
   const stdinHolder = { cached: null, consumed: false }
 
-  if (f.instructions && f.untrustedContent) {
-    const instructions = readSource(f.instructions, '--instructions', stdinHolder)
+  if (f.instructions.length > 0 && f.untrustedContent) {
+    const instructions = f.instructions
+      .map((source) => readSource(source, '--instructions', stdinHolder))
+      .join('\n\n')
     let untrusted = readSource(f.untrustedContent, '--untrusted-content', stdinHolder)
     let secretsRedacted = 0
 
@@ -223,9 +230,11 @@ function composePrompt(f) {
     }
   }
 
-  if (f.instructions) {
+  if (f.instructions.length > 0) {
     return {
-      prompt: readSource(f.instructions, '--instructions', stdinHolder),
+      prompt: f.instructions
+        .map((source) => readSource(source, '--instructions', stdinHolder))
+        .join('\n\n'),
       wrapped: false,
       salt: null,
       secretMode: 'allow',
@@ -279,7 +288,7 @@ function readFileOrExit(filePath, flagName) {
 function parseFlags(rest) {
   let timeout = 120
   let dryRun = false
-  let instructions = null
+  const instructions = []
   let untrustedContent = null
   let secretMode = 'scan'
   for (let i = 0; i < rest.length; i += 1) {
@@ -299,17 +308,21 @@ function parseFlags(rest) {
       i += 1
       continue
     }
-    if (a === '--instructions') {
+    if (a === '--instructions' || a === '-i') {
       const next = rest[i + 1]
       if (!next || next.startsWith('--')) {
         process.stderr.write('--instructions requires a file path\n')
         process.exit(1)
       }
-      instructions = next
+      instructions.push(next)
       i += 1
       continue
     }
-    if (a === '--untrusted-content') {
+    if (a === '--untrusted-content' || a === '-u') {
+      if (untrustedContent !== null) {
+        process.stderr.write('--untrusted-content may be supplied only once\n')
+        process.exit(1)
+      }
       const next = rest[i + 1]
       if (!next || next.startsWith('--')) {
         process.stderr.write('--untrusted-content requires a file path\n')
@@ -329,6 +342,8 @@ function parseFlags(rest) {
       i += 1
       continue
     }
+    process.stderr.write(`Unknown argument: ${a}\n`)
+    process.exit(1)
   }
   return { timeout, dryRun, instructions, untrustedContent, secretMode }
 }
@@ -339,11 +354,11 @@ function parseFlags(rest) {
  * If requiredEnv is missing on the entry, nothing extra is forwarded — the
  * registry is the source of truth and missing means TODO, not "inherit all".
  *
- * @param {import('./registry.mjs').CliEntry} entry
+ * @param {import('./registry.mjs').CliEntry} cliEntry
  * @param {NodeJS.ProcessEnv} parentEnv
  * @returns {NodeJS.ProcessEnv}
  */
-function buildChildEnv(entry, parentEnv) {
+function buildChildEnv(cliEntry, parentEnv) {
   const baseKeys = ['PATH', 'HOME', 'USER', 'LANG', 'TMPDIR', 'TMP', 'TEMP', 'TERM', 'SHELL']
   /** @type {NodeJS.ProcessEnv} */
   const env = {}
@@ -354,7 +369,7 @@ function buildChildEnv(entry, parentEnv) {
   for (const k of Object.keys(parentEnv)) {
     if (k.startsWith('LC_') && parentEnv[k] !== undefined) env[k] = parentEnv[k]
   }
-  for (const k of entry.requiredEnv ?? []) {
+  for (const k of cliEntry.requiredEnv ?? []) {
     if (parentEnv[k] !== undefined) env[k] = parentEnv[k]
   }
   return env
@@ -368,6 +383,6 @@ function readStdin() {
   try {
     return readFileSync(0, 'utf8')
   } catch (err) {
-    throw new Error(`invoke-cli: failed to read stdin: ${err.message}`)
+    throw new Error(`invoke-cli: failed to read stdin: ${err.message}`, { cause: err })
   }
 }

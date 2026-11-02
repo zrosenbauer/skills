@@ -20,7 +20,7 @@
  *   {
  *     id:            kebab-case identifier
  *     name:          human-readable
- *     fileFormat:    'SKILL.md' | '.cursor/rules/*.mdc' | 'AGENTS.md' | etc.
+ *     fileFormat:    native skill format (not always-loaded rules files)
  *     fileLocation:  where the provider expects the file to live
  *     docUrls:       prioritized list — llms.txt / llms-full.txt first, HTML last.
  *                    Used as the source URL when refreshing snapshots by hand;
@@ -48,19 +48,31 @@ export const providers = [
     name: 'Claude Code (Anthropic)',
     fileFormat: 'SKILL.md',
     fileLocation:
-      '~/.claude/skills/<name>/SKILL.md (global) or .claude/skills/<name>/SKILL.md (project) or skills/<name>/SKILL.md (via npx skills add)',
-    docUrls: [
-      'https://docs.claude.com/llms.txt',
-      'https://docs.claude.com/en/docs/claude-code/skills',
-      'https://skills.sh',
-    ],
+      '~/.claude/skills/<name>/SKILL.md (personal) or .claude/skills/<name>/SKILL.md (project); plugins expose skills/<name>/SKILL.md',
+    docUrls: ['https://code.claude.com/docs/en/skills.md'],
     localDocPath: 'references/providers/claude-code.md',
-    requiredFrontmatter: ['name', 'description'],
+    requiredFrontmatter: [],
     optionalFrontmatter: [
       'argument-hint',
       'user-invocable',
       'disable-model-invocation',
       'allowed-tools',
+      'name',
+      'description',
+      'when_to_use',
+      'arguments',
+      'disallowed-tools',
+      'model',
+      'effort',
+      'context',
+      'agent',
+      'background',
+      'hooks',
+      'paths',
+      'shell',
+      'metadata',
+      'license',
+      'compatibility',
     ],
     ignoredFrontmatter: [],
     forbiddenFrontmatter: [],
@@ -84,22 +96,26 @@ export const providers = [
       'ExitPlanMode',
     ],
     notes:
-      'Reference implementation. Frontmatter `name` must match directory name. Description should contain "Use when" + verbatim trigger phrases.',
+      'Native SKILL.md with companion resources. Claude permits omitted name/description; portable distribution requires both. Tool names here are illustrative, not an exhaustive catalog. Repository trigger/style rules are not provider loader requirements.',
   },
   {
     id: 'cursor',
     name: 'Cursor',
-    fileFormat: '.cursor/rules/*.mdc',
-    fileLocation: '.cursor/rules/<name>.mdc — single file, NOT a directory',
-    docUrls: [
-      'https://docs.cursor.com/context/rules',
-      'https://docs.cursor.com/llms.txt',
-      'https://cursor.com/docs/context/rules-for-ai',
-    ],
+    fileFormat: 'SKILL.md',
+    fileLocation:
+      '.agents/skills/<name>/SKILL.md or .cursor/skills/<name>/SKILL.md; corresponding home-directory locations for user skills',
+    docUrls: ['https://cursor.com/docs/skills'],
     localDocPath: 'references/providers/cursor.md',
-    requiredFrontmatter: ['description'],
-    optionalFrontmatter: ['globs', 'alwaysApply'],
-    ignoredFrontmatter: ['name', 'argument-hint', 'user-invocable', 'disable-model-invocation'],
+    requiredFrontmatter: ['name', 'description'],
+    optionalFrontmatter: [
+      'paths',
+      'globs',
+      'disable-model-invocation',
+      'icon',
+      'color',
+      'metadata',
+    ],
+    ignoredFrontmatter: ['argument-hint', 'user-invocable'],
     forbiddenFrontmatter: [],
     toolSurface: [
       'Read',
@@ -112,41 +128,40 @@ export const providers = [
       'edit_file',
     ],
     notes:
-      'Cursor uses `.mdc` rule files in `.cursor/rules/`, NOT directories with SKILL.md. Companion files (references/, templates/) do not load. Cursor-specific frontmatter: `globs` (file-pattern triggers), `alwaysApply` (boolean — load on every chat).',
+      'Cursor natively loads SKILL.md directories with companion references, scripts, and assets. Rules .mdc files are a separate feature. Tool names are illustrative and version-dependent; a mismatch requires capability mapping, not an automatic incompatibility verdict.',
   },
   {
     id: 'openai-codex-cli',
     name: 'OpenAI Codex CLI',
-    fileFormat: 'AGENTS.md',
-    fileLocation: '<repo-root>/AGENTS.md (or nested AGENTS.md per directory)',
-    docUrls: [
-      'https://github.com/openai/codex/blob/main/docs/getting-started.md',
-      'https://github.com/openai/codex/blob/main/AGENTS.md',
-      'https://agents.md',
-    ],
+    fileFormat: 'SKILL.md',
+    fileLocation:
+      '.agents/skills/<name>/SKILL.md from cwd through repository root; ~/.agents/skills/<name>/SKILL.md for user skills',
+    docUrls: ['https://developers.openai.com/codex/skills/'],
     localDocPath: 'references/providers/openai-codex-cli.md',
-    requiredFrontmatter: [],
-    optionalFrontmatter: [],
-    ignoredFrontmatter: ['name', 'description', 'argument-hint', 'globs', 'alwaysApply'],
+    requiredFrontmatter: ['name', 'description'],
+    optionalFrontmatter: ['metadata'],
+    ignoredFrontmatter: [
+      'argument-hint',
+      'user-invocable',
+      'disable-model-invocation',
+      'globs',
+      'alwaysApply',
+    ],
     forbiddenFrontmatter: [],
     toolSurface: ['shell', 'apply_patch', 'web_search', 'read_file'],
     notes:
-      'AGENTS.md is plain markdown — no frontmatter is read by the agent itself. Frontmatter from a SKILL.md is silently ignored. To "port" a SKILL.md you typically rename to AGENTS.md and inline the description into the body. Codex tool names differ from Claude Code (e.g., `shell` vs `Bash`, `apply_patch` vs `Edit`).',
+      'Native SKILL.md with scripts, references, and assets. AGENTS.md is separate repository guidance, not a skill conversion target. Configure invocation policy with optional agents/openai.yaml (policy.allow_implicit_invocation). Tool examples are not exhaustive or guaranteed for every host.',
   },
   {
     id: 'agents-skills-baseline',
-    name: 'Agents-Skills Baseline (.agents/skills/)',
+    name: 'Agent Skills Baseline',
     fileFormat: 'SKILL.md',
     fileLocation:
-      '.agents/skills/<name>/SKILL.md (project, common to all baseline-compatible agents); per-agent global paths vary (~/.gemini/skills/, ~/.config/opencode/skills/, ~/.pi/agent/skills/, ~/.agents/skills/)',
-    docUrls: [
-      'https://agentskills.io/specification',
-      'https://skills.sh',
-      'https://github.com/vercel-labs/skills',
-    ],
+      'Host-dependent; the baseline specifies <name>/SKILL.md packaging, not discovery paths',
+    docUrls: ['https://agentskills.io/specification'],
     localDocPath: 'references/providers/agents-skills-baseline.md',
     requiredFrontmatter: ['name', 'description'],
-    optionalFrontmatter: ['license', 'metadata', 'allowed-tools'],
+    optionalFrontmatter: ['license', 'compatibility', 'metadata', 'allowed-tools'],
     ignoredFrontmatter: [
       'argument-hint',
       'user-invocable',
@@ -157,7 +172,7 @@ export const providers = [
     forbiddenFrontmatter: [],
     toolSurface: [],
     notes:
-      'Universal SKILL.md format consumed by Gemini CLI, OpenCode, Pi, and any future agent that adopts the baseline. Loads from `.agents/skills/` (project). Spec: https://agentskills.io/specification. Required: `name` (kebab-case, max 64 chars) and `description` (max 1024 chars). Unknown frontmatter silently ignored. Tool NAMES differ across consumers (Bash/run_shell_command/bash for shell, Edit/edit for edit, etc.) — portable skills should describe behavior in prose rather than reference tool names directly; that is the lowest-common-denominator contract this entry asserts. Per-agent deviations: Gemini CLI uses snake_case tools (run_shell_command, read_file, etc.) and ~/.gemini/skills/ as global path. OpenCode (SST) uses lowercase tools (bash, read, etc.) and ~/.config/opencode/skills/ as global path; docs at https://opencode.ai/docs. Pi (Earendil Works, binary `pi`) extends the baseline with: extra `.pi/skills/` location (project) + `~/.pi/agent/skills/` (global), root-level *.md discovery in those dirs, `pi.skills` entries in package.json, `--skill <path>` CLI override, and a `disable-model-invocation` optional frontmatter field; docs at https://pi.dev/docs/latest/skills.',
+      'The baseline defines packaging, required name/description, optional metadata, and progressive disclosure. It does not define universal tools, invocation controls, discovery paths, or subagents. Extension semantics and runtime capabilities must be checked against the actual host; do not assume ignored fields enforce policy.',
   },
 ]
 
@@ -252,8 +267,10 @@ async function main() {
 
 // Run main() only when invoked as a CLI, not when imported.
 // pathToFileURL handles Windows backslashes and URL encoding correctly.
+import { realpathSync } from 'node:fs'
 import { pathToFileURL } from 'node:url'
-const invokedDirectly = import.meta.url === pathToFileURL(process.argv[1] ?? '').href
+const invokedDirectly =
+  process.argv[1] && import.meta.url === pathToFileURL(realpathSync(process.argv[1])).href
 if (invokedDirectly) {
   main().catch((err) => {
     process.stderr.write(`providers: ${err?.stack ?? err}\n`)

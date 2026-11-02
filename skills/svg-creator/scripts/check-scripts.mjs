@@ -1,7 +1,6 @@
 #!/usr/bin/env node
 // A warning heuristic, not a sanitizer or proof that an SVG is safe.
-import { readFileSync } from 'node:fs'
-import { resolve } from 'node:path'
+import { readFileSync, realpathSync } from 'node:fs'
 import { pathToFileURL } from 'node:url'
 
 /** Report obvious active markup without modifying the asset. */
@@ -18,7 +17,7 @@ export function checkScripts(source) {
   })
 }
 
-if (process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1])).href) {
+if (process.argv[1] && import.meta.url === pathToFileURL(realpathSync(process.argv[1])).href) {
   const [file] = process.argv.slice(2)
   if (!file) {
     console.error('usage: check-scripts.mjs <path-to-svg>')

@@ -89,14 +89,14 @@ Pass `--limit` for how many candidates to check (default 50; raise for thorough 
 
 The script's text output has six status verdicts plus an optional near-match annotation:
 
-| Verdict        | Meaning                                                                                                                                                      |
-| -------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `✓ available`  | Free on registry AND no moniker collision found. May still carry a `near:` warning.                                                                          |
-| `⚠ moniker`    | Free literally but normalizes to an existing package — publish will be rejected. The line includes `collides with: ...`                                      |
-| `⚠ unverified` | Free literally but moniker check incomplete — some variant probes failed (rate limit / network). Do NOT treat as safe; rerun or use `npm publish --dry-run`. |
-| `✗ taken`      | A package with that exact name is already published                                                                                                          |
-| `✗ invalid`    | Fails syntactic rules (e.g., uppercase, leading dot, length > 214)                                                                                           |
-| `? unknown`    | Registry returned non-200/404 for the literal name (rate limit, network) — surface to user                                                                   |
+| Verdict        | Meaning                                                                                                                                  |
+| -------------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
+| `✓ available`  | Free on registry AND no moniker collision found. May still carry a `near:` warning.                                                      |
+| `⚠ moniker`    | Free literally but normalizes to an existing package — publish will be rejected. The line includes `collides with: ...`                  |
+| `⚠ unverified` | Free literally but moniker check incomplete — some variant probes failed (rate limit / network). Do NOT treat as safe; retry the probes. |
+| `✗ taken`      | A package with that exact name is already published                                                                                      |
+| `✗ invalid`    | Fails syntactic rules (e.g., uppercase, leading dot, length > 214)                                                                       |
+| `? unknown`    | Registry returned non-200/404 for the literal name (rate limit, network) — surface to user                                               |
 
 **Near-match annotation** appears alongside `✓ available` when the candidate is within 2 edits of a popular npm package. Format: `near: <pkg> (d=<distance>)`. This is publishable but typosquat-shaped — bring it to the user's attention.
 
@@ -104,11 +104,11 @@ Output groups results into three buckets at the bottom:
 
 - **Available + moniker-clear + no typosquat shape** — safe picks.
 - **Available but typosquat-shaped** — publishable but visually confusable with popular packages. Let the user decide.
-- **Moniker check incomplete** — candidates with `unverified` status. Rerun or use `npm publish --dry-run` before publishing.
+- **Moniker check incomplete** — candidates with `unverified` status. Retry failed probes; do not promote them to available.
 
-### Known limitation: 3+ morpheme moniker checks
+### Known limitation: bounded moniker checks
 
-The moniker check enumerates 1- and 2-separator variants. **3+ morpheme splits are not covered even with `--exhaustive`** — e.g., a candidate `eslintpluginreacthooks` would not surface `eslint-plugin-react-hooks` as a collision. The blog-rule normalization (`lowercase + strip [._-]`) catches this server-side, but client-side variant enumeration is combinatorially bounded. For multi-morpheme names (≥3 segments), recommend `npm publish --dry-run` against the live registry for authoritative pre-flight.
+The moniker check enumerates 1- and 2-separator variants. **Names requiring 3+ separator insertions are not covered even with `--exhaustive`** — e.g., `eslintpluginreacthooks` may miss `eslint-plugin-react-hooks`. The registry enforces its own rule during an actual publish, but client-side enumeration is bounded. Every available verdict is provisional: no public authoritative moniker preflight is provided here. `npm publish --dry-run` checks packaging and may read registry metadata, but skips the publish request and cannot confirm moniker acceptance. Never publish as a name-availability probe; publishing is outside this skill's scope and requires separate authorization.
 
 ### 5. Present a shortlist
 

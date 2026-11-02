@@ -7,7 +7,7 @@ Authoritative reference for npm package-name validation, the moniker (similar-na
 This skill runs three checks (after syntactic validation). The first two are npm's own publish-time rules; the third is a typosquat warning the skill layers on top.
 
 1. **Syntactic rules** — implemented in [`validate-npm-package-name`](https://github.com/npm/validate-npm-package-name) and re-enforced by `@npmcli/package-json`'s `fixName` step. Run client-side by the CLI and re-checked server-side. These cover length, allowed characters, leading char, casing, and a hard exclusion list. This skill uses the **upstream package directly** as a runtime dependency (bundled into the shipped `check.mjs`), not a hand-port — so the rules stay in sync with npm itself.
-2. **Moniker collision rule** — enforced **server-side only** by the npm registry on `npm publish` of a **new, unscoped** package. The registry strips `.`, `-`, and `_` and lowercases, then rejects the publish if the normalized name collides with an existing package. Introduced 26 December 2017 in response to the `crossenv` typosquatting incident. The npm CLI does **not** ship this check — there is no public `npm` API to test it client-side other than (a) attempting `npm publish --dry-run` against the live registry, or (b) reproducing the algorithm yourself and comparing against the registry's package list.
+2. **Moniker collision rule** — enforced **server-side only** by the npm registry on `npm publish` of a **new, unscoped** package. The registry strips `.`, `-`, and `_` and lowercases, then rejects the publish if the normalized name collides with an existing package. Introduced 26 December 2017 in response to the `crossenv` typosquatting incident. This skill approximates the rule client-side with bounded variant probes. There is no authoritative public moniker preflight provided here: `npm publish --dry-run` skips the publish request and does not run this server-side check.
 3. **Near-match (typosquat) warning** — Damerau-Levenshtein distance against the top-N most-downloaded packages. Catches names that npm would allow (different normalized form) but that are one or two edits away from a popular package — the classic typosquat shape (`extoolkit` ~ `es-toolkit`, `loadahs` ~ `lodash`, `typescirpt` ~ `typescript`). Grounded in the TypoGard/SpellBound paper's empirical threshold (see [§ Near-match](#near-match-typosquat-rule) below).
 
 The moniker rule applies to **new unscoped publishes only**. Scoped names (`@scope/name`) and updates to packages you already own are not subject to it. The near-match layer applies regardless — even a scoped publish that's confusable with a popular unscoped name is worth warning about.
@@ -157,11 +157,16 @@ There is no registry endpoint that says "would this name be moniker-blocked?" Th
 3. Compare against the normalized form of every existing name in the registry. Practical options:
    - Query `https://registry.npmjs.org/<candidate>` — a `404` means the literal name is free, but does **not** rule out a moniker collision.
    - Fetch [`all-package-names`](https://github.com/nice-registry/all-the-package-names) (≈90 MB) or stream the registry's `_all_docs` change feed and normalize.
-   - Try `npm publish --dry-run` against the live registry — this hits the moniker check server-side and returns the canonical error.
+   - Retry failed variant probes and inspect likely punctuation variants. Availability remains provisional; a dry-run does not run the registry's moniker check.
 
 **This skill's approach is probabilistic.** It enumerates the candidate's punctuation/case variants (single insertion + double insertion of `[._-]` plus full-split forms) and queries each against the registry — this catches the canonical `js-on-stream ↔ jsonstream` blog-post case and the vast majority of realistic moniker collisions. It will miss pathological 3+ separator insertions like `a.b-c_def` whose count grows combinatorially.
 
-**For authoritative pre-publish confirmation, run `npm publish --dry-run`** against the live registry. That triggers the server-side check the registry actually enforces. The skill's check is a fast filter, not a substitute.
+**There is no authoritative pre-publish confirmation in this skill.** npm's
+[`publish` implementation](https://github.com/npm/cli/blob/latest/lib/commands/publish.js)
+calls `libnpmpublish` only when `dryRun` is false. A dry-run can read version
+metadata but does not submit the publish request that enforces the moniker rule.
+Treat this skill as a fast, incomplete filter. Never perform an actual publish
+just to test a name; publication needs separate user authorization.
 
 ## Near-match (typosquat) rule
 

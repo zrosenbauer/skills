@@ -45,7 +45,7 @@ Two threats apply when forwarding local code to a third-party CLI:
 
 Both mitigations are built into `invoke-cli.mjs` and fire when you separate the inputs into two streams:
 
-- **Trusted prefix** (`--instructions`) — the persona body (e.g. `references/personas/adversarial.md`), the scope marker, the output-format spec from `references/review-output-format.md`. Anything you control. Pass it as a file path; the persona refs already exist on disk so you don't need a temp file.
+- **Trusted prefix** (repeat `--instructions`) — pass the complete persona, output-format, and threat-model files. Add a trusted scope file listing selected paths or the exact diff command. The wrapper concatenates these in order. Do not put reviewed file content in trusted instructions.
 - **Forwarded payload** (`--untrusted-content`) — file contents or `git diff` / `git diff --staged` output from the local working tree. Pass `-` to read from stdin so you can pipe `git diff` directly with no temp file. For multi-file scope, write the concatenated content to a temp file or use shell process substitution.
 
 Keep the persona file complete — strip nothing. Keep the content complete too; truncation hides the bugs. Total composed prompt should fit in the target model's context. If the code is huge:
@@ -59,11 +59,19 @@ See [`threat-model.md`](threat-model.md) for the trust boundaries and limits of 
 
 Use the bundled `invoke-cli.mjs` script. It handles the stdin-vs-argv choice, the secret-shield preflight, the salted-tag wrap, timeouts, and shell-quoting hazards. Both `--instructions` and `--untrusted-content` accept a file path or `-` to read from stdin (only one of the two flags may be `-` per invocation).
 
+Repeat `--instructions` for each trusted file; stdin may appear only once across
+all inputs. Unknown arguments fail before any child CLI is launched. The examples
+below assume the staged diff is the full selected scope; add the trusted scope
+file when the user's scope differs. These examples use a POSIX shell; on other
+hosts save the diff to a file and pass its absolute path instead of a pipe.
+
 For a `git diff --staged` review, the persona ref is already on disk and the diff streams from stdin — no temp files needed:
 
 ```bash
 git diff --staged | node "<skill-dir>/scripts/invoke-cli.mjs" <cli-id> \
   --instructions "<skill-dir>/references/personas/adversarial.md" \
+  --instructions "<skill-dir>/references/review-output-format.md" \
+  --instructions "<skill-dir>/references/threat-model.md" \
   --untrusted-content - \
   --secret-mode redact \
   --timeout 120
@@ -74,6 +82,8 @@ For multi-file file-path scope (no diff, just raw files), concatenate to a temp 
 ```bash
 node "<skill-dir>/scripts/invoke-cli.mjs" <cli-id> \
   --instructions "<skill-dir>/references/personas/adversarial.md" \
+  --instructions "<skill-dir>/references/review-output-format.md" \
+  --instructions "<skill-dir>/references/threat-model.md" \
   --untrusted-content <(cat src/auth/*.ts) \
   --secret-mode redact
 ```
@@ -85,7 +95,7 @@ The script:
 - Looks up `<cli-id>` in the same registry `detect-clis.mjs` uses
 - **Runs secret-shield on the untrusted content first.** Default `--secret-mode scan` refuses to forward when any AWS/GitHub/OpenAI/Anthropic/Slack/Stripe/Google/JWT/PEM key is detected (exit 1 with finding details). Pass `--secret-mode redact` to substitute `[REDACTED-{type}-{n}]` placeholders and continue. `--secret-mode allow` skips the check.
 - Composes a final prompt: `[instructions] + [anti-injection preamble naming the salted tag] + [<untrusted-{{salt}}>...(possibly redacted) content...</untrusted-{{salt}}>]`
-- Generates a fresh 12-hex salt per invocation — attacker cannot forge a closing tag
+- Generates a fresh 16-hex salt per invocation; salted boundaries are defense in depth, not an injection-proof sandbox
 - Prefers `stdinTemplate` (pipes the composed prompt to the child's stdin); falls back to `promptTemplate` argv substitution when the CLI doesn't support stdin
 - Times out after `--timeout` seconds (default 120s) — prevents a hanging interactive CLI from locking the agent
 - Returns the child's stdout on stdout, stderr on stderr
@@ -116,6 +126,8 @@ If you're not sure the invocation will work, do a dry run first — prints the p
 ```bash
 git diff --staged | node "<skill-dir>/scripts/invoke-cli.mjs" codex --dry-run \
   --instructions "<skill-dir>/references/personas/adversarial.md" \
+  --instructions "<skill-dir>/references/review-output-format.md" \
+  --instructions "<skill-dir>/references/threat-model.md" \
   --untrusted-content - \
   --secret-mode redact
 # {
@@ -125,7 +137,7 @@ git diff --staged | node "<skill-dir>/scripts/invoke-cli.mjs" codex --dry-run \
 #   "args": ["exec", "-"],
 #   "stdinBytes": 4271,
 #   "wrapped": true,
-#   "wrappedSalt": "a8f2c91d4e7b",
+#   "wrappedSalt": "a8f2c91d4e7b1035",
 #   "secretMode": "redact",
 #   "secretsRedacted": 0
 # }
@@ -145,12 +157,12 @@ The CLI's stdout is the review. Save it (don't paraphrase). If the user asked fo
 
 ## Things that go wrong
 
-| Symptom                                              | Cause                                             | Fix                                                                                            |
-| ---------------------------------------------------- | ------------------------------------------------- | ---------------------------------------------------------------------------------------------- |
-| CLI hangs                                            | Likely waiting for interactive input              | Make sure you used the non-interactive flag (`-p`, `exec`, etc. — see `promptTemplate`)        |
-| Empty / minimal output                               | CLI silently rate-limited or auth-failed          | Run the CLI manually with `--help` to verify auth                                              |
-| Output is in a chat-style format ("Sure! Here's...") | The model wasn't pushed into reviewer mode        | Strengthen the persona prompt — explicitly say "Output ONLY the findings, no preamble"         |
-| Output mixes findings with code suggestions          | Persona didn't say "findings only, not solutions" | Adversarial / security personas explicitly forbid solutions; reinforce in the prompt if needed |
+| Symptom                                              | Cause                                              | Fix                                                                                                                                   |
+| ---------------------------------------------------- | -------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------- |
+| CLI hangs                                            | Likely waiting for interactive input               | Make sure you used the non-interactive flag (`-p`, `exec`, etc. — see `promptTemplate`)                                               |
+| Empty / minimal output                               | CLI silently rate-limited or auth-failed           | Run the CLI manually with `--help` to verify auth                                                                                     |
+| Output is in a chat-style format ("Sure! Here's...") | The model wasn't pushed into reviewer mode         | Strengthen the persona prompt — explicitly say "Output ONLY the findings, no preamble"                                                |
+| Output violates the chosen lens's fix policy         | Persona and shared contract were not both supplied | Adversarial is findings-only unless requested; security and performance may include concise mitigations. Pass all trusted references. |
 
 ## Don't
 

@@ -12,9 +12,9 @@ npx skills add zrosenbauer/skills --skill skill-portability
 
 - Reads a skill's frontmatter and body (SKILL.md, .mdc, or AGENTS.md)
 - Loads the canonical provider list via `node "<skill-dir>/scripts/providers.mjs"`
-- Spawns one agent per provider in **parallel**, each fetching the provider's authoritative llms.txt docs and grading the skill against three layers
+- Uses one independent worker per provider when available (otherwise a labeled single-agent review), grading against bundled, dated documentation excerpts without runtime fetching
 - Aggregates verdicts into a markdown matrix shown inline AND persisted to `COMPAT.md` next to the skill
-- Surfaces stale provider URLs so the audit doesn't silently grade against 404s
+- Reports missing or insufficient evidence as unknown; URL health checks are a separate opt-in operation
 
 ## The three audit layers
 
@@ -50,13 +50,15 @@ Zero dependencies. Pure ESM. Runs on stock Node ≥ 20 — macOS, Linux, Windows
 import { providers, getProvider } from './scripts/providers.mjs'
 ```
 
-When a provider moves their docs, update `scripts/providers.mjs` and ship a PR. Run `--check` against the URLs first to confirm they 200.
+When a provider changes its skill format, refresh the relevant snapshot and
+registry together using [maintenance](references/maintenance.md). URL health
+alone does not establish that a snapshot contains the right specification.
 
 ## Currently covered providers
 
 - **Claude Code** (Anthropic) — native `SKILL.md` format
-- **Cursor** — `.cursor/rules/*.mdc` rule files
-- **OpenAI Codex CLI** — `AGENTS.md` plain markdown
+- **Cursor** — native `SKILL.md` directories with companion resources
+- **OpenAI Codex CLI** — native `SKILL.md` directories; optional `agents/openai.yaml` for invocation policy
 - **Agents-Skills Baseline** — `SKILL.md` under `.agents/skills/`; the lowest-common-denominator format consumed by Gemini CLI, OpenCode, Pi, and any other agent that adopts the [agentskills.io](https://agentskills.io/specification) spec
 
 Adding a provider means adding one entry to the array in `scripts/providers.mjs` — the audit body re-reads the script every run, so no SKILL.md edit is required.

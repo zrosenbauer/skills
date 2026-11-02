@@ -148,17 +148,30 @@ const err = <E>(error: E): Err<E> => ({ ok: false, error })
 ```
 
 <good>
+interface Config {
+  port: number
+}
+
 interface ParseError {
-  type: 'invalid_json' | 'schema_mismatch'
-  message: string
+type: 'invalid_json' | 'schema_mismatch'
+message: string
 }
 
 function parseConfig(json: string): Result<Config, ParseError> {
+let parsed: unknown
 try {
-return ok(JSON.parse(json))
+parsed = JSON.parse(json)
 } catch {
 return err({ type: 'invalid_json', message: 'Invalid JSON' })
 }
+if (
+typeof parsed !== 'object' || parsed === null ||
+!('port' in parsed) || typeof parsed.port !== 'number' ||
+!Number.isInteger(parsed.port) || parsed.port < 1 || parsed.port > 65535
+) {
+return err({ type: 'schema_mismatch', message: 'Expected an integer port from 1 to 65535' })
+}
+return ok({ port: parsed.port })
 }
 
 const result = parseConfig(input)
@@ -190,11 +203,11 @@ const config = parseConfig(input) // crashes the request
 #### Async pattern
 
 ```ts
-async function attemptAsync<T, E = unknown>(fn: () => Promise<T>): Promise<Result<T, E>> {
+async function attemptAsync<T>(fn: () => Promise<T>): Promise<Result<T, unknown>> {
   try {
     return ok(await fn())
   } catch (error) {
-    return err(error as E)
+    return err(error)
   }
 }
 
@@ -202,6 +215,10 @@ const result = await attemptAsync(() => fetch('/api/users'))
 if (!result.ok) return logger.error('fetch failed')
 const response = result.value
 ```
+
+Caught values are `unknown`, not a caller-selected error type. Narrow them or
+map them explicitly to a validated domain error at the boundary. A successful
+`fetch` call can still return an HTTP error; check `response.ok` before parsing.
 
 #### Domain-specific error types
 

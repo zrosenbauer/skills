@@ -23,14 +23,21 @@ export const PROVIDERS: Provider[] = [
     skills: {
       supported: true,
       fileFormat: '<name>/SKILL.md',
-      fileLocation: '.claude/skills/<name>/SKILL.md or skills/<name>/SKILL.md',
+      fileLocation:
+        '.claude/skills/<name>/SKILL.md (project) or ~/.claude/skills/<name>/SKILL.md (personal)',
       searchPaths: ['skills', '.agents/skills'],
-      requiredFrontmatter: ['name', 'description'],
+      requiredFrontmatter: [],
       optionalFrontmatter: [
         'argument-hint',
         'user-invocable',
         'disable-model-invocation',
         'allowed-tools',
+        'name',
+        'description',
+        'metadata',
+        'license',
+        'compatibility',
+        'paths',
       ],
     },
     agents: {
@@ -49,34 +56,42 @@ export const PROVIDERS: Provider[] = [
     name: 'Cursor',
     skills: {
       supported: true,
-      fileFormat: '<name>.mdc',
-      fileLocation: '.cursor/rules/<name>.mdc',
-      searchPaths: ['.cursor/rules'],
-      requiredFrontmatter: ['description'],
-      optionalFrontmatter: ['globs', 'alwaysApply'],
+      fileFormat: '<name>/SKILL.md',
+      fileLocation: '.cursor/skills/<name>/SKILL.md or .agents/skills/<name>/SKILL.md',
+      searchPaths: ['.cursor/skills', '.agents/skills'],
+      requiredFrontmatter: ['name', 'description'],
+      optionalFrontmatter: [
+        'paths',
+        'globs',
+        'disable-model-invocation',
+        'icon',
+        'color',
+        'metadata',
+      ],
     },
     agents: {
       supported: false,
     },
     notes:
-      'Cursor has "rules" (≈ skills) and "modes" (custom system prompts), but no Task-tool-style spawnable sub-agent file format that I have documented. Mark unsupported until verified.',
+      'Cursor Agent Skills support companion resources. Rules .mdc files are separate. Agent discovery is not implemented by this toolkit.',
   },
   {
     id: 'openai-codex-cli',
     name: 'OpenAI Codex CLI',
     skills: {
       supported: true,
-      fileFormat: 'AGENTS.md',
-      fileLocation: '<repo-root>/AGENTS.md (or nested AGENTS.md per directory)',
-      searchPaths: ['.'],
-      requiredFrontmatter: [],
-      optionalFrontmatter: [],
+      fileFormat: '<name>/SKILL.md',
+      fileLocation:
+        '.agents/skills/<name>/SKILL.md (repository) or ~/.agents/skills/<name>/SKILL.md (user)',
+      searchPaths: ['.agents/skills'],
+      requiredFrontmatter: ['name', 'description'],
+      optionalFrontmatter: ['metadata'],
     },
     agents: {
       supported: false,
     },
     notes:
-      'Codex CLI reads AGENTS.md as context — no separate sub-agent file format. Agents block stays unsupported.',
+      'Codex natively loads SKILL.md; AGENTS.md is separate repository guidance. Optional agents/openai.yaml configures skill policy. Agent discovery is not implemented by this toolkit.',
   },
   {
     id: 'agents-skills-baseline',
@@ -88,13 +103,13 @@ export const PROVIDERS: Provider[] = [
         '.agents/skills/<name>/SKILL.md (project); per-agent global paths vary (~/.gemini/skills/, ~/.config/opencode/skills/, ~/.pi/agent/skills/)',
       searchPaths: ['.agents/skills'],
       requiredFrontmatter: ['name', 'description'],
-      optionalFrontmatter: ['license', 'metadata', 'allowed-tools'],
+      optionalFrontmatter: ['license', 'compatibility', 'metadata', 'allowed-tools'],
     },
     agents: {
       supported: false,
     },
     notes:
-      'Baseline spec covers skills only. OpenCode probably has a sub-agent concept (`.opencode/agent/<name>.md`?) — needs verification before flipping `supported: true`.',
+      'Baseline spec covers skills only. Agent discovery outside Claude Code is not implemented by this toolkit; supported=false is not a claim that the provider lacks agents.',
   },
 ]
 

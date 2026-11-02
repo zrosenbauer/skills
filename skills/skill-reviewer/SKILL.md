@@ -32,13 +32,19 @@ Reviews an existing skill in this repo against authoring conventions. Produces a
 
 ### 1. Resolve target + run lint baseline
 
-Locate the skill directory. Confirm `SKILL.md` exists. Run:
+Locate the skill directory. Confirm `SKILL.md` exists. In the authoring repository,
+when its package script and built toolkit are available, run:
 
 ```bash
 pnpm skill-toolkit lint <skill-name>
 ```
 
 Capture the lint output verbatim — it's the floor, not the ceiling. Lint passing means **mechanical** rules pass; it does not mean the skill is well-authored.
+
+For an installed skill in another project, apply the bundled
+[`lint-checklist.md`](references/authoring/lint-checklist.md) manually instead.
+Do not install the toolkit or assume a sibling skill exists. Report
+`toolkit unavailable; manual checklist used`, never a fabricated lint pass.
 
 ### 2. Classify the skill type
 

@@ -6,7 +6,7 @@
 // enumerate one- and two-position separator insertions plus full-split
 // forms. Pathological multi-insertion variants (`a.b-c_def`-style) and
 // mixed-separator 3+ insertions can normalize to the same form but won't
-// be queried. For authoritative pre-flight, use `npm publish --dry-run`.
+// be queried. Dry-run publishing does not invoke the server-side moniker check.
 
 import { attemptAsync } from 'massaman'
 

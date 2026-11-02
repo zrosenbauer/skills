@@ -10,11 +10,11 @@
 //                                [--out <path>]
 //                                [--width <px>]
 //                                [--height <px>]
-//                                [--density <dpi>]   # default 144 — bumps font crispness
-//                                [--quality <0-100>] # for jpeg/webp/avif
+//                                [--density <dpi>]   # default 72 — native SVG pixel dimensions
+//                                [--quality <1-100>] # for jpeg/webp/avif
 //
 // Notes:
-//   - sharp is a peer dep — install with `node preflight.mjs --install` or
+//   - sharp is a peer dep — after approval use `node preflight.mjs --raster --install` or
 //     your package manager (`pnpm add -D sharp` / `npm install -D sharp`).
 //   - For pixel-perfect text, embed webfonts as base64 inside the SVG via
 //     <style>@font-face{...}</style>. librsvg falls back to system fonts
@@ -74,7 +74,9 @@ try {
   sharp = requireFromCwd('sharp')
 } catch {
   console.error('✗ sharp is not installed. Run:')
-  console.error('    node ' + join(import.meta.dirname ?? '.', 'preflight.mjs') + ' --install')
+  console.error(
+    '    node ' + join(import.meta.dirname ?? '.', 'preflight.mjs') + ' --raster --install'
+  )
   console.error('  or install manually:')
   console.error('    pnpm add -D sharp   # or: npm install -D sharp')
   process.exit(1)
@@ -92,7 +94,7 @@ try {
 }
 
 try {
-  let pipe = sharp(svgBuffer, { density: args.density ?? 144 })
+  let pipe = sharp(svgBuffer, { density: args.density ?? 72 })
   if (args.width || args.height) {
     pipe = pipe.resize({
       width: args.width,
@@ -151,7 +153,14 @@ function parseArgs(argv) {
   }
   for (let i = 0; i < argv.length; i++) {
     const a = argv[i]
-    const next = () => argv[++i]
+    const next = () => {
+      const value = argv[++i]
+      if (!value || value.startsWith('--')) {
+        console.error(`✗ ${a} requires a value`)
+        process.exit(2)
+      }
+      return value
+    }
     if (a === '--format' || a === '-f') out.format = next()
     else if (a === '--out' || a === '-o') out.out = next()
     else if (a === '--width' || a === '-w') out.width = Number(next())
@@ -171,11 +180,30 @@ function parseArgs(argv) {
       process.exit(2)
     }
   }
+  for (const key of ['width', 'height', 'density']) {
+    const value = out[key]
+    if (
+      value !== null &&
+      (!Number.isFinite(value) || value <= 0 || (key !== 'density' && !Number.isInteger(value)))
+    ) {
+      console.error(
+        `✗ --${key} requires a finite positive ${key === 'density' ? 'number' : 'integer'}`
+      )
+      process.exit(2)
+    }
+  }
+  if (
+    out.quality !== null &&
+    (!Number.isInteger(out.quality) || out.quality < 1 || out.quality > 100)
+  ) {
+    console.error('✗ --quality requires an integer from 1 to 100')
+    process.exit(2)
+  }
   return out
 }
 
 function usage() {
   console.error(
-    'usage: convert.mjs <input.svg> [--format png|jpeg|webp|avif] [--out <path>] [--width <px>] [--height <px>] [--density <dpi>] [--quality <0-100>]'
+    'usage: convert.mjs <input.svg> [--format png|jpeg|webp|avif] [--out <path>] [--width <px>] [--height <px>] [--density <dpi>] [--quality <1-100>]'
   )
 }

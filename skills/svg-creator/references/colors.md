@@ -1,6 +1,7 @@
 # Color Reference for SVG Assets
 
-Standalone SVGs cannot read CSS variables — colors must be hardcoded as hex.
+Standalone SVG images cannot inherit CSS variables from the consuming page.
+Use hardcoded hex colors for portable assets; inline SVG can use CSS variables.
 This file is a starting palette. Override per-project as needed; what matters
 is _consistency within a single category_ (e.g., all banners share a palette).
 

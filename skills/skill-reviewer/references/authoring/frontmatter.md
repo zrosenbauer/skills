@@ -13,7 +13,7 @@ Both fields are required by the `skills` CLI for installation. `name` must match
 
 ## Claude Code extensions (optional)
 
-These fields are read by Claude Code per the [official spec](https://code.claude.com/docs/en/skills.md). Other agents safely ignore them — keep them defensively for cross-agent compatibility.
+These fields are read by Claude Code per the [official spec](https://code.claude.com/docs/en/skills.md). Other agents may support a subset or ignore them. Do not rely on a provider-specific invocation or permission field as a cross-provider security boundary.
 
 | Field                      | Type    | Notes                                                                                                                                   |
 | -------------------------- | ------- | --------------------------------------------------------------------------------------------------------------------------------------- |
@@ -22,7 +22,13 @@ These fields are read by Claude Code per the [official spec](https://code.claude
 | `disable-model-invocation` | boolean | When `true`, prevents Claude from auto-loading the skill — only the user can invoke via `/`. Defaults to `false` (model can auto-load). |
 | `allowed-tools`            | string  | Space-separated tools Claude can use without asking permission when this skill is active, e.g. `'Bash(git:*) Read Edit'`.               |
 
-**Fields that look like they should exist but don't:** there is no `model-invocable` or `metadata` field in Claude Code's spec. Use `disable-model-invocation` (inverse semantics) instead of `model-invocable`. There is no first-class metadata bag — author/version/tags belong in the description body or `README.md`.
+There is no `model-invocable` field: use `disable-model-invocation` (inverse semantics).
+The Agent Skills standard supports `metadata` (a string-to-string map), `license`,
+and `compatibility`; current Claude Code also accepts them. Prefer README prose
+unless machine-readable metadata serves a real consumer. This repository's
+description length and trigger rules are authoring conventions, not universal
+provider requirements. Claude Code itself permits omitted `name` and `description`;
+we require both for portable distribution.
 
 ## License
 
@@ -56,4 +62,4 @@ user-invocable: true
 - Keep frontmatter minimal. Don't add fields no agent will use.
 - Don't quote field names. YAML doesn't require it.
 - Single-quote string values that contain colons or special chars (`'[<skill-name>]'`).
-- The Claude Code extensions are harmless to other agents — include them defensively.
+- Verify extension semantics per host; an ignored invocation-control field does not enforce manual-only execution there.

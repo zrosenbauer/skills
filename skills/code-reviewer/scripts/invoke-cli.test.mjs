@@ -82,6 +82,33 @@ test('--timeout accepts a positive number', () => {
   assert.equal(r.status, 0)
 })
 
+test('rejects unknown flags and extra positionals before invoking a child', () => {
+  for (const argument of ['--dryrun', '--secret-mode=allow', '--instrutions', 'extra']) {
+    const result = run(['codex', argument], 'fixture prompt')
+    assert.equal(result.status, 1)
+    assert.match(result.stderr, /Unknown argument:/)
+    assert.equal(result.stdout, '')
+  }
+})
+
+test('accepts the documented instruction and content aliases', () => {
+  const tmp = withTempFiles({ 'persona.md': 'review', 'diff.txt': '+ change' })
+  try {
+    const result = run([
+      'codex',
+      '--dry-run',
+      '-i',
+      tmp.paths['persona.md'],
+      '-u',
+      tmp.paths['diff.txt'],
+    ])
+    assert.equal(result.status, 0)
+    assert.equal(JSON.parse(result.stdout).wrapped, true)
+  } finally {
+    tmp.cleanup()
+  }
+})
+
 // Smoke-level checks for buildInvocation against the registry — full unit
 // coverage lives in invocation.test.mjs.
 test('buildInvocation: stdin mode for entry with stdinTemplate', () => {
@@ -149,6 +176,38 @@ test('--instructions alone reads the file as the verbatim prompt', () => {
   } finally {
     tmp.cleanup()
   }
+})
+
+test('joins repeated trusted instructions in order', () => {
+  const tmp = withTempFiles({ 'persona.md': 'persona', 'format.md': 'format', 'scope.md': 'scope' })
+  try {
+    const result = run([
+      'opencode',
+      '--dry-run',
+      '-i',
+      tmp.paths['persona.md'],
+      '-i',
+      tmp.paths['format.md'],
+      '-i',
+      tmp.paths['scope.md'],
+    ])
+    assert.equal(result.status, 0)
+    assert.ok(JSON.parse(result.stdout).args.includes('persona\n\nformat\n\nscope'))
+  } finally {
+    tmp.cleanup()
+  }
+})
+
+test('rejects repeated stdin instruction sources', () => {
+  const result = run(['codex', '--dry-run', '-i', '-', '-i', '-'], 'instructions')
+  assert.equal(result.status, 1)
+  assert.match(result.stderr, /more than once/)
+})
+
+test('rejects duplicate payload inputs instead of silently dropping reviewed content', () => {
+  const result = run(['codex', '--dry-run', '-u', 'first', '-u', 'second'], 'fixture')
+  assert.equal(result.status, 1)
+  assert.match(result.stderr, /only once/)
 })
 
 test('--instructions errors if file does not exist', () => {

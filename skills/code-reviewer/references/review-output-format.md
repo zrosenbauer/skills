@@ -70,7 +70,10 @@ Each finding's body should answer in 1–3 lines:
 
 1. **What** — name the offending pattern in plain language; one-line. Reference by `file:line`. Do not reproduce code or diff content.
 2. **Why it fails** — the failure mode in concrete terms
-3. **Fix** — the obvious mitigation, single-line; skip if the fix is the inverse of (2)
+3. **Fix** — when permitted by the selected persona, the obvious mitigation,
+   single-line; skip if the fix is the inverse of (2). Adversarial remains
+   findings-only unless the user asks for solutions. The mandatory Clean section
+   records checked areas factually, not praise.
 
 If you find yourself writing a paragraph, the finding is too big — split it.
 

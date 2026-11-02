@@ -6,12 +6,12 @@ Agent-agnostic. Works with any agent that loads `SKILL.md`. Optional integration
 
 ## What it bakes in
 
-- **viewBox discipline** — every SVG starts with `viewBox="0 0 W H"`, no offsets, no padding. Lint script enforces.
+- **viewBox discipline** — every SVG starts with `viewBox="0 0 W H"`. Lint checks finite positive dimensions and zero origin; preview verifies padding and clipping.
 - **Edge-to-edge content** — layout spacing belongs in the consumer (CSS / README / slide template), not in the asset.
-- **Hardcoded hex colors** — SVG cannot read CSS variables, so the skill bakes in a starter palette and reminds you why.
-- **Node preview server** — picks a free port from a small uncommon-port pool, serves an HTML page rendering the SVG via `<img>`. Designed for chrome-devtools MCP to navigate + screenshot.
+- **Hardcoded hex colors** — standalone images cannot inherit consumer CSS variables; inline SVG can.
+- **Node preview server** — loopback HTML with inline SVG for DOM inspection. Not a sandbox: check active content and obtain approval for flagged files before previewing.
 - **Opt-in raster conversion** — `sharp`-based PNG / JPEG / WebP / AVIF output. Asks the user before converting; doesn't auto-generate siblings.
-- **Preflight bootstrap** — one script checks Node version, `sharp` availability, and chrome-devtools MCP presence; offers to install the missing pieces via the repo's package manager.
+- **Preflight bootstrap** — SVG-only work needs just Node. `--raster` requires `sharp`; installation requires explicit user approval.
 
 ## Files
 
@@ -36,10 +36,12 @@ svg-creator/
 npx skills add zrosenbauer/skills --skill svg-creator
 ```
 
-Then run the preflight from the skill's install directory to wire up `sharp`:
+Run from the user's project, not the skill's install directory:
 
 ```sh
-node .agents/skills/svg-creator/scripts/preflight.mjs --install
+node .agents/skills/svg-creator/scripts/preflight.mjs
+# Only for raster conversion, after approval to add sharp:
+node .agents/skills/svg-creator/scripts/preflight.mjs --raster --install
 ```
 
 ## License

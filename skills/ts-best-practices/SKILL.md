@@ -194,16 +194,16 @@ switch (status) {
 
 ### Anti-patterns
 
-| Avoid                                        | Use instead                        |
-| -------------------------------------------- | ---------------------------------- |
-| `any`                                        | `unknown` + narrow with type guard |
-| Ternaries (esp. nested)                      | `call()` for A/B, `match()` for 3+ |
-| `switch` statements                          | `match().with(...).exhaustive()`   |
-| Banner comments (`// === HELPERS ===`)       | Let file structure speak           |
-| Arrow functions for private helpers          | `function` declarations (hoisted)  |
-| Type assertion (`as Foo`) without validation | Type guard or schema parse         |
-| Concatenated property names (`clerkOrgId`)   | Nested objects (`clerk.orgId`)     |
-| 5+ positional params                         | Refactor to a `*Params` object     |
+| Avoid                                        | Use instead                              |
+| -------------------------------------------- | ---------------------------------------- |
+| `any`                                        | `unknown` + narrow with type guard       |
+| Nested ternaries                             | Inline ternary for A/B, `match()` for 3+ |
+| `switch` statements                          | `match().with(...).exhaustive()`         |
+| Banner comments (`// === HELPERS ===`)       | Let file structure speak                 |
+| Arrow functions for private helpers          | `function` declarations (hoisted)        |
+| Type assertion (`as Foo`) without validation | Type guard or schema parse               |
+| Concatenated property names (`clerkOrgId`)   | Nested objects (`clerk.orgId`)           |
+| 5+ positional params                         | Refactor to a `*Params` object           |
 
 ## Examples
 
