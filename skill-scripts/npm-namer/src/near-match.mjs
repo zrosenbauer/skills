@@ -98,7 +98,7 @@ export function findNearMatches(candidate, corpus, opts = {}) {
   }
 
   return [...bestByNorm.values()]
-    .sort((a, b) => a.distance - b.distance || a.rank - b.rank)
+    .toSorted((a, b) => a.distance - b.distance || a.rank - b.rank)
     .map(({ name, distance: d }) => ({ name, distance: d }))
 }
 

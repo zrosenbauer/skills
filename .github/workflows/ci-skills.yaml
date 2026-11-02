@@ -32,6 +32,9 @@ jobs:
       contents: read
     steps:
       - uses: actions/checkout@v7.0.1
+      - uses: actions/setup-node@v7.1.0
+        with:
+          node-version: '24'
 
       - name: Set up uv (for uvx snyk-agent-scan)
         uses: astral-sh/setup-uv@v10.3.3
@@ -59,20 +62,12 @@ jobs:
           if-no-files-found: ignore
 
       - name: Fail on High / Critical findings
-        if: steps.scan.outcome == 'success'
-        # Findings live at .skills.issues[]; severity is on .extra_data.severity
-        # and is lowercase ("high" / "critical"). No exemptions — every public
-        # skill should target zero high/critical findings. Add per-(skill, code)
-        # acks here only if an inherent-to-the-feature finding is impossible
-        # to remove without killing the skill.
+        # Current reports use scan_path_responses and risk_indexes. High starts
+        # at 600; Critical is 1000. Missing analysis and operational errors fail
+        # verification too — an unavailable scan is never a clean scan.
         run: |
-          HIGH=$(jq '[.skills.issues[]
-            | select(.extra_data.severity == "high" or .extra_data.severity == "critical")] | length' audit.json)
-          echo "High/critical findings: $HIGH"
-          if [ "$HIGH" -gt 0 ]; then
-            echo "::error::High/critical findings present"
-            jq '.skills.issues[]
-              | select(.extra_data.severity == "high" or .extra_data.severity == "critical")
-              | { code, severity: .extra_data.severity, message }' audit.json
+          node skill-scripts/agent-scan.mjs audit.json skills
+          if [ "${{ steps.scan.outcome }}" != "success" ]; then
+            echo "::error::Scanner command failed; analysis is unverified"
             exit 1
           fi

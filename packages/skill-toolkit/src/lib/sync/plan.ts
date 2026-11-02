@@ -61,8 +61,7 @@ function buildReport({ repoRoot, skill, directive }: BuildReportParams): SyncRep
   const destDir = path.join(skill.location.dir, directive.dest)
   const roots = { repoRoot, skillDir: skill.location.dir, sourceDir, destDir }
   assertSyncPaths(roots)
-  const segments = directive.dest.split('/').filter((s) => s.length > 0 && s !== '.')
-  const kind = segments[0] ?? 'vendor'
+  const kind = directive.dest.split('/').find((s) => s.length > 0 && s !== '.') ?? 'vendor'
   const assetName = path.basename(directive.dest)
 
   if (!existsSync(sourceDir)) {

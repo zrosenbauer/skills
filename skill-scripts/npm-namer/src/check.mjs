@@ -279,7 +279,7 @@ function prepareCandidates(config) {
 }
 
 function trim(candidates, seeds, limit) {
-  const ranked = [...candidates].sort((a, b) => score(a, seeds) - score(b, seeds))
+  const ranked = candidates.toSorted((a, b) => score(a, seeds) - score(b, seeds))
   return ranked.length > limit ? ranked.slice(0, limit) : ranked
 }
 

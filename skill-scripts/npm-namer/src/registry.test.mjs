@@ -39,12 +39,14 @@ test('checkOne: network error → unknown with error message', async () => {
 test('checkOne: malformed Response (no numeric status) → unknown with explanatory error (regression W16a)', async () => {
   // A custom fetchImpl returning a non-Response shape used to surface as
   // {kind: 'unknown', status: undefined}, violating the typedef.
-  for (const malformed of [{}, null, undefined, { status: 'not-a-number' }, { status: NaN }]) {
-    const result = await checkOne('candidate', { fetchImpl: async () => malformed })
-    assert.equal(result.kind, 'unknown')
-    assert.equal(result.status, 0)
-    assert.match(result.error, /fetch returned response without numeric status/)
-  }
+  await Promise.all(
+    [{}, null, undefined, { status: 'not-a-number' }, { status: NaN }].map(async (malformed) => {
+      const result = await checkOne('candidate', { fetchImpl: async () => malformed })
+      assert.equal(result.kind, 'unknown')
+      assert.equal(result.status, 0)
+      assert.match(result.error, /fetch returned response without numeric status/)
+    })
+  )
 })
 
 test('checkOne: handles scoped names via URL encoding', async () => {

@@ -119,6 +119,8 @@ function validateShape(value, path) {
  *
  * @private
  */
+// Preserve the existing test-helper export for source consumers.
+// eslint-disable-next-line no-underscore-dangle
 export function _resetCorpusCache() {
   cache = null
 }

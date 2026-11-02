@@ -107,6 +107,8 @@ export async function pool(tasks, concurrency = DEFAULT_CONCURRENCY) {
     while (true) {
       const i = next++
       if (i >= tasks.length) return
+      // Each worker must finish its current request before claiming another slot.
+      // eslint-disable-next-line no-await-in-loop
       results[i] = await tasks[i]()
     }
   }

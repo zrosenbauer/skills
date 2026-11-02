@@ -255,6 +255,8 @@ async function runBounded(items, concurrency, task) {
     while (true) {
       const index = next++
       if (index >= items.length) return
+      // Each worker must finish its current request before claiming another slot.
+      // eslint-disable-next-line no-await-in-loop
       results[index] = await task(items[index])
     }
   }

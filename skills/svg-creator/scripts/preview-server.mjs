@@ -121,7 +121,7 @@ function extractDims(svg) {
   return { w: w ? w[1] : '?', h: h ? h[1] : '?' }
 }
 
-function renderHtml(name, svgSource, dims) {
+function renderHtml(name, source, dims) {
   return `<!doctype html>
 <html lang="en">
 <head>
@@ -160,11 +160,11 @@ function renderHtml(name, svgSource, dims) {
     <div class="meta">${esc(String(dims.w))} × ${esc(String(dims.h))}</div>
   </header>
   <div class="stage" id="stage">
-    ${svgSource}
+    ${source}
   </div>
   <section>
     <h2>Source</h2>
-    <pre><code>${esc(svgSource)}</code></pre>
+    <pre><code>${esc(source)}</code></pre>
   </section>
 </body>
 </html>`

@@ -49,7 +49,7 @@ export function scanForSecrets({ content }) {
   const newlines = newlineIndex(content)
   const findings = matches
     .map((m) => toFinding(m, content, newlines))
-    .sort((a, b) => (a.line === b.line ? a.column - b.column : a.line - b.line))
+    .toSorted((a, b) => (a.line === b.line ? a.column - b.column : a.line - b.line))
   return { findings, hasFindings: findings.length > 0 }
 }
 
@@ -67,7 +67,7 @@ export function scanForSecrets({ content }) {
  * @returns {{ content: string, findings: SecretFinding[] }}
  */
 export function redactSecrets({ content }) {
-  const matches = collectMatches(content).sort((a, b) => a.start - b.start)
+  const matches = collectMatches(content).toSorted((a, b) => a.start - b.start)
 
   // Drop overlapping matches — keep the earlier one. `matches` is already
   // sorted by start, so a later entry that begins before the previous one
@@ -96,7 +96,7 @@ export function redactSecrets({ content }) {
   const newlines = newlineIndex(content)
   const findings = kept
     .map((m) => toFinding(m, content, newlines))
-    .sort((a, b) => (a.line === b.line ? a.column - b.column : a.line - b.line))
+    .toSorted((a, b) => (a.line === b.line ? a.column - b.column : a.line - b.line))
 
   return { content: out, findings }
 }

@@ -156,12 +156,11 @@ test('variants: exhaustive mode covers strictly more candidates than default', (
 test('findCollisions: surfaces unverified variants when exists() throws', async () => {
   // Bug W14: exists() errors used to bubble through Promise.all. Now they
   // land in `unverified` so callers can avoid false `available` verdicts.
-  const flaky = async (variant) => {
+  const result = await findCollisions('picolog', async (variant) => {
     if (variant === 'pico-log') return true
     if (variant === 'pico_log') throw new Error('429 rate limit')
     return false
-  }
-  const result = await findCollisions('picolog', flaky)
+  })
   assert.ok(result.conflicts.length > 0)
   assert.ok(result.conflicts.includes('pico-log'))
   assert.ok(result.unverified.includes('pico_log'))
