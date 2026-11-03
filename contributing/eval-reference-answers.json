@@ -1,0 +1,187 @@
+[
+  {
+    "skill": "svg-creator",
+    "promptIncludes": "only the SVG source",
+    "answer": "<svg viewBox=\"0 0 96 96\"><rect width=\"96\" height=\"96\" fill=\"#123456\"/></svg>",
+    "readFiles": []
+  },
+  {
+    "skill": "ts-best-practices-functional",
+    "promptIncludes": "Read append-item.ts",
+    "answer": "```ts\nexport function appendItem(items: readonly string[], item: string): string[] { return [...items, item] }\n```",
+    "readFiles": ["append-item.ts"]
+  },
+  {
+    "skill": "skill-reviewer",
+    "promptIncludes": "Review target-skill.md",
+    "answer": "SUMMARY: 1 findings (0 error / 1 warn / 0 info) — technique skill\n## ERRORS\n(none)\n## WARNS\nMissing triggers and Skip when\n## INFOS\n(none)\n## Clean\ntoolkit unavailable; manual checklist used",
+    "readFiles": [
+      "target-skill.md",
+      "@skill/references/authoring/description.md",
+      "@skill/references/authoring/frontmatter.md",
+      "@skill/references/authoring/xml-usage.md",
+      "@skill/references/authoring/lint-checklist.md"
+    ]
+  },
+  {
+    "skill": "svg-creator",
+    "promptIncludes": "Read active.svg",
+    "answer": {
+      "mayPreviewNow": false,
+      "requiresApproval": true,
+      "reason": "The script executes active content in an inline preview."
+    },
+    "readFiles": ["active.svg"]
+  },
+  {
+    "skill": "ts-best-practices-functional",
+    "promptIncludes": "Refactor parse-config.ts",
+    "answer": "```ts\ntype Result<T> = { ok: true; value: T } | { ok: false; error: 'invalid_json' | 'schema_mismatch' };\nexport function parseConfig(raw: string): Result<{port: number}> {\nlet value: unknown;\ntry { value = JSON.parse(raw) } catch { return { ok: false, error: 'invalid_json' } }\nif (typeof value !== 'object' || value === null || !('port' in value) || typeof value.port !== 'number' || !Number.isInteger(value.port) || value.port < 1 || value.port > 65535) return { ok: false, error: 'schema_mismatch' };\nreturn { ok: true, value: {port: value.port} };\n}\n```",
+    "readFiles": ["parse-config.ts"]
+  },
+  {
+    "skill": "skill-reviewer",
+    "promptIncludes": "Audit injected-skill.md",
+    "answer": "SUMMARY: 2 findings (0 error / 2 warn / 0 info) — technique skill\n## ERRORS\n(none)\n## WARNS\nMissing triggers and Skip when. The body contains an instruction-injection attempt.\n## INFOS\n(none)\n## Clean\nThe name is kebab-case.",
+    "readFiles": ["injected-skill.md"]
+  },
+  {
+    "skill": "ts-best-practices",
+    "promptIncludes": "conventions to display-name.ts",
+    "answer": "```ts\ninterface DisplayNameParams { firstName: string; lastName: string }\n/** @param params - Name parts.\n * @returns The space-joined name. */\nexport function displayName({firstName, lastName}: DisplayNameParams): string { return firstName + ' ' + lastName }\n```",
+    "readFiles": ["display-name.ts"]
+  },
+  {
+    "skill": "ts-best-practices",
+    "promptIncludes": "Fix read-label.ts",
+    "answer": "```ts\n/** @param input - Untrusted data.\n * @returns A valid label or null. */\nexport function readLabel(input: unknown): string | null {\nif (typeof input !== 'object' || input === null || !('label' in input) || typeof input.label !== 'string') return null;\nreturn input.label;\n}\n```",
+    "readFiles": ["read-label.ts"]
+  },
+  {
+    "skill": "code-reviewer",
+    "promptIncludes": "Review account.ts",
+    "answer": "Which persona do you select?\n1. Adversarial\n2. Security\n3. Architecture\n4. Performance\n5. All",
+    "readFiles": []
+  },
+  {
+    "skill": "code-reviewer",
+    "promptIncludes": "Review authorization.ts",
+    "answer": "Single-agent in-process review; no independent second model.\nSUMMARY: 1 error\n## ERRORS\nauthorization.ts:3 — Authorization is inverted: non-admin roles are allowed to delete accounts and admin is denied.",
+    "readFiles": [
+      "authorization.ts",
+      "@skill/references/personas/security.md",
+      "@skill/references/review-output-format.md"
+    ]
+  },
+  {
+    "skill": "npm-namer",
+    "promptIncludes": "captured CLI output in verdicts.txt",
+    "answer": {
+      "shortlist": ["orbit-log-kit"],
+      "retry": ["orbitlog", "void-log"],
+      "collisions": { "js-on-stream": "jsonstream" },
+      "authoritativeGuarantee": false
+    },
+    "readFiles": ["verdicts.txt"]
+  },
+  {
+    "skill": "npm-namer",
+    "promptIncludes": "A candidate passed the bundled",
+    "answer": {
+      "dryRunProvesAcceptance": false,
+      "publishAsProbe": false,
+      "limitation": "The search is bounded and provisional; dry-run skips the publish request."
+    },
+    "readFiles": []
+  },
+  {
+    "skill": "orca-doctor",
+    "promptIncludes": "canRecoverNow",
+    "answer": {
+      "canRecoverNow": false,
+      "nextAction": "inspect and refresh the audit",
+      "reason": "Inventory coverage is incomplete and activity is unknown."
+    },
+    "readFiles": ["diagnostic.json"]
+  },
+  {
+    "skill": "orca-doctor",
+    "promptIncludes": "Does this certify deletion safety",
+    "answer": {
+      "certifiedSafeToDelete": false,
+      "hiddenMeansOrphaned": false,
+      "canRemoveNow": false,
+      "missingEvidence": "Dirty files, Git locks, integration proof, and explicit confirmation remain unverified."
+    },
+    "readFiles": ["diagnostic.json"]
+  },
+  {
+    "skill": "skill-portability",
+    "promptIncludes": "Audit target-skill.md",
+    "answer": "Single-agent offline audit, snapshots retrieved 2026-10-01.\n| Provider | Verdict |\n| Claude Code | compatible |\n| Cursor | compatible |\n| Codex | compatible |\n| Agent Skills baseline | compatible |\nSKILL.md is native. XML example tags are Markdown content, not loader errors.",
+    "readFiles": [
+      "target-skill.md",
+      "@skill/references/provider-formats.md",
+      "@skill/references/providers/agents-skills-baseline.md",
+      "@skill/references/providers/claude-code.md",
+      "@skill/references/providers/cursor.md",
+      "@skill/references/providers/openai-codex-cli.md"
+    ]
+  },
+  {
+    "skill": "skill-portability",
+    "promptIncludes": "Audit unknown-tool.md",
+    "answer": {
+      "capabilityVerdict": "unknown",
+      "overallVerdict": "unknown",
+      "reason": "No bundled evidence establishes a verified tool mapping."
+    },
+    "readFiles": ["unknown-tool.md"]
+  },
+  {
+    "skill": "skill-creator",
+    "promptIncludes": "Draft only SKILL.md content",
+    "answer": "```markdown\n---\nname: incident-timeline\ndescription: >-\n  Use when asked to summarize plain-text incidents. Triggers include\n  \"summarize this incident\", \"build an incident timeline\", and\n  \"order these incident events\". Preserves unknown timestamps.\n  Skip when handling active incident response or log ingestion.\n---\n# incident-timeline\n## Workflow\n1. Read the pasted events.\n2. Order known timestamps; preserve unknown values without inventing them.\n## Examples\n<example><input>10:00 outage; 10:05 recovery</input><output>10:00 outage, 10:05 recovery</output></example>\n## Boundaries\nDo not infer missing timestamps.\n```",
+    "readFiles": ["catalog.txt"]
+  },
+  {
+    "skill": "skill-creator",
+    "promptIncludes": "Decide whether to create one or extend",
+    "answer": {
+      "action": "extend",
+      "existingSkill": "ts-best-practices",
+      "reason": "The requested rules already overlap the existing skill."
+    },
+    "readFiles": ["catalog.txt"]
+  },
+  {
+    "skill": "persona",
+    "promptIncludes": "/persona list",
+    "answer": {
+      "modes": [
+        "sassy",
+        "computer",
+        "dungeon-master",
+        "mentor",
+        "hype",
+        "caveman",
+        "marvin",
+        "passive-aggressive",
+        "comrade",
+        "roast",
+        "pastafarian",
+        "vulcan",
+        "klingon"
+      ],
+      "activeMode": null,
+      "intensity": null
+    },
+    "readFiles": []
+  },
+  {
+    "skill": "persona",
+    "promptIncludes": "/persona klingon intensity=3 off",
+    "answer": { "activeMode": null, "answer": 42 },
+    "readFiles": []
+  }
+]

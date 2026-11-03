@@ -32,7 +32,9 @@ export function checkAgentScan(report, expectedSkills) {
       continue
     }
     if (response.error != null)
-      errors.push(`${response.path}: analysis returned an operational error.`)
+      errors.push(
+        `${response.path}: analysis returned an operational error: ${errorMessage(response.error)}`
+      )
     for (const key of ['skill_risks', 'server_risks']) {
       if (!Array.isArray(response[key])) {
         errors.push(`${response.path}: missing ${key} array.`)
@@ -45,7 +47,9 @@ export function checkAgentScan(report, expectedSkills) {
         }
         if (key === 'skill_risks') skills.push(component.name)
         if (component.error != null)
-          errors.push(`${component.name}: analysis returned an operational error.`)
+          errors.push(
+            `${component.name}: analysis returned an operational error: ${errorMessage(component.error)}`
+          )
         if (!isRecord(component.risk_indexes)) {
           errors.push(`${component.name}: missing risk_indexes object.`)
           continue
@@ -83,6 +87,12 @@ export function checkAgentScan(report, expectedSkills) {
 
 function isRecord(value) {
   return value !== null && typeof value === 'object' && !Array.isArray(value)
+}
+
+function errorMessage(error) {
+  return isRecord(error) && typeof error.message === 'string'
+    ? error.message
+    : 'No error message returned.'
 }
 
 if (process.argv[1] && import.meta.url === pathToFileURL(realpathSync(process.argv[1])).href) {

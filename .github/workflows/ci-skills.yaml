@@ -3,7 +3,8 @@
 # Auth: prefers the Snyk GitHub Cloud App (no token needed if installed at the
 # org/repo level). Falls back to a SNYK_TOKEN repo secret if present. If neither
 # is configured the scan step will print Snyk's "set SNYK_TOKEN" message and
-# exit non-zero — the workflow continues so the artifact (if any) still uploads.
+# fail verification — the workflow continues so the reports still upload.
+# Transient analysis errors (429/502/503/504) retry twice; unavailable scans fail.
 #
 # To wire the GitHub App: install https://github.com/apps/snyk-security on this
 # repo via Snyk's UI. To wire the token instead: Settings → Secrets → Actions →
@@ -45,23 +46,17 @@ jobs:
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
         run: |
-          set +e
-          uvx snyk-agent-scan@latest --skills ./skills --json > audit.json
-          rc=$?
-          echo "snyk-agent-scan exit: $rc"
-          echo "--- audit.json ---"
-          cat audit.json 2>/dev/null || echo "(no output)"
-          exit $rc
+          node skill-scripts/run-agent-scan.mjs audit.json skills
 
       - name: Upload audit report
         if: always()
         uses: actions/upload-artifact@v7.0.2
         with:
           name: snyk-agent-scan-report
-          path: audit.json
+          path: audit*.json
           if-no-files-found: ignore
 
-      - name: Fail on High / Critical findings
+      - name: Require verified analysis with no High / Critical findings
         # Current reports use scan_path_responses and risk_indexes. High starts
         # at 600; Critical is 1000. Missing analysis and operational errors fail
         # verification too — an unavailable scan is never a clean scan.
