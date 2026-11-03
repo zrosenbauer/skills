@@ -23,7 +23,7 @@ The [`skills` CLI](https://www.npmjs.com/package/skills) handles discovery and p
 
 ### OpenCode slash commands
 
-Every skill has a matching OpenCode command: `/code-reviewer`, `/npm-namer`,
+Every skill has a matching OpenCode command: `/code-reviewer`, `/live-debug`, `/npm-namer`,
 `/orca-doctor`, `/skill-creator`, `/skill-portability`, `/skill-reviewer`,
 `/svg-creator`, `/ts-best-practices`, `/ts-best-practices-functional`, and `/persona`.
 Commands load the skill by ID and forward your arguments; they do not duplicate
@@ -56,18 +56,19 @@ and stages them automatically.
 
 ## Skills
 
-| #   | Skill                                                                   | What it does                                                           |
-| --- | ----------------------------------------------------------------------- | ---------------------------------------------------------------------- |
-| 1   | [`code-reviewer`](./skills/code-reviewer)                               | Adversarial review of a diff or PR — finds real issues, not nits       |
-| 2   | [`ts-best-practices`](./skills/ts-best-practices)                       | Writing or refactoring TypeScript with idiomatic patterns              |
-| 3   | [`ts-best-practices-functional`](./skills/ts-best-practices-functional) | Refactoring TS toward functional patterns — Result types, no mutation  |
-| 4   | [`skill-creator`](./skills/skill-creator)                               | Authoring a new skill with naming + description rules baked in         |
-| 5   | [`skill-portability`](./skills/skill-portability)                       | Checking whether a skill works across Claude Code, Cursor, Codex, etc. |
-| 6   | [`skill-reviewer`](./skills/skill-reviewer)                             | Reviewing skill instructions and reference quality                     |
-| 7   | [`npm-namer`](./skills/npm-namer)                                       | Finding available npm names and checking collisions                    |
-| 8   | [`svg-creator`](./skills/svg-creator)                                   | Creating, previewing, and converting SVG assets                        |
-| 9   | [`orca-doctor`](./skills/orca-doctor)                                   | Inspecting Orca worktrees and recovery candidates                      |
-| 10  | [`persona`](./skills/persona)                                           | Thirteen conversational voices, from Vulcan to consensual Roast        |
+| #   | Skill                                                                   | What it does                                                                 |
+| --- | ----------------------------------------------------------------------- | ---------------------------------------------------------------------------- |
+| 1   | [`code-reviewer`](./skills/code-reviewer)                               | Adversarial review of a diff or PR — finds real issues, not nits             |
+| 2   | [`ts-best-practices`](./skills/ts-best-practices)                       | Writing or refactoring TypeScript with idiomatic patterns                    |
+| 3   | [`ts-best-practices-functional`](./skills/ts-best-practices-functional) | Refactoring TS toward functional patterns — Result types, no mutation        |
+| 4   | [`skill-creator`](./skills/skill-creator)                               | Authoring a new skill with naming + description rules baked in               |
+| 5   | [`skill-portability`](./skills/skill-portability)                       | Checking whether a skill works across Claude Code, Cursor, Codex, etc.       |
+| 6   | [`skill-reviewer`](./skills/skill-reviewer)                             | Reviewing skill instructions and reference quality                           |
+| 7   | [`npm-namer`](./skills/npm-namer)                                       | Finding available npm names and checking collisions                          |
+| 8   | [`svg-creator`](./skills/svg-creator)                                   | Creating, previewing, and converting SVG assets                              |
+| 9   | [`orca-doctor`](./skills/orca-doctor)                                   | Inspecting Orca worktrees and recovery candidates                            |
+| 10  | [`persona`](./skills/persona)                                           | Thirteen conversational voices, from Vulcan to consensual Roast              |
+| 11  | [`live-debug`](./skills/live-debug)                                     | Tracked dev servers, guarded shutdown, and workspace-aware browser debugging |
 
 Each skill ships its own `SKILL.md` under [`skills/<name>/`](./skills).
 

@@ -15,7 +15,7 @@ pnpm eval:validate                         # config only; no model calls
 pnpm eval:test                             # all offline harness/assertion checks
 pnpm eval:skills --filter-first-n 1        # one live case
 pnpm eval:skills --filter-pattern npm-namer # one skill's live cases
-pnpm eval:skills                          # all 20 live cases
+pnpm eval:skills                          # all 22 live cases
 pnpm eval:skills --repeat 3                # repeated trials
 ```
 
@@ -43,18 +43,19 @@ history database. The command disables cache so skill changes are exercised.
 Every public skill has at least two cases. CI compares the YAML's case inventory
 against `skills/`, so adding a skill without coverage fails the offline check.
 
-| Skill                          | Cases                                                                          |
-| ------------------------------ | ------------------------------------------------------------------------------ |
-| `svg-creator`                  | Full-bleed standalone SVG; approval before previewing active markup            |
-| `ts-best-practices-functional` | Immutable array refactor; distinguish invalid JSON from invalid schema         |
-| `ts-best-practices`            | Object parameters and exported JSDoc; narrow untrusted values                  |
-| `skill-reviewer`               | Bundled reference evidence and honest manual lint; injected-target resistance  |
-| `code-reviewer`                | Persona-selection gate; authorization finding despite injected comments        |
-| `npm-namer`                    | Incomplete checks excluded from shortlist; no authoritative dry-run claims     |
-| `orca-doctor`                  | Stop on incomplete coverage; hidden worktrees are not certified safe to delete |
-| `skill-portability`            | Native Skills and snapshot evidence; unknown capabilities stay unknown         |
-| `skill-creator`                | Portable draft with triggers and examples; extend overlapping skills           |
-| `persona`                      | All thirteen modes without auto-selection; `off` precedence and exact JSON     |
+| Skill                          | Cases                                                                                  |
+| ------------------------------ | -------------------------------------------------------------------------------------- |
+| `svg-creator`                  | Full-bleed standalone SVG; approval before previewing active markup                    |
+| `ts-best-practices-functional` | Immutable array refactor; distinguish invalid JSON from invalid schema                 |
+| `ts-best-practices`            | Object parameters and exported JSDoc; narrow untrusted values                          |
+| `skill-reviewer`               | Bundled reference evidence and honest manual lint; injected-target resistance          |
+| `code-reviewer`                | Persona-selection gate; authorization finding despite injected comments                |
+| `npm-namer`                    | Incomplete checks excluded from shortlist; no authoritative dry-run claims             |
+| `orca-doctor`                  | Stop on incomplete coverage; hidden worktrees are not certified safe to delete         |
+| `skill-portability`            | Native Skills and snapshot evidence; unknown capabilities stay unknown                 |
+| `skill-creator`                | Portable draft with triggers and examples; extend overlapping skills                   |
+| `persona`                      | All thirteen modes without auto-selection; `off` precedence and exact JSON             |
+| `live-debug`                   | Refuse unverifiable process identity; external PID approval and Orca browser selection |
 
 The TypeScript checks inspect returned source patterns, not compilation or
 runtime semantics. Several boundary cases intentionally request strict JSON to
@@ -102,7 +103,7 @@ read commands, but this suite does not test general command workflows. Claude
 exposes only `Read`, `Glob`, `Grep`, and `Skill`. Both request output in the reply. It does not
 test file editing, general command execution, previews, registry lookups,
 publishing, Orca recovery, real cross-model handoffs, or multi-turn persona
-persistence. All ten skills have core-contract cases, not full end-to-end
+persistence. All eleven skills have core-contract cases, not full end-to-end
 workflow coverage. No LLM judge or extra model calls are used.
 
 The temporary directory is **not a security boundary or pristine agent environment**: the CLI still
