@@ -48,6 +48,9 @@ test('rejects operational errors even when the scanner exits successfully', () =
     const report = reportWith()
     report.scan_path_responses[0].error = error
     assert.ok(checkAgentScan(report, ['fixture']).errors.length)
+    assert.ok(
+      checkAgentScan(report, ['fixture']).errors.some((message) => message.includes(error.message))
+    )
     const componentReport = reportWith()
     componentReport.scan_path_responses[0].skill_risks[0].error = error
     assert.ok(checkAgentScan(componentReport, ['fixture']).errors.length)

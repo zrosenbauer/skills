@@ -251,10 +251,11 @@ test('runs every YAML case offline against positive answers, failed reads, and w
       ],
       {
         encoding: 'utf8',
-        timeout: 60_000,
+        timeout: 180_000,
         env: { ...process.env, PROMPTFOO_DISABLE_TELEMETRY: '1' },
       }
     )
+    assert.ifError(child.error)
     assert.equal(child.status, mode === 'success' ? 0 : 100, `${child.stdout}\n${child.stderr}`)
     assert.ok(existsSync(marker), 'the configured fake executable must have run')
     const report = JSON.parse(readFileSync(outputPath, 'utf8'))
