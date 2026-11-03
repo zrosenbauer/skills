@@ -77,6 +77,9 @@ Each skill ships its own `SKILL.md` under [`skills/<name>/`](./skills).
 
 Want to add a skill, fix a bug, or fork one for your own use? See [CONTRIBUTING.md](./CONTRIBUTING.md) for the dev setup, skill authoring workflow, and conventions.
 
+[Behavioral evaluations](contributing/evaluations.md) run real agent CLI calls
+from Promptfoo YAML (`pnpm eval:skills`).
+
 ## License
 
 [MIT](./LICENSE) © Zac Rosenbauer

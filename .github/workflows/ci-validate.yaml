@@ -29,6 +29,8 @@ jobs:
           git diff --exit-code -- skill-scripts skills
           test -z "$(git ls-files --others --exclude-standard -- skill-scripts skills)"
       - run: pnpm check
+      - name: Validate eval YAML (offline; no model credentials)
+        run: pnpm eval:validate
       - run: pnpm commands:opencode --check
       - run: pnpm skill-toolkit lint --severity error
       - run: pnpm skill-toolkit sync --check
