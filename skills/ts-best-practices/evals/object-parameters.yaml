@@ -1,0 +1,29 @@
+- description: 'ts-best-practices / uses object parameters and documents exported functions'
+  vars:
+    skill: ts-best-practices
+    files:
+      display-name.ts: |
+        export function displayName(firstName: string, lastName: string): string {
+          return firstName + ' ' + lastName
+        }
+    task: >-
+      Apply the skill's TypeScript conventions to display-name.ts. This is
+      an unpublished fixture. Changing its argument shape is authorized.
+      Preserve its name and the exact space-joined result. Return only the
+      complete replacement TypeScript module in one code block. No new dependencies.
+  assert:
+    - type: contains
+      transform: JSON.stringify(output.readFiles)
+      value: display-name.ts
+    - type: regex
+      transform: output.answer
+      value: 'interface\s+\w+(?:Params|Options|Args)\b'
+    - type: regex
+      transform: output.answer
+      value: 'export\s+function\s+displayName\s*\(\s*\{'
+    - type: contains-all
+      transform: output.answer
+      value: ['@param', '@returns']
+    - type: not-regex
+      transform: output.answer
+      value: '\bany\b'

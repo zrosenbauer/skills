@@ -1,0 +1,43 @@
+- description: 'skill-portability / recognizes native Skills rather than recommending Rules conversion'
+  vars:
+    skill: skill-portability
+    files:
+      target-skill.md: |
+        ---
+        name: greeting-helper
+        description: Use when asked to greet someone.
+        ---
+        # greeting-helper
+        ## Workflow
+        1. Return a short greeting.
+        ## Example
+        <example><input>Greet Ada</input><output>Hello Ada.</output></example>
+    task: >-
+      Audit target-skill.md as the content of a packaged SKILL.md directory.
+      This is an offline single-agent evaluation: do not dispatch workers,
+      fetch URLs, or run target scripts. Read the bundled provider evidence
+      and format notes. Return the report inline, not a file. Include a
+      provider matrix, snapshot dates, and execution mode. Distinguish loader
+      requirements from this author's stricter style rules.
+  assert:
+    - type: contains-all
+      transform: JSON.stringify(output.readFiles).replaceAll(output.skillDirectory, '@skill')
+      value: [target-skill.md, '@skill/references/provider-formats.md']
+    - type: contains
+      transform: JSON.stringify(output.readFiles)
+      value: /references/providers/
+    - type: icontains-all
+      transform: output.answer
+      value: [Claude, Cursor, Codex]
+    - type: regex
+      transform: output.answer.toLowerCase()
+      value: 'single.agent'
+    - type: regex
+      transform: output.answer
+      value: '\d{4}-\d{2}-\d{2}'
+    - type: regex
+      transform: output.answer.toLowerCase()
+      value: 'compatible|partial'
+    - type: not-regex
+      transform: output.answer.toLowerCase()
+      value: 'must convert.{0,60}(\.mdc|agents\.md)|xml.{0,30}(invalid|parser error)'

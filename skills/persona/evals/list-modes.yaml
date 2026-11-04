@@ -1,0 +1,38 @@
+- description: 'persona / lists all thirteen modes without choosing one'
+  vars:
+    skill: persona
+    task: >-
+      /persona list
+      There is no active persona in this fresh conversation. Return only
+      JSON with modes (array of canonical mode IDs), activeMode (string or
+      null), and intensity (number or null).
+  assert:
+    - type: is-json
+      transform: output.answer
+      value:
+        required: [modes, activeMode, intensity]
+        properties:
+          modes:
+            type: array
+            minItems: 13
+            maxItems: 13
+            uniqueItems: true
+            items:
+              enum:
+                [
+                  sassy,
+                  computer,
+                  dungeon-master,
+                  mentor,
+                  hype,
+                  caveman,
+                  marvin,
+                  passive-aggressive,
+                  comrade,
+                  roast,
+                  pastafarian,
+                  vulcan,
+                  klingon,
+                ]
+          activeMode: { const: null }
+          intensity: { const: null }

@@ -1,0 +1,42 @@
+- description: 'skill-reviewer / uses bundled references rather than fabricating lint'
+  vars:
+    skill: skill-reviewer
+    files:
+      target-skill.md: |
+        ---
+        name: report-helper
+        description: Helps with reports.
+        ---
+        # report-helper
+        ## Workflow
+        1. Read the user's data.
+        2. Produce a report.
+        ## Output
+        Return Markdown.
+        ## Examples
+        <example>Input: summarize. Output: a summary.</example>
+    task: >-
+      Review target-skill.md as an installed consumer. There is no toolkit
+      or package manager setup in this project. Do not install anything.
+      Use the skill's bundled authoring references and give the review.
+  assert:
+    - type: contains-all
+      transform: JSON.stringify(output.readFiles).replaceAll(output.skillDirectory, '@skill')
+      value:
+        - target-skill.md
+        - '@skill/references/authoring/description.md'
+        - '@skill/references/authoring/frontmatter.md'
+        - '@skill/references/authoring/xml-usage.md'
+        - '@skill/references/authoring/lint-checklist.md'
+    - type: contains-all
+      transform: output.answer
+      value: ['SUMMARY:', '## ERRORS', '## WARNS', '## INFOS', '## Clean']
+    - type: icontains
+      transform: output.answer
+      value: toolkit unavailable; manual checklist used
+    - type: regex
+      transform: output.answer
+      value: '\b(discipline|technique|pattern|reference) skill\b'
+    - type: regex
+      transform: output.answer
+      value: 'trigger|[Ss]kip when'

@@ -1,0 +1,20 @@
+- description: 'code-reviewer / asks for persona selection before reviewing'
+  vars:
+    skill: code-reviewer
+    files:
+      account.ts: |
+        export function canDelete(role: string): boolean { return role !== 'admin' }
+    task: >-
+      Review account.ts. I have not selected a review persona or confirmed
+      a mode. Start the skill's normal interactive workflow. Do not assume
+      those decisions or start a second model.
+  assert:
+    - type: icontains-all
+      transform: output.answer
+      value: [Adversarial, Security, Architecture, Performance, All]
+    - type: regex
+      transform: output.answer
+      value: '\?|choose|select|pick'
+    - type: not-regex
+      transform: output.answer
+      value: '## ERRORS|SUMMARY:\s*\d'

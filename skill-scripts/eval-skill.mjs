@@ -47,7 +47,11 @@ export function evaluateSkill({ prompt, vars, config = {} }) {
       'skills',
       skill
     )
-    cpSync(path.join(repoRoot, 'skills', skill), skillDir, { recursive: true })
+    const sourceDir = path.join(repoRoot, 'skills', skill)
+    cpSync(sourceDir, skillDir, {
+      recursive: true,
+      filter: (source) => source !== path.join(sourceDir, 'evals'),
+    })
     const files = vars.files ?? {}
     if (typeof files !== 'object' || Array.isArray(files))
       throw new Error('files must be a filename-to-content map')

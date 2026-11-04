@@ -1,8 +1,10 @@
 # Behavioral evaluations
 
 Run from the repository root with Node 24+, pnpm, Bun (also used by the repo's
-build), and an authenticated `codex` CLI. No agent SDK is required. Cases and assertions live in
-[`promptfooconfig.yaml`](../promptfooconfig.yaml); the small `exec:` wrapper only
+build), and an authenticated `codex` CLI. No agent SDK is required. Cases live in
+`skills/<name>/evals/`, using Promptfoo's built-in YAML assertions.
+[`promptfooconfig.yaml`](../promptfooconfig.yaml) holds the provider and shared checks.
+The small `exec:` wrapper only
 copies fixtures, calls the CLI, and summarizes its stream.
 
 The `exec:` command uses Bun to run the wrapper: on the development machine,
@@ -71,9 +73,8 @@ or an API key. Bun is already installed by that workflow.
 The offline test injects a fake executable explicitly and runs the actual
 Promptfoo YAML three times: all reference answers pass, all failed-read runs
 fail, and all wrong-answer runs fail despite successful reads. Curated reference
-answers live in `contributing/eval-reference-answers.json`; they test the scoring
-and plumbing, **not model behavior**. All inline assertions are compiled and
-checked against an empty failed run, too. No live evaluation is wired into CI.
+answers live in `contributing/eval-reference-answers.json`. They test the scoring
+and plumbing, **not model behavior**. No live evaluation is wired into CI.
 
 Run the real agents manually on your machine using the commands above. The
 CLI's existing login can use your subscription allowance rather than an API key,
@@ -96,7 +97,9 @@ they are not evidence that a real agent follows the skills.
 ## Limits
 
 Each case gets a fresh temporary directory with just one copied skill and flat
-YAML fixture files, removed after the call. The wrapper explicitly asks the agent
+YAML fixture files, removed after the call. The skill's `evals/` directory is
+excluded so the agent does not receive the test cases or scoring code.
+The wrapper explicitly asks the agent
 to load that skill, so this does **not** test automatic routing. Codex runs with
 its native `read-only` sandbox, JSONL output, and ephemeral sessions; it can run
 read commands, but this suite does not test general command workflows. Claude
@@ -116,8 +119,40 @@ value. Review repeated live results before using model scores as a CI gate;
 paid evals are not part of `pnpm check` or CI. Offline passes must never be
 reported as successful live runs of the expanded suite.
 
-To add a case, copy a YAML test, select its `skill`, supply optional `files`, and
-assert on `JSON.parse(output).answer` or successful `readFiles`. Keep expected
+## Add a case
+
+Each behavior gets a YAML file inside its skill's `evals/` directory:
+
+```text
+skills/live-debug/evals/
+  external-pid.yaml
+  process-identity.yaml
+```
+
+Use a `skill / behavior` description for readable results and filtering:
+
+```yaml
+- description: 'live-debug / refuses unverifiable process identity'
+  vars:
+    skill: live-debug
+    task: Decide whether an unverified PID may be signaled. Return only JSON.
+  assert:
+    - type: is-json
+      transform: output.answer
+      value:
+        required: [maySignalNow]
+        properties:
+          maySignalNow: { const: false }
+```
+
+The root config discovers `skills/*/evals/*.yaml` automatically.
+Use built-in checks such as `contains-all`, `regex`, and `is-json` with a schema.
+The shared config parses the CLI result envelope and checks skill-read evidence
+and permission denials. Set `transform: output.answer` to check the agent's answer,
+or `transform: JSON.stringify(output.readFiles)` to check its successful reads.
+
+To add a case, copy a neighboring YAML test, select its `skill`, supply optional
+`files`, and check the answer or successful reads. Keep expected
 behavior concrete and test artifacts before adding broad word-matching checks.
 Add a matching reference answer with a unique `skill` and `promptIncludes`
 combination. CI requires it to pass, and rejects wrong answers and failed reads.

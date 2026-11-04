@@ -1,0 +1,34 @@
+- description: 'skill-creator / drafts portable frontmatter with concrete routing and examples'
+  vars:
+    skill: skill-creator
+    files:
+      catalog.txt: 'No existing skill covers plain-text incident timeline summarization.'
+    task: >-
+      Use catalog.txt as the complete overlap inventory for this exercise.
+      Draft only SKILL.md content for incident-timeline: it summarizes pasted
+      plain-text incident events chronologically without inventing missing
+      timestamps. Triggers: "summarize this incident", "build an incident
+      timeline", "order these incident events". Skip active incident response
+      and log ingestion. No scripts or dependencies are needed. Return only
+      the SKILL.md draft in one markdown code block. Do not create files or
+      claim that toolkit lint, tests, or independent workers ran.
+  assert:
+    - type: contains
+      transform: JSON.stringify(output.readFiles)
+      value: catalog.txt
+    - type: contains-all
+      transform: output.answer
+      value:
+        - 'name: incident-timeline'
+        - 'description:'
+        - 'Skip when'
+        - '"summarize this incident"'
+        - '"build an incident timeline"'
+        - '"order these incident events"'
+        - '<example>'
+    - type: regex
+      transform: output.answer
+      value: '(?:## [^\n]+[\s\S]*?){3}'
+    - type: not-regex
+      transform: output.answer
+      value: '## When (?:not )?to use|TODO|FIXME'

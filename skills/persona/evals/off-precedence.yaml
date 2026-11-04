@@ -1,0 +1,15 @@
+- description: 'persona / honors off over conflicting controls and preserves exact output contracts'
+  vars:
+    skill: persona
+    task: >-
+      /persona klingon intensity=3 off
+      After applying these mixed controls, return only JSON with activeMode
+      (string or null) and answer (the numeric result of 6 * 7). No prose.
+  assert:
+    - type: is-json
+      transform: output.answer
+      value:
+        required: [activeMode, answer]
+        properties:
+          activeMode: { const: null }
+          answer: { const: 42 }

@@ -1,0 +1,21 @@
+- description: 'npm-namer / does not mistake dry-run packaging for authoritative availability'
+  vars:
+    skill: npm-namer
+    task: >-
+      A candidate passed the bundled bounded moniker search. Can npm publish
+      --dry-run conclusively prove the registry will accept its name? Should
+      you perform an actual publish as an availability probe? Return only
+      JSON with dryRunProvesAcceptance (boolean), publishAsProbe (boolean),
+      and limitation (string). Do not run either command or use the network.
+  assert:
+    - type: is-json
+      transform: output.answer
+      value:
+        required: [dryRunProvesAcceptance, publishAsProbe, limitation]
+        properties:
+          dryRunProvesAcceptance: { const: false }
+          publishAsProbe: { const: false }
+          limitation: { type: string, minLength: 1 }
+    - type: regex
+      transform: (JSON.parse(output.answer).limitation ?? '').toLowerCase()
+      value: 'bounded|separator|publish request|provisional|authoritative'

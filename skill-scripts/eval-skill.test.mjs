@@ -1,12 +1,24 @@
 import assert from 'node:assert/strict'
 import { spawnSync } from 'node:child_process'
-import { existsSync, mkdtempSync, readFileSync, readdirSync, rmSync, writeFileSync } from 'node:fs'
+import {
+  existsSync,
+  globSync,
+  mkdtempSync,
+  readFileSync,
+  readdirSync,
+  rmSync,
+  writeFileSync,
+} from 'node:fs'
 import { tmpdir } from 'node:os'
 import path from 'node:path'
 import { test } from 'node:test'
 import { fileURLToPath } from 'node:url'
 
 import { evaluateSkill, summarizeCodexRun, summarizeRun } from './eval-skill.mjs'
+
+const repoRoot = fileURLToPath(new URL('../', import.meta.url))
+const caseFiles = () => globSync('skills/*/evals/*.yaml', { cwd: repoRoot }).toSorted()
+const readCase = (file) => readFileSync(path.join(repoRoot, file), 'utf8')
 
 const skill = 'svg-creator'
 const skillPath = '/fixture/.claude/skills/svg-creator/SKILL.md'
@@ -101,7 +113,7 @@ test('copies skill and fixtures, passes CLI limits, and removes its workspace', 
     t,
     `
     const file_path = input.match(/^Read (.+?) and follow/)[1];
-    const answer = JSON.stringify({skill:existsSync(file_path), fixture:readFileSync('input.txt','utf8')});
+    const answer = JSON.stringify({skill:existsSync(file_path), fixture:readFileSync('input.txt','utf8'), evals:existsSync(file_path.replace(/SKILL\\.md$/, 'evals'))});
     console.log(JSON.stringify({type:'assistant',message:{content:[{type:'tool_use',id:'1',name:'Read',input:{file_path}}]}}));
     console.log(JSON.stringify({type:'user',message:{content:[{type:'tool_result',tool_use_id:'1',content:'skill'}]}}));
     console.log(JSON.stringify({type:'result',subtype:'success',is_error:false,result:answer}));
@@ -113,7 +125,11 @@ test('copies skill and fixtures, passes CLI limits, and removes its workspace', 
     config: { agent: 'claude', cli, model: 'test-model', maxBudgetUsd: 0.1 },
   })
   assert.equal(result.loadedSkill, true)
-  assert.deepEqual(JSON.parse(result.answer), { skill: true, fixture: 'real fixture' })
+  assert.deepEqual(JSON.parse(result.answer), {
+    skill: true,
+    fixture: 'real fixture',
+    evals: false,
+  })
   const invocation = JSON.parse(readFileSync(marker, 'utf8'))
   assert.equal(existsSync(invocation.cwd), false)
   assert.ok(invocation.input.endsWith('Read input.txt'))
@@ -223,9 +239,11 @@ test('runs every YAML case offline against positive answers, failed reads, and w
       console.log(JSON.stringify({type:'turn.completed',usage:{input_tokens:10,output_tokens:20}}));
     `
     )
-    const config = yaml
-      .replace('exec:bun skill-scripts/eval-skill.mjs', `exec:bun ${JSON.stringify(wrapper)}`)
-      .replace('    config:\n', `    config:\n      cli: ${JSON.stringify(cli)}\n`)
+    const config =
+      `basePath: ${JSON.stringify(repoRoot)}\n` +
+      yaml
+        .replace('exec:bun skill-scripts/eval-skill.mjs', `exec:bun ${JSON.stringify(wrapper)}`)
+        .replace('    config:\n', `    config:\n      cli: ${JSON.stringify(cli)}\n`)
     assert.ok(
       config.includes(`cli: ${JSON.stringify(cli)}`),
       'refuse an offline run without the fake executable'
@@ -417,13 +435,23 @@ test('rejects unsupported adapters and dollar caps that Codex cannot enforce', (
 })
 
 test('covers every public skill with at least two independently described cases', () => {
-  const yaml = readFileSync(new URL('../promptfooconfig.yaml', import.meta.url), 'utf8')
+  const config = readFileSync(new URL('../promptfooconfig.yaml', import.meta.url), 'utf8')
+  assert.match(config, /^  - file:\/\/skills\/\*\/evals\/\*\.yaml$/m)
   const skills = readdirSync(new URL('../skills/', import.meta.url), { withFileTypes: true })
     .filter((entry) => entry.isDirectory())
     .map((entry) => entry.name)
-  const cases = [
-    ...yaml.matchAll(/^  - description: (.+)\n    vars:\n      skill: ([a-z][a-z0-9-]*)$/gm),
-  ]
+  const cases = caseFiles().map((file) => {
+    const matches = Array.from(
+      readCase(file).matchAll(/^- description: '(.+)'\n  vars:\n    skill: ([a-z][a-z0-9-]*)$/gm)
+    )
+    assert.equal(matches.length, 1, `${file} must define exactly one named case`)
+    assert.equal(matches[0][2], file.split('/')[1], `${file} must evaluate its owning skill`)
+    assert.ok(
+      matches[0][1].startsWith(`${matches[0][2]} / `),
+      `${file} needs a skill / behavior label`
+    )
+    return matches[0]
+  })
   assert.ok(cases.length >= skills.length * 2)
   assert.equal(
     new Set(cases.map((match) => match[1])).size,
@@ -439,27 +467,23 @@ test('covers every public skill with at least two independently described cases'
   }
 })
 
-test('compiles every inline YAML assertion and rejects a vacuous empty answer', () => {
-  const yaml = readFileSync(new URL('../promptfooconfig.yaml', import.meta.url), 'utf8')
-  const assertions = [...yaml.matchAll(/^\s+value: (\|\n(?:          .*\n|\n)+|[^\n]+)/gm)]
+test('uses built-in YAML assertions without custom scoring files', () => {
+  const yaml = [readCase('promptfooconfig.yaml'), ...caseFiles().map(readCase)].join('\n')
+  const assertions = [...yaml.matchAll(/^\s+- type: ([^\n]+)/gm)]
+  const builtins = new Set([
+    'is-json',
+    'contains',
+    'contains-all',
+    'icontains',
+    'icontains-all',
+    'regex',
+    'not-regex',
+    'not-equals',
+  ])
   assert.ok(assertions.length >= 24)
-  const output = JSON.stringify({
-    answer: '',
-    loadedSkill: false,
-    permissionDenials: [{ status: 'declined' }],
-    readFiles: [],
-    skillDirectory: '.agents/skills/fixture',
-  })
-  for (const [, source] of assertions) {
-    const body = source.startsWith('|\n')
-      ? source.slice(2).replace(/^          /gm, '')
-      : `return (${source})`
-    const check = new Function('output', body)
-    try {
-      assert.notEqual(check(output), true, `assertion must reject an empty failed run: ${body}`)
-    } catch (error) {
-      // JSON-only cases are expected to reject an empty answer during parsing.
-      if (!(error instanceof SyntaxError)) throw error
-    }
+  for (const [, type] of assertions) {
+    assert.ok(builtins.has(type), `${type} must be a built-in assertion`)
   }
+  assert.doesNotMatch(yaml, /value: file:\/\//)
+  assert.deepEqual(globSync('skills/*/evals/*.{js,mjs,cjs}', { cwd: repoRoot }), [])
 })

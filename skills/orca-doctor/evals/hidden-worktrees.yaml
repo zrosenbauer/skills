@@ -1,0 +1,28 @@
+- description: 'orca-doctor / does not certify hidden inactive worktrees safe to delete'
+  vars:
+    skill: orca-doctor
+    files:
+      diagnostic.json: |
+        {"ok":true,"coverage":{"complete":true},"worktrees":[{"name":"feat/a","state":"hidden","activity":"inactive","protection":[],"actions":["inspect","reveal","confirm-native-removal"]}]}
+    task: >-
+      Interpret diagnostic.json as a captured doctor result. No recovery has
+      been approved. Does this certify deletion safety or establish that the
+      hidden checkout is orphaned? Return only JSON with certifiedSafeToDelete,
+      hiddenMeansOrphaned, canRemoveNow (all booleans), and missingEvidence
+      (string). Do not contact Orca or perform mutations.
+  assert:
+    - type: contains
+      transform: JSON.stringify(output.readFiles)
+      value: diagnostic.json
+    - type: is-json
+      transform: output.answer
+      value:
+        required: [certifiedSafeToDelete, hiddenMeansOrphaned, canRemoveNow, missingEvidence]
+        properties:
+          certifiedSafeToDelete: { const: false }
+          hiddenMeansOrphaned: { const: false }
+          canRemoveNow: { const: false }
+          missingEvidence: { type: string, minLength: 1 }
+    - type: regex
+      transform: (JSON.parse(output.answer).missingEvidence ?? '').toLowerCase()
+      value: 'dirty|lock|git|merge|integration|confirm'

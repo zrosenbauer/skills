@@ -1,0 +1,35 @@
+- description: 'npm-namer / keeps incomplete moniker checks out of the shortlist'
+  vars:
+    skill: npm-namer
+    files:
+      verdicts.txt: |
+        ✓ available   orbit-log-kit
+        ⚠ unverified  orbitlog  (some moniker variant probes failed: 429)
+        ⚠ moniker     js-on-stream  collides with: jsonstream
+        ? unknown     void-log  (literal lookup returned HTTP 503)
+    task: >-
+      Interpret the captured CLI output in verdicts.txt without making
+      network calls or rerunning checks. Return only JSON with shortlist
+      (array of candidate names), retry (array of names needing more checks),
+      collisions (object from blocked name to existing package), and
+      authoritativeGuarantee (boolean). Do not publish anything.
+  assert:
+    - type: contains
+      transform: JSON.stringify(output.readFiles)
+      value: verdicts.txt
+    - type: is-json
+      transform: output.answer
+      value:
+        required: [shortlist, retry, collisions, authoritativeGuarantee]
+        properties:
+          shortlist: { const: [orbit-log-kit] }
+          retry:
+            type: array
+            allOf:
+              - contains: { const: orbitlog }
+              - contains: { const: void-log }
+          collisions:
+            required: [js-on-stream]
+            properties:
+              js-on-stream: { const: jsonstream }
+          authoritativeGuarantee: { const: false }

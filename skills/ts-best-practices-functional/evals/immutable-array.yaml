@@ -1,0 +1,30 @@
+- description: 'ts-best-practices-functional / removes input mutation in returned code'
+  vars:
+    skill: ts-best-practices-functional
+    files:
+      append-item.ts: |
+        export function appendItem(items: string[], item: string): string[] {
+          items.push(item)
+          return items
+        }
+    task: >-
+      Read append-item.ts and make it functional without changing its name
+      or argument order. Keep the returned items in the same order. Use a
+      readonly input and a new array. Return only the replacement TypeScript
+      in one fenced code block. No dependencies are available or needed.
+  assert:
+    - type: contains
+      transform: JSON.stringify(output.readFiles)
+      value: append-item.ts
+    - type: regex
+      transform: output.answer
+      value: 'export\s+function\s+appendItem\b'
+    - type: regex
+      transform: output.answer
+      value: 'readonly\s+string\[\]|ReadonlyArray<string>'
+    - type: regex
+      transform: output.answer
+      value: 'return\s*\[\s*\.\.\.items\s*,\s*item\s*\]'
+    - type: not-regex
+      transform: output.answer
+      value: '\.push\(|\.splice\(|\bthrow\b|\bclass\b'
