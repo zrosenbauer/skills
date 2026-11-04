@@ -56,19 +56,104 @@ and stages them automatically.
 
 ## Skills
 
-| #   | Skill                                                                   | What it does                                                                 |
-| --- | ----------------------------------------------------------------------- | ---------------------------------------------------------------------------- |
-| 1   | [`code-reviewer`](./skills/code-reviewer)                               | Adversarial review of a diff or PR — finds real issues, not nits             |
-| 2   | [`ts-best-practices`](./skills/ts-best-practices)                       | Writing or refactoring TypeScript with idiomatic patterns                    |
-| 3   | [`ts-best-practices-functional`](./skills/ts-best-practices-functional) | Refactoring TS toward functional patterns — Result types, no mutation        |
-| 4   | [`skill-creator`](./skills/skill-creator)                               | Authoring a new skill with naming + description rules baked in               |
-| 5   | [`skill-portability`](./skills/skill-portability)                       | Checking whether a skill works across Claude Code, Cursor, Codex, etc.       |
-| 6   | [`skill-reviewer`](./skills/skill-reviewer)                             | Reviewing skill instructions and reference quality                           |
-| 7   | [`npm-namer`](./skills/npm-namer)                                       | Finding available npm names and checking collisions                          |
-| 8   | [`svg-creator`](./skills/svg-creator)                                   | Creating, previewing, and converting SVG assets                              |
-| 9   | [`orca-doctor`](./skills/orca-doctor)                                   | Inspecting Orca worktrees and recovery candidates                            |
-| 10  | [`persona`](./skills/persona)                                           | Thirteen conversational voices, from Vulcan to consensual Roast              |
-| 11  | [`live-debug`](./skills/live-debug)                                     | Tracked dev servers, guarded shutdown, and workspace-aware browser debugging |
+<details>
+<summary><code>/code-reviewer</code></summary>
+
+Adversarial review of a diff or PR — finds real issues, not nits.
+
+[View skill](./skills/code-reviewer)
+
+</details>
+
+<details>
+<summary><code>/ts-best-practices</code></summary>
+
+Write or refactor TypeScript with idiomatic patterns.
+
+[View skill](./skills/ts-best-practices)
+
+</details>
+
+<details>
+<summary><code>/ts-best-practices-functional</code></summary>
+
+Refactor TypeScript toward functional patterns — Result types, no mutation.
+
+[View skill](./skills/ts-best-practices-functional)
+
+</details>
+
+<details>
+<summary><code>/skill-creator</code></summary>
+
+Author a new skill with naming and description rules baked in.
+
+[View skill](./skills/skill-creator)
+
+</details>
+
+<details>
+<summary><code>/skill-portability</code></summary>
+
+Check whether a skill works across Claude Code, Cursor, Codex, and other agents.
+
+[View skill](./skills/skill-portability)
+
+</details>
+
+<details>
+<summary><code>/skill-reviewer</code></summary>
+
+Review skill instructions and reference quality.
+
+[View skill](./skills/skill-reviewer)
+
+</details>
+
+<details>
+<summary><code>/npm-namer</code></summary>
+
+Find available npm names and check collisions.
+
+[View skill](./skills/npm-namer)
+
+</details>
+
+<details>
+<summary><code>/svg-creator</code></summary>
+
+Create, preview, and convert SVG assets.
+
+[View skill](./skills/svg-creator)
+
+</details>
+
+<details>
+<summary><code>/orca-doctor</code></summary>
+
+Inspect Orca worktrees and recovery candidates.
+
+[View skill](./skills/orca-doctor)
+
+</details>
+
+<details>
+<summary><code>/persona</code></summary>
+
+Thirteen conversational voices, from Vulcan to consensual Roast.
+
+[View skill](./skills/persona)
+
+</details>
+
+<details>
+<summary><code>/live-debug</code></summary>
+
+Tracked dev servers, guarded shutdown, and workspace-aware browser debugging.
+
+[View skill](./skills/live-debug)
+
+</details>
 
 Each skill ships its own `SKILL.md` under [`skills/<name>/`](./skills).
 
